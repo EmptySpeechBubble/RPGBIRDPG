@@ -79,10 +79,11 @@
             }
 
             #game-title {
-                font-size: 8px;
+                font-size: 9px;
                 margin: 0;
-                padding: 1px;
+                padding: 2px;
                 text-align: center;
+                font-weight: bold;
             }
 
             /* Hide New Game / Help buttons on mobile */
@@ -90,21 +91,21 @@
                 display: none;
             }
 
-            /* Single line info - ultra minimal */
+            /* Single line info - readable */
             #season-info, #level-info {
                 display: inline-block;
-                font-size: 5px;
+                font-size: 6px;
                 margin: 0;
-                padding: 0 2px;
+                padding: 0 3px;
                 background: transparent;
                 border-radius: 0;
             }
 
             #action-info {
                 display: inline-block;
-                font-size: 5px;
+                font-size: 6px;
                 margin: 0;
-                padding: 0 2px;
+                padding: 0 3px;
             }
 
             /* Just numbers, no labels */
@@ -118,24 +119,24 @@
 
             /* Single line stats - just emoji + number */
             #game-header > div:nth-child(3) {
-                font-size: 6px;
-                line-height: 1;
+                font-size: 7px;
+                line-height: 1.2;
                 margin: 0;
-                padding: 1px;
+                padding: 2px;
             }
 
             .stat-compact {
-                padding: 0 2px;
-                font-size: 6px;
+                padding: 0 3px;
+                font-size: 7px;
                 background: transparent;
                 border-radius: 0;
             }
 
             /* Inventory - minimal inline */
             #inventory {
-                padding: 0 2px;
+                padding: 0 3px;
                 margin: 0;
-                font-size: 6px;
+                font-size: 7px;
                 background: transparent;
                 border-radius: 0;
                 text-align: center;
@@ -146,66 +147,69 @@
             }
 
             .inventory-item {
-                font-size: 5px;
+                font-size: 6px;
                 margin: 0;
-                padding: 0 1px;
+                padding: 0 2px;
                 background: transparent;
             }
 
-            /* Weather - inline, minimal */
+            /* Weather - inline, readable */
             #weather-display {
-                padding: 0 2px;
+                padding: 1px 3px;
                 margin: 0;
-                font-size: 5px;
+                font-size: 6px;
                 background: transparent;
                 border-radius: 0;
             }
 
-            /* Message log - super minimal */
+            /* Message log - readable */
             #message-log {
-                max-height: 12px;
-                margin: 0;
-                padding: 1px;
-                font-size: 5px;
-                line-height: 1;
+                max-height: 16px;
+                margin: 0 0 2px 0;
+                padding: 2px;
+                font-size: 6px;
+                line-height: 1.2;
                 background: #1a1a1a;
                 border-radius: 0;
+                overflow-y: auto;
             }
 
             .message {
                 margin: 0;
-                padding: 0;
-                font-size: 5px;
+                padding: 1px;
+                font-size: 6px;
                 border-left-width: 1px;
             }
 
-            /* BIGGER MAP - the star of the show */
+            /* MAP - slightly smaller to make room for readable actions */
             #map-canvas {
-                width: 240px;
-                height: 240px;
+                width: 220px;
+                height: 220px;
                 border-radius: 4px;
             }
 
             #map-wrapper {
-                width: 240px;
+                width: 220px;
                 margin: 0 auto;
             }
 
-            /* TINY action buttons - just icons */
+            /* READABLE action buttons - bigger text, 3 columns */
             .action-btn {
-                padding: 2px 1px;
-                font-size: 5px;
-                border-radius: 2px;
-                gap: 0;
+                padding: 4px 2px;
+                font-size: 7px;
+                border-radius: 3px;
+                gap: 1px;
             }
 
             .btn-emoji {
-                font-size: 10px;
+                font-size: 14px;
             }
 
             .btn-text {
-                font-size: 5px;
-                display: none; /* Hide text, just show emoji */
+                font-size: 7px;
+                display: block; /* Show text! */
+                font-weight: bold;
+                line-height: 1.1;
             }
 
             #main-content {
@@ -231,10 +235,11 @@
             }
 
             #action-panel {
-                margin-top: 1px;
-                gap: 1px;
-                width: 240px;
-                grid-template-columns: repeat(4, 1fr);
+                margin-top: 2px;
+                gap: 2px;
+                width: 100%;
+                max-width: 280px;
+                grid-template-columns: repeat(3, 1fr);
             }
 
             /* Quest - hidden on main page, only in menu */
@@ -1311,7 +1316,7 @@
                 btn.innerHTML = `
                     <div class="btn-emoji">${a.emoji}</div>
                     <div class="btn-text">${a.text}</div>
-                    ${a.energyCost ? `<div class="btn-text" style="font-size: 6px;">-${a.energyCost} ⚡</div>` : ''}
+                    ${a.energyCost ? `<div class="btn-text" style="font-size: 6px; opacity: 0.9;">-${a.energyCost}⚡</div>` : ''}
                 `;
                 btn.onclick = () => performAction(a.action);
                 actionPanel.appendChild(btn);
