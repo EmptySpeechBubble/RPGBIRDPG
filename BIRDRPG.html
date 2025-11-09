@@ -598,13 +598,15 @@
             }
 
             #action-panel {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr; /* Changed from 2 to 1 column */
+                max-width: 200px; /* Limit width */
             }
 
             /* Side-by-side layout on desktop */
             #map-actions-container {
                 flex-direction: row;
                 align-items: flex-start;
+                gap: 12px;
             }
 
             #map-wrapper {
@@ -617,8 +619,8 @@
             }
 
             #action-panel {
-                flex: 1;
-                min-width: 250px; /* Ensure actions have minimum space */
+                flex: 0 0 auto; /* Don't grow or shrink */
+                width: 200px; /* Fixed narrow width */
             }
         }
 
