@@ -23,24 +23,24 @@
         #game-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 10px;
+            padding: 8px;
             min-height: 100vh;
         }
 
         /* Header */
         #game-header {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 10px;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         #game-title {
             text-align: center;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #667eea;
         }
 
@@ -115,76 +115,17 @@
         /* Main Content Area */
         #main-content {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 10px;
-            min-height: 300px;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* Map View */
-        #map-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .territory {
-            aspect-ratio: 1;
-            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
-            border: 3px solid #4dd0e1;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
+        /* Canvas Map */
+        #map-canvas {
+            display: block;
             cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            padding: 5px;
-        }
-
-        .territory:active {
-            transform: scale(0.95);
-        }
-
-        .territory.current {
-            border-color: #f39c12;
-            background: linear-gradient(135deg, #fff9e6, #ffe6b3);
-            box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
-        }
-
-        .territory.adjacent {
-            border-color: #95a5a6;
-            cursor: pointer;
-        }
-
-        .territory.distant {
-            opacity: 0.5;
-            cursor: not-allowed;
-            filter: grayscale(0.5);
-        }
-
-        .territory-name {
-            font-size: 9px;
-            font-weight: bold;
-            text-align: center;
-            margin-top: 2px;
-            color: #2c3e50;
-        }
-
-        .territory-emoji {
-            font-size: 28px;
-            margin-bottom: 2px;
-        }
-
-        .territory-info {
-            font-size: 16px;
-            position: absolute;
-            top: 5px;
-            right: 5px;
+            touch-action: manipulation;
         }
 
         /* Message Log */
@@ -192,12 +133,12 @@
             background: #2c3e50;
             color: #ecf0f1;
             border-radius: 8px;
-            padding: 12px;
-            max-height: 150px;
+            padding: 10px;
+            max-height: 100px;
             overflow-y: auto;
-            margin-bottom: 15px;
-            font-size: 13px;
-            line-height: 1.5;
+            margin-bottom: 10px;
+            font-size: 12px;
+            line-height: 1.4;
         }
 
         .message {
@@ -223,9 +164,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 15px 10px;
-            font-size: 14px;
+            border-radius: 8px;
+            padding: 12px 8px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
@@ -233,7 +174,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .action-btn:active {
@@ -259,11 +200,11 @@
         }
 
         .btn-emoji {
-            font-size: 24px;
+            font-size: 20px;
         }
 
         .btn-text {
-            font-size: 12px;
+            font-size: 11px;
         }
 
         /* Dice Roller Modal */
@@ -337,9 +278,9 @@
         #quest-panel {
             background: #fff3cd;
             border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 15px;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
         }
 
         .quest-title {
@@ -454,14 +395,6 @@
 
             #action-panel {
                 grid-template-columns: repeat(3, 1fr);
-            }
-
-            .territory-emoji {
-                font-size: 36px;
-            }
-
-            .territory-name {
-                font-size: 11px;
             }
         }
 
@@ -606,12 +539,9 @@
             </div>
 
             <!-- Canvas Map (Visual) -->
-            <div style="margin-bottom: 10px;">
-                <canvas id="map-canvas" width="600" height="600" style="max-width: 100%; height: auto; border-radius: 12px;"></canvas>
+            <div style="margin-bottom: 8px;">
+                <canvas id="map-canvas" width="450" height="450" style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></canvas>
             </div>
-
-            <!-- Interactive Map -->
-            <div id="map-container" style="position: relative;"></div>
 
             <!-- Message Log -->
             <div id="message-log"></div>
@@ -817,54 +747,12 @@
                 if (el) el.textContent = gameState.skills[skill];
             });
 
-            // Update map and actions
-            updateMap();
+            // Update actions and quests
             updateActions();
             updateQuests();
 
             // Auto-save
             saveGame();
-        }
-
-        function updateMap() {
-            const mapContainer = document.getElementById('map-container');
-            mapContainer.innerHTML = '';
-
-            const currentLoc = gameState.currentLocation;
-            const row = Math.floor(currentLoc / 3);
-            const col = currentLoc % 3;
-
-            for (let i = 0; i < 9; i++) {
-                const tRow = Math.floor(i / 3);
-                const tCol = i % 3;
-                const distance = Math.abs(row - tRow) + Math.abs(col - tCol);
-
-                const territory = gameState.territories[i];
-                const div = document.createElement('div');
-                div.className = 'territory';
-
-                if (i === currentLoc) {
-                    div.classList.add('current');
-                } else if (distance === 1) {
-                    div.classList.add('adjacent');
-                    div.onclick = () => moveToTerritory(i);
-                } else {
-                    div.classList.add('distant');
-                }
-
-                // Build territory display
-                let infoText = '';
-                if (territory.npcs.length > 0) infoText += territory.npcs[0].emoji;
-                if (territory.predators.length > 0) infoText += '⚠️';
-
-                div.innerHTML = `
-                    <div class="territory-info">${infoText}</div>
-                    <div class="territory-emoji">${territory.emoji}</div>
-                    <div class="territory-name">${territory.name}</div>
-                `;
-
-                mapContainer.appendChild(div);
-            }
         }
 
         function updateActions() {
@@ -1894,7 +1782,7 @@
             if (!canvas) return;
 
             const ctx = canvas.getContext('2d');
-            const cellSize = 200;
+            const cellSize = 150;
 
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1927,30 +1815,30 @@
                 ctx.stroke();
 
                 // Territory emoji (larger)
-                ctx.font = '64px serif';
+                ctx.font = '48px serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(territory.emoji, x + cellSize / 2, y + cellSize / 2 - 20);
+                ctx.fillText(territory.emoji, x + cellSize / 2, y + cellSize / 2 - 15);
 
                 // Territory name
-                ctx.font = 'bold 16px sans-serif';
+                ctx.font = 'bold 12px sans-serif';
                 ctx.fillStyle = '#2c3e50';
-                ctx.fillText(territory.name, x + cellSize / 2, y + cellSize - 30);
+                ctx.fillText(territory.name, x + cellSize / 2, y + cellSize - 20);
 
                 // NPCs and predators
                 if (territory.npcs.length > 0) {
-                    ctx.font = '24px serif';
-                    ctx.fillText(territory.npcs[0].emoji, x + 30, y + 30);
+                    ctx.font = '18px serif';
+                    ctx.fillText(territory.npcs[0].emoji, x + 20, y + 20);
                 }
                 if (territory.predators.length > 0) {
-                    ctx.fillText('⚠️', x + cellSize - 30, y + 30);
+                    ctx.fillText('⚠️', x + cellSize - 20, y + 20);
                 }
 
                 // Player bird indicator (animated)
                 if (isCurrent) {
-                    ctx.font = '48px serif';
-                    const bounce = Math.sin(Date.now() / 300) * 3;
-                    ctx.fillText('🐦', x + cellSize / 2, y + cellSize / 2 + 40 + bounce);
+                    ctx.font = '36px serif';
+                    const bounce = Math.sin(Date.now() / 300) * 2;
+                    ctx.fillText('🐦', x + cellSize / 2, y + cellSize / 2 + 30 + bounce);
                 }
             }
 
@@ -1967,6 +1855,31 @@
         function animateMap() {
             drawCanvasMap();
             requestAnimationFrame(animateMap);
+        }
+
+        // Handle canvas clicks for territory navigation
+        function handleCanvasClick(event) {
+            const canvas = document.getElementById('map-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (event.clientX - rect.left) * scaleX;
+            const y = (event.clientY - rect.top) * scaleY;
+
+            const cellSize = 150;
+            const col = Math.floor(x / cellSize);
+            const row = Math.floor(y / cellSize);
+            const clickedLocation = row * 3 + col;
+
+            // Check if clicked territory is adjacent
+            const currentLoc = gameState.currentLocation;
+            const currentRow = Math.floor(currentLoc / 3);
+            const currentCol = currentLoc % 3;
+            const distance = Math.abs(currentRow - row) + Math.abs(currentCol - col);
+
+            if (distance === 1 && clickedLocation >= 0 && clickedLocation < 9) {
+                moveToTerritory(clickedLocation);
+            }
         }
 
         // ===== MESSAGES =====
@@ -2331,6 +2244,11 @@
             // Initialize weather and canvas map
             updateWeather();
             animateMap();
+
+            // Add canvas click handler for territory navigation
+            const canvas = document.getElementById('map-canvas');
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('touchend', handleCanvasClick);
 
             updateUI();
 
