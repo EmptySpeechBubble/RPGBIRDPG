@@ -3064,7 +3064,7 @@
             };
 
             const possibleWeather = seasonWeather[gameState.season];
-            const newWeather = possibleWeather[Math.floor(Math.random() * possibleWeather.length)];
+            let newWeather = possibleWeather[Math.floor(Math.random() * possibleWeather.length)];
 
             // Chance of storm
             if (Math.random() < 0.1) {
