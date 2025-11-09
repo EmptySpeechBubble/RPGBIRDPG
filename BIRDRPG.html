@@ -359,6 +359,7 @@
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 5px;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         #level-info {
@@ -369,6 +370,7 @@
             border-radius: 8px;
             font-size: 13px;
             margin-bottom: 5px;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         /* Main Content Area */
@@ -652,6 +654,7 @@
             padding: 3px 5px;
             margin-bottom: 2px;
             font-size: 8px;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         .quest-title {
@@ -659,6 +662,7 @@
             font-size: 9px;
             margin-bottom: 2px;
             color: #856404;
+            transition: color 0.5s ease;
         }
 
         .quest-item {
@@ -1590,7 +1594,7 @@
             </div>
 
             <!-- Family Section -->
-            <div id="family-section" style="display: none; background: linear-gradient(135deg, #ffeef8, #ffe6f0); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+            <div id="family-section" style="display: none; background: linear-gradient(135deg, #ffeef8, #ffe6f0); padding: 10px; border-radius: 10px; margin-bottom: 10px; transition: background 0.5s ease, color 0.5s ease;">
                 <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #c0392b;">💕 Family</div>
                 <div id="family-content" style="font-size: 12px; line-height: 1.6;"></div>
             </div>
@@ -2004,6 +2008,12 @@
             const messageLog = document.getElementById('message-log');
             const isMobile = window.innerWidth <= 599;
 
+            // Get additional UI elements
+            const seasonInfo = document.getElementById('season-info');
+            const levelInfo = document.getElementById('level-info');
+            const questPanel = document.getElementById('quest-panel');
+            const familySection = document.getElementById('family-section');
+
             if (gameState.timeOfDay === 'day') {
                 // Day: bright sky blue gradient
                 if (isMobile) {
@@ -2020,8 +2030,27 @@
                     messageLog.style.background = 'rgba(44, 62, 80, 0.9)';
                     messageLog.style.color = '#ecf0f1';
                 }
+
+                // Day mode for season/level info
+                seasonInfo.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                seasonInfo.style.color = 'white';
+                levelInfo.style.background = '#34495e';
+                levelInfo.style.color = 'white';
+
+                // Day mode for quest and family panels
+                if (questPanel) {
+                    questPanel.style.background = 'linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.15))';
+                    questPanel.style.color = '#2d3436';
+                    // Reset quest titles for day mode
+                    const questTitles = document.querySelectorAll('.quest-title');
+                    questTitles.forEach(title => title.style.color = '#856404');
+                }
+                if (familySection && familySection.style.display !== 'none') {
+                    familySection.style.background = 'linear-gradient(135deg, #ffeef8, #ffe6f0)';
+                    familySection.style.color = '#2d3436';
+                }
             } else {
-                // Night: dark blue/purple gradient
+                // Night: dark blue/purple gradient with stars
                 if (isMobile) {
                     body.style.background = 'linear-gradient(180deg, #0c1445 0%, #1a1a2e 50%, #16213e 100%)';
                     header.style.background = 'rgba(20, 20, 40, 0.95)';
@@ -2035,6 +2064,25 @@
                     mainContent.style.color = '#e0e0e0';
                     messageLog.style.background = 'rgba(10, 15, 30, 0.9)';
                     messageLog.style.color = '#d0d0d0';
+                }
+
+                // Night mode for season/level info - darker with good contrast
+                seasonInfo.style.background = 'linear-gradient(135deg, #6a4c93 0%, #4a3870 100%)';
+                seasonInfo.style.color = '#f0f0f0';
+                levelInfo.style.background = 'rgba(30, 35, 55, 0.95)';
+                levelInfo.style.color = '#e0e0e0';
+
+                // Night mode for quest and family panels
+                if (questPanel) {
+                    questPanel.style.background = 'linear-gradient(135deg, rgba(52, 152, 219, 0.25), rgba(41, 128, 185, 0.25))';
+                    questPanel.style.color = '#e0e0e0';
+                    // Update quest titles for night mode
+                    const questTitles = document.querySelectorAll('.quest-title');
+                    questTitles.forEach(title => title.style.color = '#ffd700');
+                }
+                if (familySection && familySection.style.display !== 'none') {
+                    familySection.style.background = 'linear-gradient(135deg, rgba(139, 69, 139, 0.3), rgba(123, 63, 123, 0.3))';
+                    familySection.style.color = '#e0e0e0';
                 }
             }
 
