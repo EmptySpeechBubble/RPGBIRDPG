@@ -31,9 +31,9 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7B9E89 0%, #5A7D6E 100%);
             min-height: 100vh;
-            color: #333;
+            color: #2d3436;
             overflow-x: hidden;
             position: relative;
         }
@@ -49,7 +49,7 @@
 
         /* Header */
         #game-header {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(250, 247, 240, 0.95);
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 8px;
@@ -73,7 +73,7 @@
         }
 
         .stat-bar {
-            background: #f0f0f0;
+            background: #f5f3ed;
             border-radius: 8px;
             padding: 8px;
         }
@@ -87,7 +87,7 @@
         }
 
         .bar-container {
-            background: #ddd;
+            background: #e0ddd4;
             height: 20px;
             border-radius: 10px;
             overflow: hidden;
@@ -134,7 +134,7 @@
 
         /* Main Content Area */
         #main-content {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(250, 247, 240, 0.95);
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 8px;
@@ -270,7 +270,7 @@
         }
 
         .dice-container {
-            background: white;
+            background: #faf7f0;
             border-radius: 20px;
             padding: 30px;
             text-align: center;
@@ -390,7 +390,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: #faf7f0;
             border-radius: 15px;
             padding: 25px;
             max-width: 90%;
@@ -509,7 +509,7 @@
         }
 
         .skill-item {
-            background: #f0f0f0;
+            background: #f5f3ed;
             padding: 8px;
             border-radius: 5px;
             display: flex;
@@ -527,14 +527,14 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.98);
-            border-top: 3px solid #667eea;
+            background: rgba(245, 243, 237, 0.98);
+            border-top: 3px solid #7B9E89;
             padding: 6px 8px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
             font-size: 10px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
             z-index: 100;
         }
 
@@ -542,7 +542,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            background: linear-gradient(135deg, #f5f3ed, #ebe8df);
             border-radius: 6px;
             padding: 4px 6px;
         }
@@ -577,7 +577,7 @@
             <!-- Quick Actions Bar -->
             <div style="display: flex; gap: 8px; margin: 8px 0;">
                 <button onclick="newGame()" style="flex: 1; padding: 6px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">🔄 New Game</button>
-                <button onclick="saveGame(); addMessage('Game saved!', 'success')" style="flex: 1; padding: 6px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">💾 Save</button>
+                <button onclick="showTutorial(0)" style="flex: 1; padding: 6px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">❓ Help</button>
             </div>
 
             <!-- Season & Turn Info -->
@@ -2702,7 +2702,34 @@
             ctx.closePath();
             ctx.fill();
 
-            // Draw body first
+            // Draw wings BEHIND body (drawn first so body covers part of them)
+            ctx.fillStyle = shadeColor(color, -20); // Darker wings
+
+            // Left wing - positioned more to the back/side
+            ctx.beginPath();
+            ctx.ellipse(
+                x - 2 * sizeMultiplier, // Closer to center
+                y + 1 * sizeMultiplier + yOffset, // Slightly lower
+                7 * sizeMultiplier, // Smaller radius
+                3 * sizeMultiplier, // Thinner
+                -Math.PI / 3 - wingAngle * 0.5, // Angled back more
+                0, Math.PI * 2
+            );
+            ctx.fill();
+
+            // Right wing - positioned more to the back/side
+            ctx.beginPath();
+            ctx.ellipse(
+                x + 2 * sizeMultiplier, // Closer to center
+                y + 1 * sizeMultiplier + yOffset, // Slightly lower
+                7 * sizeMultiplier, // Smaller radius
+                3 * sizeMultiplier, // Thinner
+                Math.PI / 3 + wingAngle * 0.5, // Angled back more (mirrored)
+                0, Math.PI * 2
+            );
+            ctx.fill();
+
+            // Draw body ON TOP of wings
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.ellipse(
@@ -2721,33 +2748,6 @@
                 6 * sizeMultiplier,
                 4 * sizeMultiplier,
                 0, 0, Math.PI
-            );
-            ctx.fill();
-
-            // Draw wings ON TOP of body for visibility
-            ctx.fillStyle = shadeColor(color, -15); // Slightly darker wings
-
-            // Left wing (visible on left side)
-            ctx.beginPath();
-            ctx.ellipse(
-                x - 4 * sizeMultiplier,
-                y + yOffset,
-                10 * sizeMultiplier,
-                4 * sizeMultiplier,
-                -Math.PI / 4 - wingAngle, // Angled wing
-                0, Math.PI * 2
-            );
-            ctx.fill();
-
-            // Right wing (visible on right side)
-            ctx.beginPath();
-            ctx.ellipse(
-                x + 4 * sizeMultiplier,
-                y + yOffset,
-                10 * sizeMultiplier,
-                4 * sizeMultiplier,
-                Math.PI / 4 + wingAngle, // Angled wing (mirrored)
-                0, Math.PI * 2
             );
             ctx.fill();
 
