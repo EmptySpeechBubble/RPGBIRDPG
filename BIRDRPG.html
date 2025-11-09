@@ -521,50 +521,34 @@
             color: #667eea;
         }
 
-        /* Bottom Stats Bar - Compact for quick reference */
-        #bottom-stats-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(245, 243, 237, 0.98);
-            border-top: 3px solid #7B9E89;
-            padding: 6px 8px;
+        /* Stats Grid in Header */
+        #stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 6px;
-            font-size: 10px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
-            z-index: 100;
+            margin: 8px 0;
         }
 
-        .bottom-stat {
+        .stat-compact {
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: space-between;
             background: linear-gradient(135deg, #f5f3ed, #ebe8df);
             border-radius: 6px;
-            padding: 4px 6px;
-        }
-
-        .bottom-stat-emoji {
-            font-size: 14px;
-        }
-
-        .bottom-stat-text {
-            font-weight: bold;
+            padding: 6px 8px;
             font-size: 11px;
         }
 
-        .bottom-stat-value {
+        .stat-compact-label {
             font-weight: bold;
-            margin-left: auto;
-            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* Make main content not overlap bottom bar */
-        #game-container {
-            padding-bottom: 45px;
+        .stat-compact-value {
+            font-weight: bold;
+            color: #667eea;
         }
     </style>
 </head>
@@ -584,6 +568,26 @@
             <div id="season-info">🌸 Spring - Turn 1/10</div>
             <div id="level-info">Level 1 Bluebird | XP: 0/100</div>
             <div id="action-info" style="text-align: center; font-size: 11px; font-weight: bold; color: #2980b9; margin: 4px 0;">⚡ Actions: 0/5</div>
+
+            <!-- Compact Stats -->
+            <div id="stats-grid">
+                <div class="stat-compact">
+                    <span class="stat-compact-label">❤️ Health</span>
+                    <span class="stat-compact-value" id="header-health">100/100</span>
+                </div>
+                <div class="stat-compact">
+                    <span class="stat-compact-label">⚡ Energy</span>
+                    <span class="stat-compact-value" id="header-energy">100/100</span>
+                </div>
+                <div class="stat-compact">
+                    <span class="stat-compact-label">🍖 Hunger</span>
+                    <span class="stat-compact-value" id="header-hunger">0/100</span>
+                </div>
+                <div class="stat-compact">
+                    <span class="stat-compact-label">⭐ Social</span>
+                    <span class="stat-compact-value" id="header-social">50/100</span>
+                </div>
+            </div>
 
             <!-- Inventory -->
             <div id="inventory">
@@ -888,11 +892,11 @@
             document.getElementById('standing-bar').style.width = `${gameState.socialStanding}%`;
             document.getElementById('standing-bar').textContent = gameState.socialStanding;
 
-            // Bottom Stats Bar - Quick reference
-            document.getElementById('bottom-health').textContent = `${gameState.health}/${gameState.maxHealth}`;
-            document.getElementById('bottom-hunger').textContent = `${gameState.hunger}/100`;
-            document.getElementById('bottom-energy').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
-            document.getElementById('bottom-standing').textContent = `${gameState.socialStanding}/100`;
+            // Header Stats - Quick reference
+            document.getElementById('header-health').textContent = `${gameState.health}/${gameState.maxHealth}`;
+            document.getElementById('header-hunger').textContent = `${gameState.hunger}/100`;
+            document.getElementById('header-energy').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            document.getElementById('header-social').textContent = `${gameState.socialStanding}/100`;
 
             // Season & Level
             const seasonName = SEASONS[gameState.season];
@@ -3716,28 +3720,5 @@
         window.onload = init;
     </script>
 
-    <!-- Bottom Stats Bar - Always visible for quick reference -->
-    <div id="bottom-stats-bar">
-        <div class="bottom-stat">
-            <span class="bottom-stat-emoji">❤️</span>
-            <span class="bottom-stat-text">HP</span>
-            <span class="bottom-stat-value" id="bottom-health">100/100</span>
-        </div>
-        <div class="bottom-stat">
-            <span class="bottom-stat-emoji">🍖</span>
-            <span class="bottom-stat-text">Hunger</span>
-            <span class="bottom-stat-value" id="bottom-hunger">0/100</span>
-        </div>
-        <div class="bottom-stat">
-            <span class="bottom-stat-emoji">⚡</span>
-            <span class="bottom-stat-text">Energy</span>
-            <span class="bottom-stat-value" id="bottom-energy">100/100</span>
-        </div>
-        <div class="bottom-stat">
-            <span class="bottom-stat-emoji">⭐</span>
-            <span class="bottom-stat-text">Social</span>
-            <span class="bottom-stat-value" id="bottom-standing">50/100</span>
-        </div>
-    </div>
 </body>
 </html>
