@@ -40,11 +40,16 @@
 
         /* Game container - responsive and fullscreen compatible */
         #game-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 8px;
             min-height: 100vh;
             width: 100%;
+        }
+
+        #main-content {
+            width: 100%;
+            overflow: visible;
         }
 
         /* Header */
@@ -157,10 +162,17 @@
             flex-direction: column;
             gap: 8px;
             margin-bottom: 8px;
+            width: 100%;
         }
 
         #map-wrapper {
             flex-shrink: 0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #action-panel {
+            width: 100%;
         }
 
         /* Message Log */
@@ -492,11 +504,13 @@
 
             #map-wrapper {
                 width: 400px;
+                flex-shrink: 0;
             }
 
             #action-panel {
                 flex: 1;
-                min-width: 0; /* Prevent overflow */
+                min-width: 250px; /* Ensure actions have minimum space */
+                width: auto;
             }
         }
 
