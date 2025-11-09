@@ -576,6 +576,50 @@
         const SEASON_EMOJIS = { Spring: '🌸', Summer: '☀️', Fall: '🍂', Winter: '❄️' };
         const TURNS_PER_SEASON = 10;
 
+        // Bird species with unique attributes
+        const BIRD_SPECIES = {
+            'Bluebird': {
+                name: 'Bluebird',
+                emoji: '🐦',
+                color: '#3498db',
+                description: 'Balanced and reliable',
+                startingSkills: { foraging: 1, building: 1, flying: 2, combat: 1, flocking: 1, perception: 1 },
+                bonuses: { health: 0, energy: 0, socialStanding: 0 }
+            },
+            'Cardinal': {
+                name: 'Cardinal',
+                emoji: '🔴',
+                color: '#e74c3c',
+                description: 'Strong and aggressive',
+                startingSkills: { foraging: 1, building: 1, flying: 1, combat: 3, flocking: 0, perception: 1 },
+                bonuses: { health: 20, energy: -10, socialStanding: -10 }
+            },
+            'Canary': {
+                name: 'Canary',
+                emoji: '🟡',
+                color: '#f1c40f',
+                description: 'Fast and energetic',
+                startingSkills: { foraging: 2, building: 0, flying: 3, combat: 0, flocking: 1, perception: 2 },
+                bonuses: { health: -10, energy: 20, socialStanding: 0 }
+            },
+            'Sparrow': {
+                name: 'Sparrow',
+                emoji: '🟤',
+                color: '#9c640c',
+                description: 'Social and cooperative',
+                startingSkills: { foraging: 2, building: 1, flying: 1, combat: 0, flocking: 3, perception: 1 },
+                bonuses: { health: 0, energy: 0, socialStanding: 20 }
+            },
+            'Robin': {
+                name: 'Robin',
+                emoji: '🔶',
+                color: '#e67e22',
+                description: 'Resourceful forager',
+                startingSkills: { foraging: 3, building: 2, flying: 1, combat: 1, flocking: 1, perception: 0 },
+                bonuses: { health: 10, energy: 0, socialStanding: 0 }
+            }
+        };
+
         let gameState = {
             // Character
             species: 'Bluebird',
@@ -606,6 +650,8 @@
             twigs: 0,
             eggs: 0,
             cachedFood: 0,
+            foodCaches: [], // {location, amount, turnsLeft}
+            mushroomFound: false,
 
             // World
             season: 0, // 0=Spring, 1=Summer, 2=Fall, 3=Winter
@@ -622,9 +668,13 @@
 
             // Progress
             hasNest: false,
-            nestProgress: 0, // 0-10 twigs
+            hasBirdhouse: false,
+            nestProgress: 0, // 0-10 twigs for nest, 0-15 for birdhouse
+            nestType: null, // 'nest' or 'birdhouse'
             hasMate: false,
             offspring: 0,
+            babies: [], // {name, age, stage}
+            ratsDefeated: 0,
 
             // Quests
             activeQuests: [],
@@ -641,7 +691,14 @@
 
             // Tutorial
             tutorialStep: 0,
-            tutorialActive: false
+            tutorialActive: false,
+
+            // Phase 2 Features
+            mushroomModeActive: false,
+            mushroomModeTurns: 0,
+            flockMembers: [], // {species, emoji, skill}
+            ufoEncounterHappened: false,
+            lastUFOTurn: -999
         };
 
         // Territory definitions (3x3 grid, 0-8)
@@ -767,14 +824,42 @@
             const actions = [
                 { emoji: '🔍', text: 'Forage', action: 'forage', energyCost: 10 },
                 { emoji: '🌿', text: 'Gather', action: 'gather', energyCost: 10 },
-                { emoji: '🏗️', text: 'Build Nest', action: 'build', energyCost: 15, disabled: gameState.twigs < 1 },
                 { emoji: '😴', text: 'Rest', action: 'rest', energyCost: 0 },
                 { emoji: '🍖', text: 'Eat', action: 'eat', disabled: gameState.food < 1 },
-                { emoji: '👥', text: 'Socialize', action: 'socialize', energyCost: 5 },
-                { emoji: '📊', text: 'Character', action: 'character', energyCost: 0 },
-                { emoji: '📖', text: 'Diary', action: 'diary', energyCost: 0 },
-                { emoji: '⏭️', text: 'End Turn', action: 'endTurn', energyCost: 0, class: 'warning' }
+                { emoji: '👥', text: 'Socialize', action: 'socialize', energyCost: 5 }
             ];
+
+            // Conditional actions
+            if (!gameState.hasNest && !gameState.hasBirdhouse) {
+                actions.push({ emoji: '🏗️', text: 'Build Nest', action: 'buildNest', energyCost: 15, disabled: gameState.twigs < 1 });
+                if (gameState.twigs >= 15) {
+                    actions.push({ emoji: '🏠', text: 'Build Birdhouse', action: 'buildBirdhouse', energyCost: 20, class: 'success' });
+                }
+            }
+
+            // Food caching (unlock after level 3 or in Fall)
+            if (gameState.level >= 3 || gameState.season === 2) {
+                actions.push({ emoji: '🌰', text: 'Cache Food', action: 'cacheFood', energyCost: 5, disabled: gameState.food < 1 });
+                const localCache = gameState.foodCaches.find(c => c.location === gameState.currentLocation);
+                if (localCache && localCache.amount > 0) {
+                    actions.push({ emoji: '🔓', text: 'Retrieve Cache', action: 'retrieveCache', energyCost: 5 });
+                }
+            }
+
+            // Flock leadership (unlock after level 5 and social standing 70+)
+            if (gameState.level >= 5 && gameState.socialStanding >= 70) {
+                actions.push({ emoji: '🦅', text: 'Recruit Bird', action: 'recruitBird', energyCost: 10 });
+            }
+
+            // Mushroom Mode
+            if (gameState.mushroomFound && !gameState.mushroomModeActive) {
+                actions.push({ emoji: '🍄', text: 'Eat Mushroom', action: 'eatMushroom', energyCost: 0, class: 'warning' });
+            }
+
+            // Standard UI actions
+            actions.push({ emoji: '📊', text: 'Character', action: 'character', energyCost: 0 });
+            actions.push({ emoji: '📖', text: 'Diary', action: 'diary', energyCost: 0 });
+            actions.push({ emoji: '⏭️', text: 'End Turn', action: 'endTurn', energyCost: 0, class: 'warning' });
 
             actions.forEach(a => {
                 const btn = document.createElement('button');
@@ -813,8 +898,11 @@
                 case 'gather':
                     gather();
                     break;
-                case 'build':
+                case 'buildNest':
                     buildNest();
+                    break;
+                case 'buildBirdhouse':
+                    buildBirdhouse();
                     break;
                 case 'rest':
                     rest();
@@ -824,6 +912,18 @@
                     break;
                 case 'socialize':
                     socialize();
+                    break;
+                case 'cacheFood':
+                    cacheFood();
+                    break;
+                case 'retrieveCache':
+                    retrieveCache();
+                    break;
+                case 'recruitBird':
+                    recruitBird();
+                    break;
+                case 'eatMushroom':
+                    eatMushroom();
                     break;
                 case 'character':
                     showCharacterSheet();
@@ -896,6 +996,14 @@
                     gameState.food += found;
                     addMessage(`Only found ${found} food`, 'info');
                     gainXP(5);
+                }
+
+                // Rare mushroom finding (3% chance)
+                if (!gameState.mushroomFound && Math.random() < 0.03) {
+                    gameState.mushroomFound = true;
+                    addMessage('🍄✨ You found a MAGIC MUSHROOM! Something strange glows about it...', 'success');
+                    addDiaryEntry('Discovered a mysterious glowing mushroom 🍄', 'special');
+                    gainXP(50);
                 }
 
                 gameState.hunger += 5;
@@ -1044,6 +1152,171 @@
                 gameState.hunger += 5;
                 updateUI();
             }, { action: 'flocking' });
+        }
+
+        // ===== PHASE 2 ACTIONS =====
+
+        function cacheFood() {
+            const energyCost = 5;
+            if (gameState.energy < energyCost || gameState.food < 1) {
+                addMessage('Not enough resources to cache food!', 'danger');
+                return;
+            }
+
+            const amount = Math.min(gameState.food, 5); // Cache up to 5 at once
+            gameState.food -= amount;
+            gameState.energy -= energyCost;
+
+            // Find or create cache at current location
+            let cache = gameState.foodCaches.find(c => c.location === gameState.currentLocation);
+            if (cache) {
+                cache.amount += amount;
+                cache.turnsLeft = 20; // Refresh timer
+            } else {
+                gameState.foodCaches.push({
+                    location: gameState.currentLocation,
+                    amount: amount,
+                    turnsLeft: 20
+                });
+            }
+
+            gameState.cachedFood += amount;
+            addMessage(`Cached ${amount} food at ${TERRITORIES[gameState.currentLocation].name} 🌰`, 'success');
+            addDiaryEntry(`Cached ${amount} food for later`, 'event');
+            gainXP(10);
+            updateQuestProgress('cache', amount);
+            updateUI();
+        }
+
+        function retrieveCache() {
+            const energyCost = 5;
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            const cache = gameState.foodCaches.find(c => c.location === gameState.currentLocation);
+            if (!cache || cache.amount === 0) {
+                addMessage('No cache found here!', 'warning');
+                return;
+            }
+
+            const retrieved = cache.amount;
+            gameState.food += retrieved;
+            gameState.energy -= energyCost;
+            gameState.cachedFood -= retrieved;
+
+            // Remove empty cache
+            gameState.foodCaches = gameState.foodCaches.filter(c => c.location !== gameState.currentLocation);
+
+            addMessage(`Retrieved ${retrieved} cached food! 🔓`, 'success');
+            gainXP(5);
+            updateUI();
+        }
+
+        function buildBirdhouse() {
+            const energyCost = 20;
+            const twigsNeeded = 15;
+
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            if (gameState.twigs < twigsNeeded) {
+                addMessage(`Need ${twigsNeeded} twigs for a birdhouse!`, 'danger');
+                return;
+            }
+
+            rollSkillCheck('Building', 15, (success, roll) => {
+                gameState.energy -= energyCost;
+
+                if (success) {
+                    gameState.twigs -= twigsNeeded;
+                    gameState.hasBirdhouse = true;
+                    gameState.nestType = 'birdhouse';
+                    gameState.maxHealth += 10; // Bonus health for better shelter
+                    gameState.health = Math.min(gameState.health + 10, gameState.maxHealth);
+
+                    addMessage('🎉 Birdhouse completed! A magnificent home! 🏠', 'success');
+                    addDiaryEntry('Built a luxurious birdhouse! The envy of all birds 🏠', 'milestone');
+                    gainXP(200);
+                    completeQuest('firstHome');
+                } else {
+                    gameState.twigs -= 5; // Still lose some materials
+                    addMessage('Struggled with birdhouse construction...', 'warning');
+                    gainXP(20);
+                }
+
+                gameState.hunger += 10;
+                updateUI();
+            }, { action: 'building' });
+        }
+
+        function recruitBird() {
+            const energyCost = 10;
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            if (gameState.flockMembers.length >= 5) {
+                addMessage('Your flock is already at maximum size!', 'warning');
+                return;
+            }
+
+            const territory = gameState.territories[gameState.currentLocation];
+            if (territory.npcs.length === 0) {
+                addMessage('No birds here to recruit!', 'warning');
+                return;
+            }
+
+            rollSkillCheck('Flocking', 16, (success) => {
+                gameState.energy -= energyCost;
+
+                if (success) {
+                    const npc = territory.npcs[0];
+                    gameState.flockMembers.push({
+                        species: npc.species,
+                        emoji: npc.emoji,
+                        skill: Math.floor(Math.random() * 3) + 1
+                    });
+
+                    // Remove from territory
+                    territory.npcs.shift();
+
+                    addMessage(`${npc.emoji} joined your flock! 🦅`, 'success');
+                    addDiaryEntry(`Recruited ${npc.species} to my flock`, 'social');
+                    gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
+                    gainXP(50);
+                } else {
+                    addMessage('Failed to convince the bird to join...', 'warning');
+                    gameState.socialStanding -= 5;
+                    gainXP(10);
+                }
+
+                gameState.hunger += 5;
+                updateUI();
+            }, { action: 'flocking' });
+        }
+
+        function eatMushroom() {
+            if (!gameState.mushroomFound) {
+                addMessage('You don\'t have a mushroom!', 'danger');
+                return;
+            }
+
+            gameState.mushroomFound = false;
+            gameState.mushroomModeActive = true;
+            gameState.mushroomModeTurns = 8; // Lasts 8 turns
+
+            addMessage('🍄✨ Reality becomes a kaleidoscope! MUSHROOM MODE ACTIVATED! ✨🍄', 'success');
+            addDiaryEntry('Consumed a magic mushroom... reality will never be the same 🍄', 'special');
+
+            // Temporary stat boost
+            gameState.skills.perception = Math.min(10, gameState.skills.perception + 3);
+
+            updateUI();
         }
 
         // ===== DICE ROLLING =====
@@ -1299,27 +1572,59 @@
         }
 
         // ===== COMBAT =====
-        function spawnPredator() {
+        function spawnPredator(forceBoss = false) {
+            // Check for Rat King trigger
+            if (gameState.ratsDefeated >= 5 && !forceBoss) {
+                spawnRatKing();
+                return;
+            }
+
             const predators = [
-                { name: 'Rat', emoji: '🐀', health: 30, attack: [10, 15], xp: 50 },
-                { name: 'Squirrel', emoji: '🐿️', health: 40, attack: [12, 18], xp: 60 },
-                { name: 'Owl', emoji: '🦉', health: 60, attack: [25, 35], xp: 100 }
+                { name: 'Rat', emoji: '🐀', health: 30, attack: [10, 15], xp: 50, type: 'rat' },
+                { name: 'Squirrel', emoji: '🐿️', health: 40, attack: [12, 18], xp: 60, type: 'normal' },
+                { name: 'Owl', emoji: '🦉', health: 60, attack: [25, 35], xp: 100, type: 'normal' },
+                { name: 'Crow', emoji: '🐦‍⬛', health: 50, attack: [15, 20], xp: 80, type: 'normal' },
+                { name: 'Hawk', emoji: '🦅', health: 70, attack: [20, 30], xp: 120, type: 'boss' }
             ];
 
-            // Weight by danger
+            // Weight by danger and level
             let predator;
             if (gameState.level <= 2) {
                 predator = { ...predators[0] }; // Rat for low levels
-            } else if (Math.random() < 0.7) {
-                predator = { ...predators[Math.floor(Math.random() * 2)] };
+            } else if (gameState.level >= 7 && Math.random() < 0.15) {
+                predator = { ...predators[4] }; // Hawk for high levels (rare)
+            } else if (gameState.level >= 5 && Math.random() < 0.25) {
+                predator = { ...predators[3] }; // Crow
+            } else if (Math.random() < 0.6) {
+                predator = { ...predators[Math.floor(Math.random() * 2)] }; // Rat or Squirrel
             } else {
-                predator = { ...predators[2] }; // Owl is rare
+                predator = { ...predators[2] }; // Owl
             }
 
             gameState.isInCombat = true;
             gameState.combatEnemy = predator;
 
-            addMessage(`⚠️ A ${predator.emoji} ${predator.name} appeared!`, 'danger');
+            const bossWarning = predator.type === 'boss' ? ' ⚠️ BOSS ENCOUNTER!' : '';
+            addMessage(`⚠️ A ${predator.emoji} ${predator.name} appeared!${bossWarning}`, 'danger');
+            updateUI();
+        }
+
+        function spawnRatKing() {
+            const ratKing = {
+                name: 'RAT KING',
+                emoji: '👑🐀',
+                health: 100,
+                attack: [20, 30],
+                xp: 250,
+                type: 'boss',
+                isRatKing: true
+            };
+
+            gameState.isInCombat = true;
+            gameState.combatEnemy = ratKing;
+
+            addMessage('👑🐀 THE RAT KING HAS ARRIVED! The ruler of all rats challenges you!', 'danger');
+            addDiaryEntry('Faced the legendary RAT KING in battle! 👑🐀', 'combat');
             updateUI();
         }
 
@@ -1427,6 +1732,30 @@
             addDiaryEntry(`Defeated a ${enemy.name}! Proved my courage in battle`, 'combat');
             gainXP(enemy.xp);
 
+            // Track rat defeats for Rat King trigger
+            if (enemy.type === 'rat' || enemy.name === 'Rat') {
+                gameState.ratsDefeated++;
+                if (gameState.ratsDefeated === 5) {
+                    addMessage('⚠️ You sense something ominous... The Rat King grows angry!', 'warning');
+                }
+            }
+
+            // Boss rewards
+            if (enemy.isRatKing) {
+                addMessage('👑 You defeated the RAT KING! Legendary status achieved!', 'success');
+                addDiaryEntry('DEFEATED THE LEGENDARY RAT KING! I am a true warrior! 👑', 'milestone');
+                gameState.maxHealth += 20;
+                gameState.health = gameState.maxHealth;
+                gameState.socialStanding = Math.min(100, gameState.socialStanding + 30);
+                gameState.food += 10; // Reward food
+                gameState.ratsDefeated = 0; // Reset counter
+            } else if (enemy.type === 'boss') {
+                addMessage(`💎 Boss defeated! Major rewards earned!`, 'success');
+                gameState.maxHealth += 5;
+                gameState.health = Math.min(gameState.health + 20, gameState.maxHealth);
+                gameState.food += 5;
+            }
+
             gameState.isInCombat = false;
             gameState.combatEnemy = null;
             gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
@@ -1440,10 +1769,33 @@
             // Passive effects
             gameState.hunger += 5;
 
+            // Mushroom Mode effects
+            if (gameState.mushroomModeActive) {
+                gameState.mushroomModeTurns--;
+                gameState.hunger += 10; // Extra hunger during mushroom mode
+                addMessage(`🍄 Mushroom Mode: Reality swirls... ${gameState.mushroomModeTurns} turns left`, 'warning');
+
+                if (gameState.mushroomModeTurns <= 0) {
+                    gameState.mushroomModeActive = false;
+                    gameState.skills.perception = Math.max(1, gameState.skills.perception - 3); // Remove temp boost
+                    addMessage('🍄 Mushroom Mode ended. Reality returns to normal...', 'info');
+                    addDiaryEntry('The psychedelic visions faded... what a trip! 🍄', 'event');
+                }
+            }
+
             if (gameState.hunger >= 100) {
                 gameState.health -= 10;
                 addMessage('⚠️ Starving! Losing health!', 'danger');
             }
+
+            // Food cache decay
+            gameState.foodCaches.forEach(cache => {
+                cache.turnsLeft--;
+                if (cache.turnsLeft <= 0) {
+                    addMessage(`⚠️ Your cache at ${TERRITORIES[cache.location].name} has spoiled!`, 'warning');
+                }
+            });
+            gameState.foodCaches = gameState.foodCaches.filter(c => c.turnsLeft > 0);
 
             // Advance time
             gameState.turn++;
@@ -1452,6 +1804,12 @@
             // Update weather periodically (every 3 turns)
             if (gameState.turn % 3 === 0) {
                 updateWeather();
+            }
+
+            // UFO Encounter (5% chance at night, only if not recently encountered)
+            const turnsSinceLastUFO = gameState.turn - gameState.lastUFOTurn;
+            if (gameState.timeOfDay === 'night' && turnsSinceLastUFO > 30 && Math.random() < 0.05) {
+                triggerUFOEncounter();
             }
 
             // Random events
@@ -1471,6 +1829,47 @@
                 addMessage(`Turn ${gameState.turn} begins...`, 'info');
                 updateUI();
             }
+        }
+
+        // ===== UFO ENCOUNTER =====
+        function triggerUFOEncounter() {
+            gameState.lastUFOTurn = gameState.turn;
+            gameState.ufoEncounterHappened = true;
+
+            const outcomes = [
+                {
+                    name: 'abduction',
+                    message: '🛸 A UFO APPEARS! Bright lights surround you... You wake up 3 turns later with strange marks! 👽',
+                    effect: () => {
+                        // Skip 3 turns but gain bonus XP
+                        gameState.turn += 3;
+                        gainXP(100);
+                        addMessage('✨ You gained cosmic knowledge! +100 XP', 'success');
+                    }
+                },
+                {
+                    name: 'gift',
+                    message: '🛸 A UFO hovers overhead and drops a GLOWING STAR SEED! 🌟',
+                    effect: () => {
+                        gameState.food += 5;
+                        gameState.energy = gameState.maxEnergy;
+                        addMessage('The star seed fills you with cosmic energy!', 'success');
+                    }
+                },
+                {
+                    name: 'savior',
+                    message: '🛸 A UFO beams up the predator that was stalking you! You\'re saved!',
+                    effect: () => {
+                        // Prevent next predator encounter
+                        gameState.socialStanding = Math.min(100, gameState.socialStanding + 15);
+                    }
+                }
+            ];
+
+            const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+            addMessage(outcome.message, 'success');
+            addDiaryEntry(`UFO encounter! ${outcome.message}`, 'special');
+            outcome.effect();
         }
 
         function advanceSeason() {
@@ -1545,7 +1944,7 @@
             gameState.xp += amount;
             addMessage(`+${amount} XP`, 'info');
 
-            while (gameState.xp >= gameState.xpNeeded && gameState.level < 5) {
+            while (gameState.xp >= gameState.xpNeeded && gameState.level < 10) {
                 levelUp();
             }
         }
@@ -1847,6 +2246,30 @@
                 ctx.globalAlpha = 0.15;
                 ctx.fillStyle = WEATHER_TYPES[gameState.weather].color;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1;
+            }
+
+            // Mushroom Mode psychedelic overlay
+            if (gameState.mushroomModeActive) {
+                const time = Date.now() / 1000;
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                const hue1 = (time * 60) % 360;
+                const hue2 = (time * 60 + 120) % 360;
+                const hue3 = (time * 60 + 240) % 360;
+
+                gradient.addColorStop(0, `hsla(${hue1}, 100%, 50%, 0.2)`);
+                gradient.addColorStop(0.5, `hsla(${hue2}, 100%, 50%, 0.2)`);
+                gradient.addColorStop(1, `hsla(${hue3}, 100%, 50%, 0.2)`);
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Add "🍄" text overlay
+                ctx.globalAlpha = 0.3 + Math.sin(time * 2) * 0.1;
+                ctx.font = 'bold 24px sans-serif';
+                ctx.fillStyle = '#ff00ff';
+                ctx.textAlign = 'center';
+                ctx.fillText('🍄 MUSHROOM MODE 🍄', canvas.width / 2, 30);
                 ctx.globalAlpha = 1;
             }
         }
@@ -2193,7 +2616,7 @@
                         🌸 Good luck, young bird! 🌸
                     </div>
                 `,
-                button: 'Start My Journey! 🐦'
+                button: 'Choose Your Bird! 🐦'
             }
         ];
 
@@ -2204,7 +2627,7 @@
             const buttons = document.getElementById('modal-buttons');
 
             if (step >= TUTORIAL_STEPS.length) {
-                startGame();
+                showSpeciesSelection();
                 return;
             }
 
@@ -2220,11 +2643,73 @@
             modal.classList.add('active');
         }
 
+        function showSpeciesSelection() {
+            const modal = document.getElementById('generic-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const buttons = document.getElementById('modal-buttons');
+
+            title.textContent = '🐦 Choose Your Bird Species';
+
+            let speciesHTML = '<div style="margin-bottom: 15px; text-align: center; color: #666;">Each species has unique strengths and weaknesses!</div><div style="display: grid; gap: 12px;">';
+
+            for (const [key, species] of Object.entries(BIRD_SPECIES)) {
+                speciesHTML += `
+                    <div style="background: linear-gradient(135deg, ${species.color}22, ${species.color}11);
+                                border: 2px solid ${species.color};
+                                border-radius: 10px;
+                                padding: 15px;
+                                cursor: pointer;
+                                transition: all 0.2s;"
+                         onmouseover="this.style.transform='scale(1.02)'"
+                         onmouseout="this.style.transform='scale(1)'"
+                         onclick="selectSpecies('${key}')">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 48px;">${species.emoji}</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 18px; font-weight: bold; color: ${species.color}; margin-bottom: 5px;">
+                                    ${species.name}
+                                </div>
+                                <div style="font-size: 13px; color: #666; margin-bottom: 8px;">
+                                    ${species.description}
+                                </div>
+                                <div style="font-size: 11px; color: #888;">
+                                    Skills: Foraging ${species.startingSkills.foraging}, Building ${species.startingSkills.building},
+                                    Flying ${species.startingSkills.flying}, Combat ${species.startingSkills.combat},
+                                    Flocking ${species.startingSkills.flocking}, Perception ${species.startingSkills.perception}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            speciesHTML += '</div>';
+
+            body.innerHTML = speciesHTML;
+            buttons.innerHTML = '';
+            modal.classList.add('active');
+        }
+
+        function selectSpecies(speciesKey) {
+            const species = BIRD_SPECIES[speciesKey];
+            gameState.species = species.name;
+
+            // Apply species bonuses
+            gameState.skills = { ...species.startingSkills };
+            gameState.maxHealth = 100 + species.bonuses.health;
+            gameState.health = gameState.maxHealth;
+            gameState.maxEnergy = 100 + species.bonuses.energy;
+            gameState.energy = gameState.maxEnergy;
+            gameState.socialStanding = 50 + species.bonuses.socialStanding;
+
+            startGame();
+        }
+
         function startGame() {
             gameState.hasSeenIntro = true;
             gameState.tutorialActive = true;
             closeModal();
-            addMessage('🌸 Spring has arrived! Your journey begins in Oak Meadow...', 'success');
+            addMessage(`🌸 Spring has arrived! Your journey begins in Oak Meadow as a ${gameState.species}...`, 'success');
             addMessage('💡 Tip: Start by foraging for food or gathering twigs!', 'info');
             addSeasonalQuest();
             updateUI();
