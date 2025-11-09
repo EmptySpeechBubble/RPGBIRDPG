@@ -54,80 +54,123 @@
             overflow: visible;
         }
 
-        /* Mobile: fit everything on screen */
+        /* Mobile: fit everything on screen without scrolling */
         @media (max-width: 599px) {
             #game-container {
                 padding: 2px;
                 max-height: 100vh;
                 display: flex;
                 flex-direction: column;
+                overflow: hidden;
             }
 
             #game-header {
-                padding: 6px;
-                margin-bottom: 4px;
+                padding: 4px;
+                margin-bottom: 2px;
                 flex-shrink: 0;
             }
 
             #game-title {
-                font-size: 16px;
-                margin-bottom: 4px;
+                font-size: 13px;
+                margin-bottom: 2px;
+                padding: 2px 0;
             }
 
+            /* Combine season/level/action into one compact line */
+            #season-info, #level-info {
+                display: inline-block;
+                font-size: 8px;
+                margin: 1px 2px;
+                padding: 2px 4px;
+            }
+
+            #action-info {
+                display: inline-block;
+                font-size: 8px;
+                margin: 1px 2px;
+                padding: 2px 4px;
+            }
+
+            /* Hide stats grid, show minimal inline version */
             #stats-grid {
-                gap: 3px;
-                margin: 4px 0;
-            }
-
-            .stat-compact {
-                padding: 3px 5px;
-                font-size: 10px;
-            }
-
-            #season-info, #level-info, #action-info {
-                font-size: 10px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 2px;
                 margin: 2px 0;
             }
 
-            #inventory {
-                padding: 4px;
-                margin-bottom: 4px;
-                font-size: 10px;
+            .stat-compact {
+                padding: 1px 3px;
+                font-size: 8px;
+                flex: 0 0 auto;
             }
 
+            .stat-compact-label {
+                font-size: 8px;
+            }
+
+            #inventory {
+                padding: 2px 4px;
+                margin-bottom: 2px;
+                font-size: 8px;
+            }
+
+            .inventory-title {
+                font-size: 8px;
+                margin-bottom: 1px;
+            }
+
+            .inventory-item {
+                font-size: 7px;
+                margin: 0 2px;
+            }
+
+            /* Make weather inline and tiny */
             #weather-display {
-                padding: 4px;
-                margin-bottom: 4px;
-                font-size: 11px;
+                padding: 2px 4px;
+                margin-bottom: 2px;
+                font-size: 8px;
+                display: inline-flex;
+                width: auto;
             }
 
             #message-log {
-                max-height: 40px;
-                margin-bottom: 4px;
-                padding: 4px;
-                font-size: 10px;
+                max-height: 25px;
+                margin-bottom: 2px;
+                padding: 2px;
+                font-size: 8px;
+                line-height: 1.2;
             }
 
+            .message {
+                margin-bottom: 2px;
+                padding: 2px;
+                font-size: 8px;
+            }
+
+            /* Smaller map */
             #map-canvas {
-                width: 280px;
-                height: 280px;
+                width: 200px;
+                height: 200px;
             }
 
             #map-wrapper {
-                width: 280px;
+                width: 200px;
+                margin: 0 auto;
             }
 
+            /* Compact action buttons */
             .action-btn {
-                padding: 4px 3px;
-                font-size: 9px;
+                padding: 3px 2px;
+                font-size: 7px;
             }
 
             .btn-emoji {
-                font-size: 14px;
+                font-size: 12px;
             }
 
             .btn-text {
-                font-size: 8px;
+                font-size: 7px;
             }
 
             #main-content {
@@ -135,24 +178,39 @@
                 min-height: 0;
                 display: flex;
                 flex-direction: column;
+                padding: 4px;
+                margin-bottom: 0;
             }
 
             #map-actions-container {
                 flex: 1;
                 min-height: 0;
-                margin-bottom: 2px;
+                margin-bottom: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #action-panel {
+                margin-top: 2px;
             }
 
             #quest-panel {
-                font-size: 10px;
-                padding: 4px;
-                margin-bottom: 4px;
+                font-size: 8px;
+                padding: 2px 4px;
+                margin-bottom: 2px;
             }
 
             #family-section {
-                padding: 4px;
-                margin-bottom: 4px;
-                font-size: 10px;
+                padding: 2px 4px;
+                margin-bottom: 2px;
+                font-size: 8px;
+            }
+
+            /* Hide quick action buttons on mobile to save space */
+            #game-header button {
+                padding: 3px 4px;
+                font-size: 8px;
             }
         }
 
@@ -626,31 +684,32 @@
 
         /* Inventory */
         #inventory {
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 13px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 4px;
+            padding: 3px 6px;
+            margin-bottom: 3px;
+            font-size: 9px;
         }
 
         .inventory-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
             color: #2e7d32;
+            font-size: 9px;
         }
 
         .inventory-items {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 4px;
         }
 
         .inventory-item {
-            background: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 18px;
+            display: inline-block;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-size: 9px;
+            background: rgba(255, 255, 255, 0.5);
         }
 
         /* Skills Display */
@@ -684,20 +743,20 @@
         }
 
         .stat-compact {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            background: linear-gradient(135deg, #f5f3ed, #ebe8df);
-            border-radius: 6px;
-            padding: 6px 8px;
-            font-size: 11px;
+            gap: 2px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: 9px;
         }
 
         .stat-compact-label {
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .stat-compact-value {
@@ -713,45 +772,34 @@
             <div id="game-title">🐦 BIRD WINDOW RPG</div>
 
             <!-- Quick Actions Bar -->
-            <div style="display: flex; gap: 8px; margin: 8px 0;">
-                <button onclick="newGame()" style="flex: 1; padding: 6px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">🔄 New Game</button>
-                <button onclick="showTutorial(0)" style="flex: 1; padding: 6px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">❓ Help</button>
+            <div style="display: flex; gap: 4px; margin: 3px 0;">
+                <button onclick="newGame()" style="flex: 1; padding: 4px; background: #e74c3c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 9px;">🔄 New</button>
+                <button onclick="showTutorial(0)" style="flex: 1; padding: 4px; background: #3498db; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 9px;">❓ Help</button>
             </div>
 
-            <!-- Season & Turn Info -->
-            <div id="season-info">🌸 Spring - Turn 1/10</div>
-            <div id="level-info">Level 1 Bluebird | XP: 0/100</div>
-            <div id="action-info" style="text-align: center; font-size: 11px; font-weight: bold; color: #2980b9; margin: 4px 0;">⚡ Actions: 0/5</div>
-
-            <!-- Compact Stats -->
-            <div id="stats-grid">
-                <div class="stat-compact">
-                    <span class="stat-compact-label">❤️ Health</span>
-                    <span class="stat-compact-value" id="header-health">100/100</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-compact-label">⚡ Energy</span>
-                    <span class="stat-compact-value" id="header-energy">100/100</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-compact-label">🍖 Hunger</span>
-                    <span class="stat-compact-value" id="header-hunger">0/100</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-compact-label">⭐ Social</span>
-                    <span class="stat-compact-value" id="header-social">50/100</span>
-                </div>
+            <!-- Season, Level & Action Info (Combined) -->
+            <div style="text-align: center; margin: 2px 0;">
+                <span id="season-info" style="display: inline-block;">🌸 Spring - Turn 1/10</span>
+                <span id="level-info" style="display: inline-block;">Level 1 Bluebird | XP: 0/100</span>
+                <span id="action-info" style="display: inline-block; font-weight: bold; color: #2980b9;">⚡ Actions: 0/5</span>
             </div>
 
-            <!-- Inventory -->
-            <div id="inventory">
-                <div class="inventory-title">📦 Inventory</div>
-                <div class="inventory-items" id="inventory-items">
-                    <span class="inventory-item">🌰 Food: <span id="food-count">0</span></span>
-                    <span class="inventory-item">🌿 Twigs: <span id="twig-count">0</span></span>
-                    <span class="inventory-item">🥚 Eggs: <span id="egg-count">0</span></span>
-                    <span class="inventory-item">🌰📦 Cached: <span id="cached-count">0</span></span>
-                </div>
+            <!-- Compact Stats & Inventory Combined -->
+            <div style="display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin: 2px 0; font-size: 9px;">
+                <span class="stat-compact">❤️<span class="stat-compact-value" id="header-health">100/100</span></span>
+                <span class="stat-compact">⚡<span class="stat-compact-value" id="header-energy">100/100</span></span>
+                <span class="stat-compact">🍖<span class="stat-compact-value" id="header-hunger">0/100</span></span>
+                <span class="stat-compact">⭐<span class="stat-compact-value" id="header-social">50/100</span></span>
+            </div>
+
+            <div id="stats-grid" style="display: none;"></div>
+
+            <!-- Inventory (Inline) -->
+            <div id="inventory" style="text-align: center;">
+                <span class="inventory-item">🌰<span id="food-count">0</span></span>
+                <span class="inventory-item">🌿<span id="twig-count">0</span></span>
+                <span class="inventory-item">🥚<span id="egg-count">0</span></span>
+                <span class="inventory-item">📦<span id="cached-count">0</span></span>
             </div>
 
             <!-- Family Section -->
