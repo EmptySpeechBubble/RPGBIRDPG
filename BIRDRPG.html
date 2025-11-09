@@ -54,27 +54,35 @@
             overflow: visible;
         }
 
-        /* Mobile: fit everything on screen without scrolling */
+        /* Mobile: Tamagotchi/Handheld Gaming Device Style - Ultra Compact */
         @media (max-width: 599px) {
+            body {
+                background: #1a1a1a;
+            }
+
             #game-container {
-                padding: 2px;
+                padding: 0;
                 max-height: 100vh;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
             }
 
+            /* ULTRA COMPACT HEADER - Single line with just icons and numbers */
             #game-header {
-                padding: 2px;
-                margin-bottom: 1px;
+                padding: 1px;
+                margin: 0;
                 flex-shrink: 0;
-                border-radius: 6px;
+                border-radius: 0;
+                background: #2a2a2a;
+                box-shadow: none;
             }
 
             #game-title {
-                font-size: 10px;
-                margin-bottom: 1px;
-                padding: 1px 0;
+                font-size: 8px;
+                margin: 0;
+                padding: 1px;
+                text-align: center;
             }
 
             /* Hide New Game / Help buttons on mobile */
@@ -82,101 +90,122 @@
                 display: none;
             }
 
-            /* Combine season/level/action into one compact line */
+            /* Single line info - ultra minimal */
             #season-info, #level-info {
                 display: inline-block;
-                font-size: 7px;
-                margin: 0 1px;
-                padding: 1px 2px;
+                font-size: 5px;
+                margin: 0;
+                padding: 0 2px;
+                background: transparent;
+                border-radius: 0;
             }
 
             #action-info {
                 display: inline-block;
-                font-size: 7px;
-                margin: 0 1px;
-                padding: 1px 2px;
+                font-size: 5px;
+                margin: 0;
+                padding: 0 2px;
             }
 
-            /* Hide stats grid, show minimal inline version */
+            /* Just numbers, no labels */
+            .stat-compact-label {
+                display: none;
+            }
+
             #stats-grid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1px;
-                margin: 1px 0;
+                display: none;
+            }
+
+            /* Single line stats - just emoji + number */
+            #game-header > div:nth-child(3) {
+                font-size: 6px;
+                line-height: 1;
+                margin: 0;
+                padding: 1px;
             }
 
             .stat-compact {
-                padding: 1px 2px;
-                font-size: 7px;
-                flex: 0 0 auto;
+                padding: 0 2px;
+                font-size: 6px;
+                background: transparent;
+                border-radius: 0;
             }
 
-            .stat-compact-label {
-                font-size: 7px;
-            }
-
+            /* Inventory - minimal inline */
             #inventory {
-                padding: 1px 2px;
-                margin-bottom: 1px;
-                font-size: 7px;
+                padding: 0 2px;
+                margin: 0;
+                font-size: 6px;
+                background: transparent;
+                border-radius: 0;
+                text-align: center;
             }
 
             .inventory-title {
-                font-size: 8px;
-                margin-bottom: 1px;
+                display: none;
             }
 
             .inventory-item {
-                font-size: 6px;
-                margin: 0 1px;
+                font-size: 5px;
+                margin: 0;
+                padding: 0 1px;
+                background: transparent;
             }
 
-            /* Make weather inline and tiny */
+            /* Weather - inline, minimal */
             #weather-display {
-                padding: 1px 2px;
-                margin-bottom: 1px;
-                font-size: 7px;
-                display: inline-flex;
-                width: auto;
+                padding: 0 2px;
+                margin: 0;
+                font-size: 5px;
+                background: transparent;
+                border-radius: 0;
             }
 
+            /* Message log - super minimal */
             #message-log {
-                max-height: 20px;
-                margin-bottom: 1px;
+                max-height: 12px;
+                margin: 0;
                 padding: 1px;
-                font-size: 7px;
-                line-height: 1.1;
+                font-size: 5px;
+                line-height: 1;
+                background: #1a1a1a;
+                border-radius: 0;
             }
 
             .message {
-                margin-bottom: 1px;
-                padding: 1px;
-                font-size: 7px;
+                margin: 0;
+                padding: 0;
+                font-size: 5px;
+                border-left-width: 1px;
             }
 
-            /* Smaller map */
+            /* BIGGER MAP - the star of the show */
             #map-canvas {
-                width: 200px;
-                height: 200px;
+                width: 240px;
+                height: 240px;
+                border-radius: 4px;
             }
 
             #map-wrapper {
-                width: 200px;
+                width: 240px;
                 margin: 0 auto;
             }
 
-            /* Compact action buttons */
+            /* TINY action buttons - just icons */
             .action-btn {
-                padding: 3px 2px;
-                font-size: 7px;
+                padding: 2px 1px;
+                font-size: 5px;
+                border-radius: 2px;
+                gap: 0;
             }
 
             .btn-emoji {
-                font-size: 12px;
+                font-size: 10px;
             }
 
             .btn-text {
-                font-size: 7px;
+                font-size: 5px;
+                display: none; /* Hide text, just show emoji */
             }
 
             #main-content {
@@ -184,44 +213,53 @@
                 min-height: 0;
                 display: flex;
                 flex-direction: column;
-                padding: 2px;
-                margin-bottom: 0;
+                padding: 1px;
+                margin: 0;
+                background: transparent;
+                border-radius: 0;
+                box-shadow: none;
             }
 
             #map-actions-container {
                 flex: 1;
                 min-height: 0;
-                margin-bottom: 0;
+                margin: 0;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                justify-content: center;
             }
 
             #action-panel {
-                margin-top: 2px;
+                margin-top: 1px;
+                gap: 1px;
+                width: 240px;
+                grid-template-columns: repeat(4, 1fr);
             }
 
+            /* Quest - ultra minimal */
             #quest-panel {
-                font-size: 7px;
-                padding: 1px 2px;
-                margin-bottom: 1px;
+                font-size: 5px;
+                padding: 1px;
+                margin: 0 0 1px 0;
+                background: rgba(255, 243, 205, 0.2);
+                border-radius: 2px;
+                border-width: 0;
             }
 
-            /* Hide quest title on mobile to save space */
             .quest-title {
                 display: none;
             }
 
             #family-section {
-                padding: 1px 2px;
-                margin-bottom: 1px;
-                font-size: 7px;
+                padding: 1px;
+                margin: 0;
+                font-size: 5px;
             }
 
-            /* Hide quick action buttons on mobile to save space */
+            /* Hide button text on mobile */
             #game-header button {
-                padding: 2px 3px;
-                font-size: 7px;
+                display: none;
             }
         }
 
@@ -1295,16 +1333,12 @@
                     const progressPercent = Math.min(100, (q.progress / q.goal) * 100);
                     const progressColor = progressPercent >= 100 ? '#27ae60' : progressPercent >= 50 ? '#f39c12' : '#3498db';
                     return `
-                        <div class="quest-item" style="margin-bottom: 1px; padding: 1px 2px;">
-                            <div style="font-weight: bold; margin-bottom: 0; font-size: 6px;">${q.emoji} ${q.name}</div>
-                            <div style="font-size: 6px; color: #666; margin-bottom: 0; line-height: 1.1;">${q.desc}</div>
-                            <div style="display: flex; align-items: center; gap: 2px;">
-                                <div style="flex: 1; background: #ddd; border-radius: 2px; height: 4px; overflow: hidden;">
-                                    <div style="width: ${progressPercent}%; background: ${progressColor}; height: 100%; transition: width 0.3s;"></div>
-                                </div>
-                                <div style="font-size: 6px; font-weight: bold;">${q.progress}/${q.goal}</div>
+                        <div class="quest-item" style="margin: 0; padding: 1px; display: flex; align-items: center; gap: 2px; font-size: 5px;">
+                            <span>${q.emoji}</span>
+                            <div style="flex: 1; background: #555; border-radius: 1px; height: 3px; overflow: hidden;">
+                                <div style="width: ${progressPercent}%; background: ${progressColor}; height: 100%;"></div>
                             </div>
-                            <div style="font-size: 6px; color: #27ae60; margin-top: 0;">+${q.reward}XP</div>
+                            <span style="font-size: 5px;">${q.progress}/${q.goal}</span>
                         </div>
                     `;
                 }).join('');
