@@ -3208,19 +3208,16 @@
             if (!canvas) return;
 
             const ctx = canvas.getContext('2d');
-            const cellSize = 150;
+            const cellSize = canvas.width / 3; // Responsive cell size
 
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw background gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#e3f2fd');
-            gradient.addColorStop(1, '#bbdefb');
-            ctx.fillStyle = gradient;
+            // Simple light background
+            ctx.fillStyle = '#f0f8ff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw territories
+            // Draw territories (simplified emoji-based)
             for (let i = 0; i < 9; i++) {
                 const row = Math.floor(i / 3);
                 const col = i % 3;
@@ -3230,91 +3227,83 @@
                 const territory = gameState.territories[i];
                 const isCurrent = i === gameState.currentLocation;
 
-                // Territory background
-                ctx.fillStyle = isCurrent ? '#fff9e6' : '#e0f7fa';
-                ctx.strokeStyle = isCurrent ? '#f39c12' : '#4dd0e1';
-                ctx.lineWidth = isCurrent ? 6 : 3;
+                // Simple border for current location
+                if (isCurrent) {
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                } else {
+                    ctx.strokeStyle = '#ddd';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, cellSize, cellSize);
+                }
 
-                ctx.beginPath();
-                ctx.roundRect(x + 5, y + 5, cellSize - 10, cellSize - 10, 15);
-                ctx.fill();
-                ctx.stroke();
-
-                // Territory emoji (larger)
-                ctx.font = '48px serif';
+                // Territory emoji (large and centered)
+                ctx.font = `${cellSize * 0.4}px serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(territory.emoji, x + cellSize / 2, y + cellSize / 2 - 15);
+                ctx.fillText(territory.emoji, x + cellSize / 2, y + cellSize / 2 - cellSize * 0.15);
 
-                // Territory name
-                ctx.font = 'bold 12px sans-serif';
-                ctx.fillStyle = '#2c3e50';
-                ctx.fillText(territory.name, x + cellSize / 2, y + cellSize - 20);
+                // Territory name (smaller, below emoji)
+                ctx.font = `bold ${cellSize * 0.08}px sans-serif`;
+                ctx.fillStyle = '#333';
+                ctx.fillText(territory.name, x + cellSize / 2, y + cellSize * 0.85);
 
-                // NPCs and predators
+                // NPCs (emoji-based instead of drawn)
                 if (territory.npcs.length > 0) {
-                    // Draw NPC bird in neutral gray
-                    drawBird(ctx, x + 25, y + 25, 14, '#95a5a6', false);
-                }
-                if (territory.predators.length > 0) {
-                    ctx.fillText('⚠️', x + cellSize - 20, y + 20);
+                    ctx.font = `${cellSize * 0.15}px serif`;
+                    ctx.fillText('🐦', x + cellSize * 0.2, y + cellSize * 0.2);
                 }
 
-                // Player bird indicator (animated)
+                // Predators (emoji)
+                if (territory.predators.length > 0) {
+                    ctx.font = `${cellSize * 0.12}px serif`;
+                    ctx.fillText('⚠️', x + cellSize * 0.8, y + cellSize * 0.2);
+                }
+
+                // Player bird (drawn, animated)
                 if (isCurrent) {
                     const playerColor = BIRD_SPECIES[gameState.species].color;
-                    drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + 30, 24, playerColor, true);
+                    drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + cellSize * 0.25, cellSize * 0.16, playerColor, true);
 
-                    // Draw flock members circling around player
+                    // Flock members (drawn, circling)
                     if (gameState.flockMembers && gameState.flockMembers.length > 0) {
                         const time = Date.now() / 1000;
                         gameState.flockMembers.forEach((member, index) => {
                             const angle = (time + index * (Math.PI * 2 / gameState.flockMembers.length)) % (Math.PI * 2);
-                            const radius = 35 + Math.sin(time * 2 + index) * 5; // Orbit radius with variation
+                            const radius = cellSize * 0.25 + Math.sin(time * 2 + index) * cellSize * 0.03;
                             const flockX = x + cellSize / 2 + Math.cos(angle) * radius;
-                            const flockY = y + cellSize / 2 + 30 + Math.sin(angle) * radius * 0.6; // Elliptical orbit
+                            const flockY = y + cellSize / 2 + cellSize * 0.25 + Math.sin(angle) * radius * 0.6;
 
-                            // Determine flock member color
-                            let flockColor = '#95a5a6'; // Default gray
+                            let flockColor = '#95a5a6';
                             if (member.species && BIRD_SPECIES[member.species]) {
                                 flockColor = BIRD_SPECIES[member.species].color;
                             }
 
-                            drawBird(ctx, flockX, flockY, 16, flockColor, true);
+                            drawBird(ctx, flockX, flockY, cellSize * 0.11, flockColor, true);
                         });
                     }
                 }
             }
 
-            // Weather overlay
+            // Weather emoji overlay
             if (gameState.weather !== 'clear') {
-                ctx.globalAlpha = 0.15;
-                ctx.fillStyle = WEATHER_TYPES[gameState.weather].color;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.globalAlpha = 1;
+                const weatherEmoji = WEATHER_TYPES[gameState.weather].icon;
+                ctx.font = `${cellSize * 0.15}px serif`;
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'top';
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillText(`${weatherEmoji} ${WEATHER_TYPES[gameState.weather].name}`, canvas.width - 10, 10);
             }
 
-            // Mushroom Mode psychedelic overlay
+            // Mushroom Mode emoji overlay
             if (gameState.mushroomModeActive) {
                 const time = Date.now() / 1000;
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                const hue1 = (time * 60) % 360;
-                const hue2 = (time * 60 + 120) % 360;
-                const hue3 = (time * 60 + 240) % 360;
-
-                gradient.addColorStop(0, `hsla(${hue1}, 100%, 50%, 0.2)`);
-                gradient.addColorStop(0.5, `hsla(${hue2}, 100%, 50%, 0.2)`);
-                gradient.addColorStop(1, `hsla(${hue3}, 100%, 50%, 0.2)`);
-
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Add "🍄" text overlay
-                ctx.globalAlpha = 0.3 + Math.sin(time * 2) * 0.1;
-                ctx.font = 'bold 24px sans-serif';
-                ctx.fillStyle = '#ff00ff';
+                ctx.globalAlpha = 0.7 + Math.sin(time * 3) * 0.3;
+                ctx.font = `bold ${cellSize * 0.15}px sans-serif`;
                 ctx.textAlign = 'center';
-                ctx.fillText('🍄 MUSHROOM MODE 🍄', canvas.width / 2, 30);
+                ctx.fillStyle = '#ff00ff';
+                ctx.fillText('🍄 MUSHROOM MODE 🍄', canvas.width / 2, cellSize * 0.1);
                 ctx.globalAlpha = 1;
             }
         }
