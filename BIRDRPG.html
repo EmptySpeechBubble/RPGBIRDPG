@@ -359,6 +359,7 @@
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 5px;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         #level-info {
@@ -369,6 +370,7 @@
             border-radius: 8px;
             font-size: 13px;
             margin-bottom: 5px;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         /* Main Content Area */
@@ -652,6 +654,7 @@
             padding: 3px 5px;
             margin-bottom: 2px;
             font-size: 8px;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         .quest-title {
@@ -659,6 +662,7 @@
             font-size: 9px;
             margin-bottom: 2px;
             color: #856404;
+            transition: color 0.5s ease;
         }
 
         .quest-item {
@@ -1590,7 +1594,7 @@
             </div>
 
             <!-- Family Section -->
-            <div id="family-section" style="display: none; background: linear-gradient(135deg, #ffeef8, #ffe6f0); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+            <div id="family-section" style="display: none; background: linear-gradient(135deg, #ffeef8, #ffe6f0); padding: 10px; border-radius: 10px; margin-bottom: 10px; transition: background 0.5s ease, color 0.5s ease;">
                 <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #c0392b;">💕 Family</div>
                 <div id="family-content" style="font-size: 12px; line-height: 1.6;"></div>
             </div>
@@ -1908,7 +1912,8 @@
 
             // Turn Management
             actionsTakenThisTurn: 0,
-            maxActionsPerTurn: 5
+            maxActionsPerTurn: 5,
+            turnEndPending: false
         };
 
         // Territory definitions (3x3 grid, 0-8)
@@ -1962,6 +1967,25 @@
                     const loaded = JSON.parse(saved);
                     // Merge with defaults in case of new properties
                     gameState = { ...gameState, ...loaded };
+
+                    // Deep merge nested objects to handle new properties
+                    if (loaded.skills) {
+                        gameState.skills = { ...gameState.skills, ...loaded.skills };
+                    }
+
+                    // Migrate old saves: ensure babies have species property
+                    if (gameState.babies && gameState.babies.length > 0) {
+                        gameState.babies = gameState.babies.map(baby => ({
+                            ...baby,
+                            species: baby.species || gameState.species
+                        }));
+                    }
+
+                    // Ensure new flags exist
+                    if (gameState.turnEndPending === undefined) {
+                        gameState.turnEndPending = false;
+                    }
+
                     return true;
                 }
             } catch(e) {
@@ -1984,6 +2008,12 @@
             const messageLog = document.getElementById('message-log');
             const isMobile = window.innerWidth <= 599;
 
+            // Get additional UI elements
+            const seasonInfo = document.getElementById('season-info');
+            const levelInfo = document.getElementById('level-info');
+            const questPanel = document.getElementById('quest-panel');
+            const familySection = document.getElementById('family-section');
+
             if (gameState.timeOfDay === 'day') {
                 // Day: bright sky blue gradient
                 if (isMobile) {
@@ -2000,8 +2030,27 @@
                     messageLog.style.background = 'rgba(44, 62, 80, 0.9)';
                     messageLog.style.color = '#ecf0f1';
                 }
+
+                // Day mode for season/level info
+                seasonInfo.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                seasonInfo.style.color = 'white';
+                levelInfo.style.background = '#34495e';
+                levelInfo.style.color = 'white';
+
+                // Day mode for quest and family panels
+                if (questPanel) {
+                    questPanel.style.background = 'linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.15))';
+                    questPanel.style.color = '#2d3436';
+                    // Reset quest titles for day mode
+                    const questTitles = document.querySelectorAll('.quest-title');
+                    questTitles.forEach(title => title.style.color = '#856404');
+                }
+                if (familySection && familySection.style.display !== 'none') {
+                    familySection.style.background = 'linear-gradient(135deg, #ffeef8, #ffe6f0)';
+                    familySection.style.color = '#2d3436';
+                }
             } else {
-                // Night: dark blue/purple gradient
+                // Night: dark blue/purple gradient with stars
                 if (isMobile) {
                     body.style.background = 'linear-gradient(180deg, #0c1445 0%, #1a1a2e 50%, #16213e 100%)';
                     header.style.background = 'rgba(20, 20, 40, 0.95)';
@@ -2015,6 +2064,25 @@
                     mainContent.style.color = '#e0e0e0';
                     messageLog.style.background = 'rgba(10, 15, 30, 0.9)';
                     messageLog.style.color = '#d0d0d0';
+                }
+
+                // Night mode for season/level info - darker with good contrast
+                seasonInfo.style.background = 'linear-gradient(135deg, #6a4c93 0%, #4a3870 100%)';
+                seasonInfo.style.color = '#f0f0f0';
+                levelInfo.style.background = 'rgba(30, 35, 55, 0.95)';
+                levelInfo.style.color = '#e0e0e0';
+
+                // Night mode for quest and family panels
+                if (questPanel) {
+                    questPanel.style.background = 'linear-gradient(135deg, rgba(52, 152, 219, 0.25), rgba(41, 128, 185, 0.25))';
+                    questPanel.style.color = '#e0e0e0';
+                    // Update quest titles for night mode
+                    const questTitles = document.querySelectorAll('.quest-title');
+                    questTitles.forEach(title => title.style.color = '#ffd700');
+                }
+                if (familySection && familySection.style.display !== 'none') {
+                    familySection.style.background = 'linear-gradient(135deg, rgba(139, 69, 139, 0.3), rgba(123, 63, 123, 0.3))';
+                    familySection.style.color = '#e0e0e0';
                 }
             }
 
@@ -2401,17 +2469,30 @@
 
         // Check if turn should auto-end
         function checkAutoEndTurn() {
+            // Prevent multiple auto-end timers
+            if (gameState.turnEndPending) {
+                return;
+            }
+
             // Check energy threshold
             if (gameState.energy <= 20) {
                 addMessage('⚡ You\'re too exhausted to continue! Time to rest...', 'warning');
-                setTimeout(() => endTurn(), 2000);
+                gameState.turnEndPending = true;
+                setTimeout(() => {
+                    gameState.turnEndPending = false;
+                    endTurn();
+                }, 2000);
                 return;
             }
 
             // Check action limit
             if (gameState.actionsTakenThisTurn >= gameState.maxActionsPerTurn) {
                 addMessage(`📊 You've taken ${gameState.maxActionsPerTurn} actions! The day passes...`, 'info');
-                setTimeout(() => endTurn(), 2000);
+                gameState.turnEndPending = true;
+                setTimeout(() => {
+                    gameState.turnEndPending = false;
+                    endTurn();
+                }, 2000);
                 return;
             }
 
@@ -2495,7 +2576,7 @@
                 const eventRoll = Math.random();
                 if (eventRoll < 0.05) {
                     // Meet a friendly bird who teaches you something
-                    const skillToBoost = ['foraging', 'perception', 'social'][Math.floor(Math.random() * 3)];
+                    const skillToBoost = ['foraging', 'perception', 'flocking'][Math.floor(Math.random() * 3)];
                     gameState.skills[skillToBoost]++;
                     addMessage(`🐦 You meet a friendly ${gameState.species} who shares wisdom about ${skillToBoost}! +1 skill`, 'success');
                     gameState.socialStanding = Math.min(100, gameState.socialStanding + 5);
@@ -2686,6 +2767,7 @@
                     // Chance to find mate in spring
                     if (gameState.season === 0 && !gameState.hasMate && Math.random() < 0.3) {
                         gameState.hasMate = true;
+                        gameState.mateSpecies = territory.npcs[0].species;
                         addMessage('💕 You found a mate! After courting displays and singing, they accept you!', 'success');
                         addDiaryEntry('Found a mate! Love is in the air 💕', 'social');
                         gainXP(50);
@@ -2797,7 +2879,7 @@
                     gainXP(200);
                     completeQuest('firstHome');
                 } else {
-                    gameState.twigs -= 5; // Still lose some materials
+                    gameState.twigs = Math.max(0, gameState.twigs - 5); // Still lose some materials, but not go negative
                     addMessage('Struggled with birdhouse construction...', 'warning');
                     gainXP(20);
                 }
@@ -2845,7 +2927,7 @@
                     gainXP(50);
                 } else {
                     addMessage('Failed to convince the bird to join...', 'warning');
-                    gameState.socialStanding -= 5;
+                    gameState.socialStanding = Math.max(0, gameState.socialStanding - 5);
                     gainXP(10);
                 }
 
@@ -3035,7 +3117,7 @@
 
             for (let i = 0; i < numBabies; i++) {
                 const babyName = babyNames[Math.floor(Math.random() * babyNames.length)];
-                const babySpecies = Math.random() < 0.7 ? gameState.species : gameState.mateSpecies;
+                const babySpecies = Math.random() < 0.7 ? gameState.species : (gameState.mateSpecies || gameState.species);
                 gameState.babies.push({
                     name: babyName,
                     species: babySpecies,
@@ -3541,14 +3623,14 @@
             if (enemy.isRatKing) {
                 addMessage('👑 You defeated the RAT KING! Legendary status achieved!', 'success');
                 addDiaryEntry('DEFEATED THE LEGENDARY RAT KING! I am a true warrior! 👑', 'milestone');
-                gameState.maxHealth += 20;
+                gameState.maxHealth = Math.min(200, gameState.maxHealth + 20); // Cap at 200
                 gameState.health = gameState.maxHealth;
                 gameState.socialStanding = Math.min(100, gameState.socialStanding + 30);
                 gameState.food += 10; // Reward food
                 gameState.ratsDefeated = 0; // Reset counter
             } else if (enemy.type === 'boss') {
                 addMessage(`💎 Boss defeated! Major rewards earned!`, 'success');
-                gameState.maxHealth += 5;
+                gameState.maxHealth = Math.min(200, gameState.maxHealth + 5); // Cap at 200
                 gameState.health = Math.min(gameState.health + 20, gameState.maxHealth);
                 gameState.food += 5;
             }
@@ -3612,6 +3694,7 @@
                 cache.turnsLeft--;
                 if (cache.turnsLeft <= 0) {
                     addMessage(`⚠️ Your cache at ${TERRITORIES[cache.location].name} has spoiled!`, 'warning');
+                    gameState.cachedFood = Math.max(0, gameState.cachedFood - cache.amount);
                 }
             });
             gameState.foodCaches = gameState.foodCaches.filter(c => c.turnsLeft > 0);
@@ -3732,11 +3815,15 @@
                 addMessage(`🎊 Year ${gameState.year} begins! You made it through winter!`, 'success');
                 addDiaryEntry(`Survived another year! Now in year ${gameState.year} 🎊`, 'milestone');
 
+                // Reset breeding cycle for new year
+                gameState.eggsLaid = 0;
+
                 // Yearly bonuses
                 if (gameState.hasNest && gameState.hasMate) {
-                    gameState.eggs += Math.floor(Math.random() * 3) + 2;
-                    addMessage(`🥚 Your mate laid ${gameState.eggs} eggs for the new breeding season!`, 'success');
-                    addDiaryEntry(`My mate laid ${gameState.eggs} eggs! Starting a family 🥚`, 'social');
+                    const newEggs = Math.floor(Math.random() * 3) + 2;
+                    gameState.eggs = newEggs;
+                    addMessage(`🥚 Your mate laid ${newEggs} eggs for the new breeding season!`, 'success');
+                    addDiaryEntry(`My mate laid ${newEggs} eggs! Starting a family 🥚`, 'social');
                     gainXP(100);
                 }
             }
@@ -4428,7 +4515,7 @@
             const x = (event.clientX - rect.left) * scaleX;
             const y = (event.clientY - rect.top) * scaleY;
 
-            const cellSize = 150;
+            const cellSize = canvas.width / 3;
             const col = Math.floor(x / cellSize);
             const row = Math.floor(y / cellSize);
             const clickedLocation = row * 3 + col;
