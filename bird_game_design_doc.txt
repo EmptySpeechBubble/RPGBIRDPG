@@ -1,0 +1,619 @@
+================================================================================
+                    SEASONS OF THE FLOCK
+              A Bird RPG / Seasonal Strategy Game
+                      Design Document v1.0
+================================================================================
+
+CORE CONCEPT
+------------
+A turn-based RPG where you control a single bird navigating the challenges of 
+survival across multiple seasons and years. Combines personal bird progression 
+(stats, abilities, relationships) with seasonal strategic planning (territory 
+management, resource gathering, flock leadership). The game leverages the 
+existing ecosystem simulation but adds player agency through meaningful choices 
+each turn.
+
+
+GAME LOOP
+---------
+MACRO LOOP (Yearly Cycle):
+- Spring → Summer → Fall → Winter → Repeat
+- Each season = 10-15 turns
+- Goal: Survive multiple years, raise successful offspring, become flock leader
+
+MICRO LOOP (Per Turn):
+1. Survey the Area (see nearby entities, resources, threats)
+2. Choose Action (move, forage, build, socialize, rest, combat)
+3. Resolve Action (dice rolls, skill checks, resource changes)
+4. World Reacts (other birds act, predators move, weather changes)
+5. Update Status (hunger, energy, season progress)
+6. End Turn
+
+
+PLAYER CHARACTER - THE BIRD
+----------------------------
+CORE STATS:
+- Health: 100 max (death at 0)
+- Hunger: 0-100 (lose health if reaches 100)
+- Energy: 0-100 (needed for actions; sleep restores)
+- Social Standing: 0-100 (affects flock interactions)
+
+SKILLS (Level 1-10):
+- Foraging: Find food more efficiently
+- Building: Construct nests/birdhouses faster, better quality
+- Flying: Move farther per turn, better aerial maneuvers
+- Combat: Defend territory, fight predators
+- Flocking: Lead/coordinate with other birds
+- Perception: Spot threats, hidden resources
+
+ATTRIBUTES (Based on Bird Type):
+- Species: Bluebird, Cardinal, Canary, Robin, Sparrow
+- Aggression: 0.2-0.7 (affects territorial behavior)
+- Flocking Tendency: 0.5-0.95 (affects social interactions)
+- Size/Speed: Multipliers for movement and combat
+
+PROGRESSION:
+- Gain XP from: surviving seasons, completing quests, successful hunts
+- Level up: Increase one skill, gain 10 max health
+- Max Level: 10 (Master Bird)
+
+
+SEASONAL MECHANICS
+------------------
+
+=== SPRING (Renewal & Territory) ===
+KEY ACTIVITIES:
+- Claim territory (choose nesting area)
+- Find/court a mate
+- Gather nest materials (10 twigs needed)
+- Build nest or birdhouse
+- Lay eggs (if mated)
+
+CHALLENGES:
+- Competition for prime nesting spots
+- Territorial disputes with other birds
+- Material scarcity
+- Predators targeting nests
+
+SEASON-SPECIFIC MECHANICS:
+- Courtship mini-game (series of successful actions to impress mate)
+- Territory size affects resource access
+- Can join an existing flock or start your own
+
+QUESTS:
+- "First Home": Build your first nest
+- "Perfect Match": Successfully court a mate
+- "Territorial Victor": Defend your territory 3 times
+- "Community Builder": Help 2 other birds build nests
+
+
+=== SUMMER (Growth & Protection) ===
+KEY ACTIVITIES:
+- Feed babies (requires 3 food per baby per turn)
+- Defend nest from predators (rats, squirrels, crows)
+- Forage extensively (more worms, abundant food)
+- Expand territory
+- Train fledglings
+
+CHALLENGES:
+- Rat/Rat King raids
+- Squirrel nest invasions  
+- Hunger management (feeding family)
+- Weather events (storms)
+- Owl attacks at night
+
+SEASON-SPECIFIC MECHANICS:
+- Baby birds grow: Egg → Hatchling → Fledgling → Independent
+- Family defense: Must protect nest, combat more common
+- Heat waves reduce energy faster
+- Abundant food but competition increases
+
+QUESTS:
+- "Provider": Successfully feed babies for 5 turns
+- "Guardian": Defeat a nest raider
+- "Mentor": Train a fledgling to independence
+- "Flock Leader": Coordinate flock defense against predator
+
+
+=== FALL (Preparation & Decision) ===
+KEY ACTIVITIES:
+- Cache food for winter (hide 20+ food items)
+- Fortify nest/birdhouse
+- Make migration decision (stay or go?)
+- Establish winter territory
+- Form survival alliances
+
+CHALLENGES:
+- Dwindling food sources
+- Increasingly aggressive competition
+- Weather becomes harsh (wind, early frost)
+- Predators desperate for food
+- Migration risks vs. winter risks
+
+SEASON-SPECIFIC MECHANICS:
+- Food caching system: Hide food in trees, retrieve later
+- Migration choice: Leave (easier winter, lose territory) or Stay (claim 
+  abandoned areas, face hardship)
+- Weather deteriorates: More rain, wind, temperature drops
+- Flock dynamics shift: Some birds leave, changing social structure
+
+QUESTS:
+- "Winter Prep": Cache 20 food items
+- "Fortification": Improve nest durability to 100%
+- "Tough Choice": Make migration decision (stay earns bonus standing)
+- "Alliance": Form winter survival pact with 3 birds
+
+
+=== WINTER (Survival & Endurance) ===
+KEY ACTIVITIES:
+- Retrieve cached food
+- Huddle for warmth (with flock)
+- Seek shelter during storms
+- Defend caches from thieves
+- Survive until spring
+
+CHALLENGES:
+- Severe food scarcity (no worms, few seeds)
+- Freezing temperatures (energy drains faster)
+- Blizzards and storms (must seek shelter or lose health)
+- Desperate predators
+- Starvation risk
+- Maintaining social bonds in hardship
+
+SEASON-SPECIFIC MECHANICS:
+- Survival mode: All stats drain faster
+- Weather severity: Blizzards require sheltering (lose turns)
+- Cache dependency: Cached food is primary sustenance
+- Flock huddling: Group with other birds to reduce energy drain (-30% drain 
+  when with 3+ birds)
+- Night is much longer and more dangerous
+
+QUESTS:
+- "Survivor": Reach the end of winter alive
+- "Provider": Share food with struggling flock members
+- "Fortress": Successfully shelter during 3 storms
+- "Winter Warrior": Defend your cache from 5 theft attempts
+
+
+TURN STRUCTURE
+--------------
+PHASE 1: OBSERVATION
+- View 3x3 grid of areas around you
+- See: birds, predators, food, materials, nests, weather
+- Read notifications: "A crow is approaching from the east", "You hear a rat 
+  nearby"
+
+PHASE 2: CHOOSE ACTION
+Select ONE major action:
+
+MOVEMENT ACTIONS:
+- Fly (2-4 spaces based on Flying skill, costs 15 energy)
+- Hop (1 space, costs 5 energy)
+- Perch (find tree/structure, regain 10 energy)
+
+RESOURCE ACTIONS:
+- Forage (hunt for food, Foraging check)
+- Gather Material (collect twig, Building check)
+- Cache Food (hide food item for later)
+- Retrieve Cache (recover hidden food)
+
+BUILDING ACTIONS:
+- Build Nest (requires 10 twigs, Building check)
+- Improve Nest (increase durability, Building check)
+- Build Birdhouse (requires 5 materials, extended project)
+
+SOCIAL ACTIONS:
+- Court Mate (if spring, Flocking check)
+- Feed Baby (requires food, -hunger for baby)
+- Socialize (improve standing with nearby birds)
+- Lead Flock (give commands, requires high standing)
+
+COMBAT ACTIONS:
+- Defend Territory (challenge intruder, Combat check)
+- Attack (engage predator/rival, Combat check)
+- Flee (escape combat, Flying check)
+
+REST ACTIONS:
+- Sleep (restore 50 energy, vulnerable, advances time)
+- Shelter (weather protection, restore 20 energy)
+- Bathe (at puddle, restore 15 energy, improve social)
+
+PHASE 3: RESOLUTION
+- Roll skill check (if needed)
+- Apply results (gain food, build progress, damage dealt, etc.)
+- Update stats (hunger +5, energy -cost)
+
+PHASE 4: WORLD REACTION
+- Other birds take actions (simplified)
+- Predators move/hunt
+- Weather progresses
+- Random events roll
+
+PHASE 5: STATUS UPDATE
+- Check critical conditions (starvation, exhaustion, hypothermia)
+- Update season timer (turn X of 15)
+- Check quest progress
+- Save game state
+
+
+SKILL CHECKS & DICE SYSTEM
+---------------------------
+When attempting most actions, roll skill checks:
+
+FORMULA: d20 + Skill Level + Stat Modifier vs. Difficulty
+
+DIFFICULTY CLASSES:
+- Trivial: DC 5 (plentiful food, calm weather)
+- Easy: DC 10 (normal foraging)
+- Medium: DC 15 (building in wind, contested resources)
+- Hard: DC 20 (winter foraging, aggressive predator)
+- Very Hard: DC 25 (blizzard survival, Rat King combat)
+
+CRITICAL SUCCESS (Natural 20): Double effect, no energy cost
+CRITICAL FAILURE (Natural 1): Negative consequence, extra energy cost
+
+EXAMPLES:
+- Foraging in Spring: d20 + Foraging skill + 0 vs. DC 10
+  Success: Find 3 food, Failure: Find 1 food
+  
+- Combat vs. Rat: d20 + Combat skill + Aggression*10 vs. DC 15
+  Success: Drive rat away, take 0 damage
+  Failure: Take 20 damage, rat escapes
+  
+- Building Nest: d20 + Building skill + Energy/10 vs. DC 12
+  Success: Add 2 twigs to nest
+  Failure: Add 1 twig, material damaged
+
+
+ENCOUNTERS & EVENTS
+-------------------
+
+RANDOM EVENTS (1-in-10 chance per turn):
+- Predator Appearance (Owl, Crow, Rat, Hawk)
+- Weather Shift (sudden rain, wind, temperature change)
+- Flock Opportunity (join coordinated hunt, group defense)
+- Rare Resource (premium food, perfect twig, safe birdhouse spot)
+- Social Drama (rival challenges, mate interest, flock politics)
+- Natural Hazard (falling branch, snake, cat)
+
+PREDATOR ENCOUNTERS:
+Each predator has stats and behavior patterns:
+
+RAT (Common):
+- Health: 30, Attack: 10-15
+- Behavior: Raids nests for eggs, steals food caches
+- Combat options: Attack, Distract, Flee, Call for Help
+- Defeat: Gain 50 XP, protect nest
+
+RAT KING (Rare, Boss):
+- Health: 100, Attack: 20-30
+- Behavior: Leads rat swarms, targets established nests
+- Requires: Multiple birds or high combat skill
+- Defeat: Gain 200 XP, major reputation boost
+
+OWL (Night Predator):
+- Health: 60, Attack: 25-35
+- Behavior: Hunts sleeping birds at night
+- Best strategy: Shelter in birdhouse, flock huddle
+- Escape: Flying check DC 20
+
+SQUIRREL (Opportunist):
+- Health: 40, Attack: 12-18
+- Behavior: Steals materials, occasionally raids nests
+- Combat options: Intimidate (easier), Fight, Negotiate (trade food)
+
+CROW (Rival):
+- Health: 50, Attack: 15-20
+- Behavior: Territorial, may steal shiny items
+- Can become: Ally (quest), Neutral, Enemy
+- Social encounter possible
+
+SOCIAL ENCOUNTERS:
+- Courtship: Series of skill checks (Flying displays, resource gifts)
+- Territory Dispute: Combat or Intimidation check
+- Flock Recruitment: Flocking check, requires standing
+- Alliance Formation: Quest chain, mutual benefits
+- Mentorship: Teach fledgling, improve Flocking skill
+
+
+QUEST SYSTEM
+------------
+
+MAIN STORYLINE (Multi-year arc):
+Year 1: "The Fledgling" - Survive your first year, establish territory
+Year 2: "The Provider" - Raise successful offspring, grow flock
+Year 3: "The Elder" - Become flock leader, face major threats
+Year 4+: "The Legend" - Shape the ecosystem, ultimate challenges
+
+SEASONAL QUESTS:
+- Mandatory: One per season (survival focused)
+- Optional: 3-5 per season (rewards, XP, items)
+- Repeatable: Daily activities (forage X food, socialize)
+
+QUEST TYPES:
+- Survival: "Survive winter with health above 50"
+- Collection: "Gather 10 twigs for community birdhouse"
+- Combat: "Drive away 3 predators this season"
+- Social: "Achieve 80 social standing"
+- Exploration: "Visit all 9 territories"
+- Building: "Construct a perfect nest (100% durability)"
+- Family: "Raise 2 babies to fledgling stage"
+
+QUEST REWARDS:
+- Experience Points (XP for leveling)
+- Items (premium food, special materials)
+- Abilities (unlock new actions)
+- Relationships (mate, allies, mentees)
+- Reputation (social standing boost)
+- Territory perks (safe zones, resource nodes)
+
+
+PROGRESSION SYSTEMS
+-------------------
+
+CHARACTER ADVANCEMENT:
+Level 1 → 10 over multiple years
+- Each level: +1 skill point, +10 max health, +5 energy
+- Level 3: Unlock "Lead Hunt" action
+- Level 5: Unlock "Mentor" action, can train other birds
+- Level 7: Unlock "Inspire Flock" action (boost nearby birds)
+- Level 10: Unlock "Legendary" traits (species-specific ultimate abilities)
+
+NEST/TERRITORY PROGRESSION:
+- Nest Quality: Basic → Reinforced → Fortress → Legacy
+- Territory Size: Single tree → Grove → Forest sector
+- Benefits: +safety, +resource access, +social standing
+
+FLOCK LEADERSHIP:
+- Follower count: 0 → 3 → 7 → 12+
+- Leader abilities: Call for help, coordinate hunts, organize defense
+- Responsibilities: Protect flock, settle disputes, manage resources
+
+RELATIONSHIP PROGRESSION:
+- Mate: Stranger → Interest → Courting → Bonded → Lifelong
+- Offspring: Track lineage, children return as adults
+- Rivals: Enemy → Neutral → Respectful → Allied
+- Mentor/Student: Build legacy through teaching
+
+
+WIN CONDITIONS
+--------------
+
+PRIMARY WIN (Complete Campaign):
+- Survive 4 complete years (16 seasons)
+- Raise at least 6 offspring to independence
+- Achieve "Elder" status (Level 7+, Social Standing 80+)
+- Establish a legacy (thriving flock, protected territory)
+
+ALTERNATIVE WINS:
+- "Master Survivor": Survive 10 years
+- "Dynasty Builder": 15+ descendants in ecosystem
+- "Flock Leader": Lead 20+ birds
+- "Apex Bird": Defeat all boss predators (Rat King, Hawk, Owl Alpha)
+- "Architect": Build 5 birdhouses, 10 nests
+
+SCORE SYSTEM:
+- Years Survived × 1000
+- Offspring Raised × 500
+- Predators Defeated × 200
+- Quests Completed × 100
+- Final Social Standing × 10
+- Skill Levels × 50
+
+
+LOSE CONDITIONS
+---------------
+IMMEDIATE GAME OVER:
+- Health reaches 0 (death)
+- Fail to survive winter (starvation/freezing)
+- Killed by predator
+
+GRADUAL FAILURE:
+- Hunger reaches 100 for 3 consecutive turns → Death
+- Energy depleted during critical moment (fleeing, sheltering)
+- Abandoned by mate after repeated failures
+
+
+UNIQUE MECHANICS LEVERAGING SIMULATION
+---------------------------------------
+
+FLOCKING DYNAMICS:
+- Coordinate with AI birds based on their flocking tendency
+- Sparrows flock easily (easier to lead, less combat power)
+- Cardinals resist flocking (harder to recruit, strong fighters)
+
+TERRITORIAL SYSTEM:
+- Aggression stat affects territorial interactions
+- High-aggression species (Cardinals) defend larger areas
+- Low-aggression species (Canaries) share space more easily
+
+WEATHER INTEGRATION:
+- Rain: Harder foraging, fewer flying options, puddles for bathing
+- Wind: Flight checks harder, twigs blow around (easier gathering)
+- Storms: Must seek shelter, lose turns, danger increases
+- Snow/Ice: Winter survival mechanic, cached food essential
+
+REALISTIC BEHAVIORS:
+- Birds remember food locations (you can revisit productive spots)
+- Predators have patrol patterns (learn and avoid)
+- Babies grow in real-time (must commit turns to feeding)
+- Nests deteriorate (maintenance required)
+
+DAY/NIGHT CYCLE:
+- Daytime: Full action set, safer, better visibility
+- Nighttime: Limited actions, predators active, must rest
+- Twilight: Transition period, roosting time
+
+FOOD CHAIN:
+- Seeds/berries: Easy, low energy
+- Worms: Medium, good energy, appear after rain
+- Insects: Hard, high energy, summer only
+- Cached food: Reliable but finite
+
+SPECIAL EVENTS FROM SIM:
+- Mushroom Mode: Rare event, distorts perception, surreal encounters
+- Ant Swarm: Gather lots of food quickly
+- Butterfly Migration: Peaceful moment, social bonus
+- Scarecrow Presence: Safe zone from ground predators
+
+
+INTERFACE & PRESENTATION
+-------------------------
+
+GRID MAP VIEW:
+- 3×3 visible grid (your position in center)
+- Icons for entities: 🦜 birds, 🌳 trees, 🐀 rats, 🦉 owls, 🌰 food
+- Weather overlay: 🌧️ rain, ❄️ snow, 💨 wind
+- Day/night tint
+
+STATUS PANEL:
+- Health: ❤️ 80/100
+- Hunger: 🍖 25/100
+- Energy: ⚡ 60/100
+- Season: 🌸 Spring, Turn 7/15
+
+ACTION MENU:
+- Numbered choices (1-9)
+- Hotkeys for common actions
+- Color coding: Green (safe), Yellow (risky), Red (dangerous)
+
+COMBAT SCREEN:
+- ASCII art of predator
+- Your stats vs. enemy stats
+- Action choices: Fight, Flee, Special
+- Dice rolls shown with animation
+
+DIALOGUE SYSTEM:
+- Text-based conversations with other birds
+- Choices affect relationships
+- Remember past interactions
+
+
+SPECIAL FEATURES
+----------------
+
+PERMADEATH MODE:
+- One life only, no restarts
+- Adds tension to every decision
+- Separate leaderboard
+
+LEGACY SYSTEM:
+- Children inherit 50% of parent's skills
+- Start new game as your offspring
+- Family tree tracking
+- Cumulative score across generations
+
+SEASONAL CHALLENGES:
+- Weekly rotating special objectives
+- Leaderboard for fastest completions
+- Special rewards (cosmetic bird variants)
+
+JOURNAL/CODEX:
+- Track discovered species, predators, locations
+- Record memorable moments
+- Build ecosystem knowledge
+- Story vignettes unlock with milestones
+
+NEW GAME+:
+- Start with level 5, one maxed skill
+- Harder predators, harsher weather
+- Exclusive "Legendary" quests
+
+
+TECHNICAL NOTES FOR IMPLEMENTATION
+-----------------------------------
+
+ADAPTATION FROM SIMULATION:
+1. Convert real-time movement to grid-based (9 territories)
+2. Turn-based action queue instead of continuous updates
+3. Simplify flocking to "nearby allies" modifier
+4. Discrete skill checks replace probabilistic behaviors
+5. Turn counter instead of time-of-day timer
+
+PRESERVE FROM SIMULATION:
+- All entity types and their behaviors
+- Weather system (adapted to turn-based)
+- Food/material mechanics
+- Nest building system
+- Predator AI patterns (simplified)
+- Day/night cycle (abstract)
+
+NEW SYSTEMS NEEDED:
+- Skill check dice roller
+- Quest tracking system
+- Turn timer and phase manager
+- Inventory system (cached food, collected materials)
+- Relationship/social standing tracker
+- Combat resolver
+- Save/load functionality
+
+
+CONTENT ROADMAP
+---------------
+
+PHASE 1 (MVP):
+- Single bird species (Bluebird)
+- Core 4 seasons
+- Basic quests (1 per season)
+- 3 predators (Rat, Squirrel, Owl)
+- Grid movement
+- Foraging, building, combat
+- Simple progression (5 levels)
+
+PHASE 2 (Full Game):
+- All 5 bird species
+- Complete quest chains
+- All predators + bosses
+- Flock leadership
+- Mate + offspring system
+- Full skill tree
+- 10 levels
+- Win conditions
+
+PHASE 3 (Expansion):
+- Legacy mode
+- New Game+
+- Migration mechanics
+- Additional seasons (6 per year?)
+- Rare species encounters
+- Boss variety
+- Secret quests
+- Legendary abilities
+
+
+SAMPLE GAMEPLAY SCENARIO
+-------------------------
+
+> You are a young Bluebird. It is SPRING, Day 1.
+> Location: Oak Grove (Center)
+> Health: 100/100 | Hunger: 30/100 | Energy: 80/100
+> 
+> You see:
+> - North: Empty field with scattered twigs
+> - East: Large pine tree with a nest (occupied by Cardinal)
+> - South: Grove of birch trees (unoccupied)
+> - West: Puddle with 2 Sparrows bathing
+> 
+> What do you do?
+> 1. Fly North (scout for materials)
+> 2. Fly East (investigate Cardinal)
+> 3. Fly South (claim territory)
+> 4. Hop West (socialize at puddle)
+> 5. Forage here
+> 6. Rest
+
+> Choice: 3
+
+> You fly south to the birch grove. [Flying Check: 14+2=16 vs DC 10, Success]
+> The grove is peaceful and unoccupied. Perfect for a nest!
+> Energy: 65/100 (-15)
+> 
+> NEW QUEST: "First Home" - Build a nest in this territory (0/10 twigs)
+> 
+> A squirrel watches you from a nearby branch...
+> 
+> [Continue to Next Turn]
+
+================================================================================
+END OF DESIGN DOCUMENT
+================================================================================
