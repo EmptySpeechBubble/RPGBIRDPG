@@ -1409,7 +1409,7 @@
 
         function eat() {
             if (gameState.food < 1) {
-                addMessage('No food to eat!', 'danger');
+                addMessage('Your crop is empty! No food to eat!', 'danger');
                 return;
             }
 
@@ -1417,7 +1417,14 @@
             gameState.food -= foodEaten;
             gameState.hunger = Math.max(0, gameState.hunger - foodEaten * 20);
 
-            addMessage(`Ate ${foodEaten} food. Hunger reduced! 🍖`, 'success');
+            const eatMessages = [
+                `You crack seeds with your beak and feel satisfied`,
+                `Delicious! You gulp down ${foodEaten === 1 ? 'a plump worm' : 'some juicy insects'}`,
+                `You peck through ${foodEaten === 1 ? 'a berry' : 'your stored food'}, filling your crop`,
+                `Mmm! ${foodEaten === 1 ? 'That seed' : 'Those morsels'} hit the spot`
+            ];
+            const message = eatMessages[Math.floor(Math.random() * eatMessages.length)];
+            addMessage(`${message} (-${foodEaten} food) 🍖`, 'success');
             updateUI();
         }
 
@@ -1440,19 +1447,33 @@
                 if (success) {
                     const standingGain = Math.floor(Math.random() * 10) + 5;
                     gameState.socialStanding = Math.min(100, gameState.socialStanding + standingGain);
-                    addMessage(`Had a pleasant chat with ${territory.npcs[0].emoji}. Standing +${standingGain}`, 'success');
+                    const socialMessages = [
+                        `You preen feathers with ${territory.npcs[0].emoji} - a bonding ritual`,
+                        `Chirping and singing with ${territory.npcs[0].emoji} strengthens flock bonds`,
+                        `You and ${territory.npcs[0].emoji} share a lovely duet - others are impressed!`,
+                        `${territory.npcs[0].emoji} teaches you a new call pattern - you're in the flock!`
+                    ];
+                    const message = socialMessages[Math.floor(Math.random() * socialMessages.length)];
+                    addMessage(`${message} +${standingGain} reputation 🎵`, 'success');
                     gainXP(15);
 
                     // Chance to find mate in spring
                     if (gameState.season === 0 && !gameState.hasMate && Math.random() < 0.3) {
                         gameState.hasMate = true;
-                        addMessage('💕 You found a mate!', 'success');
+                        addMessage('💕 You found a mate! After courting displays and singing, they accept you!', 'success');
                         addDiaryEntry('Found a mate! Love is in the air 💕', 'social');
                         gainXP(50);
-                        completeQuest('findMate');
+                        completeQuest('perfectMatch');
+                        updateQuestProgress('mate', 1);
                     }
                 } else {
-                    addMessage('Awkward conversation...', 'warning');
+                    const failMessages = [
+                        `${territory.npcs[0].emoji} seems unimpressed by your song...`,
+                        `You accidentally intrude on ${territory.npcs[0].emoji}'s perch - ruffled feathers!`,
+                        `Your call was off-key. ${territory.npcs[0].emoji} flies away...`
+                    ];
+                    const message = failMessages[Math.floor(Math.random() * failMessages.length)];
+                    addMessage(message, 'warning');
                     gainXP(5);
                 }
 
@@ -1830,6 +1851,7 @@
 
             gameState.hunger += 5;
             gainXP(20 * foodNeeded);
+            updateQuestProgress('feed', 1);
             updateUI();
         }
 
@@ -1848,9 +1870,12 @@
 
                 if (baby.stage === 'fledgling' && baby.age >= 7) {
                     baby.stage = 'independent';
+                    gameState.offspring++;
                     addMessage(`🌟 ${baby.name} has left the nest! They're independent now.`, 'success');
                     addDiaryEntry(`${baby.name} flew away to start their own life. Proud parent moment! 🌟`, 'milestone');
                     gainXP(100);
+                    updateQuestProgress('family', 1);
+                    updateQuestProgress('offspring', 1);
                 }
 
                 // Babies can starve if hunger reaches 100
@@ -2314,6 +2339,7 @@
         function endTurn() {
             // Reset action counter for new turn
             gameState.actionsTakenThisTurn = 0;
+            gameState.visitedPondThisTurn = false; // Reset pond visit flag
 
             // Passive effects
             gameState.hunger += 5;
@@ -2367,6 +2393,26 @@
             // Advance time
             gameState.turn++;
             gameState.timeOfDay = gameState.timeOfDay === 'day' ? 'night' : 'day';
+
+            // Seasonal deadline warnings with bird-life flavor
+            const turnsUntilSeasonEnd = TURNS_PER_SEASON - gameState.turn;
+            if (turnsUntilSeasonEnd === 5) {
+                const warnings = {
+                    0: '🌸 Spring is ending soon! Have you found a mate and built your nest?',
+                    1: '☀️ Summer wanes... Are your young ready to fly? Have you gathered enough?',
+                    2: '🍂 The autumn leaves are falling! Winter approaches - is your cache full?',
+                    3: '❄️ The cold deepens... Only the prepared survive the harshest days ahead.'
+                };
+                addMessage(warnings[gameState.season], 'warning');
+            }
+
+            if (gameState.season === 0 && turnsUntilSeasonEnd === 3 && !gameState.hasMate) {
+                addMessage('💕 Mating season is almost over! Find a partner before summer!', 'danger');
+            }
+
+            if (gameState.season === 2 && turnsUntilSeasonEnd === 3 && gameState.cachedFood < 10) {
+                addMessage('⚠️ Winter is nearly here and your cache is dangerously low!', 'danger');
+            }
 
             // Update weather periodically (every 3 turns)
             if (gameState.turn % 3 === 0) {
@@ -2440,26 +2486,43 @@
         }
 
         function advanceSeason() {
+            // Check survival quests before advancing (end of winter)
+            if (gameState.season === 3) {
+                gameState.activeQuests.forEach(quest => {
+                    if (quest.type === 'survive') {
+                        if (gameState.health >= quest.goal) {
+                            completeQuest(quest.id);
+                        }
+                    }
+                });
+            }
+
             gameState.season++;
             gameState.turn = 1;
 
             if (gameState.season >= 4) {
                 gameState.season = 0;
                 gameState.year++;
-                addMessage(`🎊 Year ${gameState.year} begins!`, 'success');
-                addDiaryEntry(`Survived my first year! Now in year ${gameState.year}`, 'milestone');
+                addMessage(`🎊 Year ${gameState.year} begins! You made it through winter!`, 'success');
+                addDiaryEntry(`Survived another year! Now in year ${gameState.year} 🎊`, 'milestone');
 
                 // Yearly bonuses
                 if (gameState.hasNest && gameState.hasMate) {
                     gameState.eggs += Math.floor(Math.random() * 3) + 2;
-                    addMessage(`🥚 Your mate laid ${gameState.eggs} eggs!`, 'success');
+                    addMessage(`🥚 Your mate laid ${gameState.eggs} eggs for the new breeding season!`, 'success');
                     addDiaryEntry(`My mate laid ${gameState.eggs} eggs! Starting a family 🥚`, 'social');
                     gainXP(100);
                 }
             }
 
             const seasonName = SEASONS[gameState.season];
-            addMessage(`${SEASON_EMOJIS[seasonName]} ${seasonName} has arrived!`, 'success');
+            const seasonMessages = {
+                0: `${SEASON_EMOJIS[seasonName]} ${seasonName} has arrived! The air warms, flowers bloom - time to nest and find a mate!`,
+                1: `${SEASON_EMOJIS[seasonName]} ${seasonName} has arrived! Food is plentiful, but so are predators drawn by nestlings.`,
+                2: `${SEASON_EMOJIS[seasonName]} ${seasonName} has arrived! Leaves turn gold - prepare now or face winter's wrath!`,
+                3: `${SEASON_EMOJIS[seasonName]} ${seasonName} has arrived! The cold sets in. Survival is all that matters now.`
+            };
+            addMessage(seasonMessages[gameState.season], 'success');
             addDiaryEntry(`${seasonName} has arrived`, 'event');
 
             // Add seasonal quest
@@ -2470,33 +2533,37 @@
 
         // ===== QUEST SYSTEM =====
         const ALL_QUESTS = {
-            // SPRING QUESTS
-            'firstHome': { name: 'Build Your First Home', emoji: '🏠', desc: 'Construct a nest to start your new life', type: 'build', goal: 1, reward: 100, season: 0 },
-            'perfectMatch': { name: 'Find Your Perfect Match', emoji: '💕', desc: 'Court and bond with a mate', type: 'mate', goal: 1, reward: 150, season: 0 },
-            'territorialVictor': { name: 'Defend Your Territory', emoji: '⚔️', desc: 'Drive away 3 intruders', type: 'combat', goal: 3, reward: 200, season: 0 },
-            'springGatherer': { name: 'Spring Gatherer', emoji: '🌿', desc: 'Collect 15 twigs for building', type: 'gather', goal: 15, reward: 75, season: 0 },
-            'socialButterfly': { name: 'Social Butterfly', emoji: '🦋', desc: 'Reach 70 social standing', type: 'social', goal: 70, reward: 100, season: 0 },
+            // SPRING QUESTS - Focus on nest building, courtship, and territory
+            'firstHome': { name: 'Build Your First Home', emoji: '🏠', desc: 'Establish your nest before eggs arrive - a safe shelter is essential for raising young', type: 'build', goal: 1, reward: 100, season: 0 },
+            'perfectMatch': { name: 'Find Your Perfect Match', emoji: '💕', desc: 'Spring is mating season! Find a partner to share your nest and raise a family', type: 'mate', goal: 1, reward: 150, season: 0 },
+            'territorialVictor': { name: 'Defend Your Territory', emoji: '⚔️', desc: 'Establish dominance by driving away 3 intruders from your nesting grounds', type: 'combat', goal: 3, reward: 200, season: 0 },
+            'springGatherer': { name: 'Spring Gatherer', emoji: '🌿', desc: 'Collect 15 twigs while they\'re plentiful - you\'ll need them for nest repairs', type: 'gather', goal: 15, reward: 75, season: 0 },
+            'socialButterfly': { name: 'Social Butterfly', emoji: '🦋', desc: 'Build your reputation in the flock - reach 70 social standing to attract a quality mate', type: 'social', goal: 70, reward: 100, season: 0 },
+            'nestingDeadline': { name: 'The Nesting Deadline', emoji: '⏰', desc: 'URGENT: Build a nest before spring ends or lose the entire breeding season!', type: 'build', goal: 1, reward: 200, season: 0 },
 
-            // SUMMER QUESTS
-            'provider': { name: 'The Provider', emoji: '🍖', desc: 'Gather 25 food for your family', type: 'forage', goal: 25, reward: 150, season: 1 },
-            'guardianNest': { name: 'Guardian of the Nest', emoji: '🛡️', desc: 'Successfully defend against a predator', type: 'defend', goal: 1, reward: 200, season: 1 },
-            'raisingYoung': { name: 'Raising the Young', emoji: '🐣', desc: 'Raise 2 babies to fledgling stage', type: 'family', goal: 2, reward: 250, season: 1 },
-            'explorerSpring': { name: 'Summer Explorer', emoji: '🗺️', desc: 'Visit all 9 territories', type: 'explore', goal: 9, reward: 175, season: 1 },
-            'ratHunter': { name: 'Rat Hunter', emoji: '🐀', desc: 'Defeat 5 rats to protect the grove', type: 'combat', goal: 5, reward: 300, season: 1 },
+            // SUMMER QUESTS - Focus on raising young, gathering food, protection
+            'provider': { name: 'The Provider', emoji: '🍖', desc: 'Gather 25 food - your hungry chicks need constant feeding to survive', type: 'forage', goal: 25, reward: 150, season: 1 },
+            'guardianNest': { name: 'Guardian of the Nest', emoji: '🛡️', desc: 'Predators are drawn to baby birds - defend your nest from danger', type: 'defend', goal: 1, reward: 200, season: 1 },
+            'raisingYoung': { name: 'Raising the Young', emoji: '🐣', desc: 'The most important job - raise 2 babies to fledgling stage before fall', type: 'family', goal: 2, reward: 250, season: 1 },
+            'explorerSpring': { name: 'Summer Explorer', emoji: '🗺️', desc: 'Scout all 9 territories to find the best feeding grounds for your family', type: 'explore', goal: 9, reward: 175, season: 1 },
+            'ratHunter': { name: 'Rat Hunter', emoji: '🐀', desc: 'Defeat 5 rats - these nest raiders threaten eggs and helpless chicks', type: 'combat', goal: 5, reward: 300, season: 1 },
+            'feedingFrenzy': { name: 'Feeding Frenzy', emoji: '🐛', desc: 'Feed your babies 10 times - constant feeding is exhausting but necessary', type: 'feed', goal: 10, reward: 175, season: 1 },
 
-            // FALL QUESTS
-            'winterPrep': { name: 'Winter Preparation', emoji: '🌰', desc: 'Cache 20 food items for winter', type: 'cache', goal: 20, reward: 200, season: 2 },
-            'fortification': { name: 'Fortify Your Home', emoji: '🏰', desc: 'Build a birdhouse (upgraded home)', type: 'upgrade', goal: 1, reward: 250, season: 2 },
-            'alliance': { name: 'Form an Alliance', emoji: '🤝', desc: 'Recruit 3 birds to your flock', type: 'flock', goal: 3, reward: 175, season: 2 },
-            'autumnHarvest': { name: 'Autumn Harvest', emoji: '🍂', desc: 'Forage 30 food before winter', type: 'forage', goal: 30, reward: 150, season: 2 },
-            'skillMaster': { name: 'Skill Mastery', emoji: '⭐', desc: 'Reach level 5', type: 'level', goal: 5, reward: 300, season: 2 },
+            // FALL QUESTS - Focus on preparation, caching, fortification
+            'winterPrep': { name: 'Winter Preparation', emoji: '🌰', desc: 'CRITICAL: Cache 20 food items - winter starvation is the #1 killer', type: 'cache', goal: 20, reward: 200, season: 2 },
+            'fortification': { name: 'Fortify Your Home', emoji: '🏰', desc: 'Upgrade to a birdhouse - better insulation means survival through harsh storms', type: 'upgrade', goal: 1, reward: 250, season: 2 },
+            'alliance': { name: 'Form an Alliance', emoji: '🤝', desc: 'Recruit 3 birds - flocks share warmth and spot predators more easily in winter', type: 'flock', goal: 3, reward: 175, season: 2 },
+            'autumnHarvest': { name: 'Autumn Harvest', emoji: '🍂', desc: 'Forage 30 food NOW while it\'s still plentiful - winter offers little', type: 'forage', goal: 30, reward: 150, season: 2 },
+            'skillMaster': { name: 'Skill Mastery', emoji: '⭐', desc: 'Reach level 5 - experienced birds survive winter better', type: 'level', goal: 5, reward: 300, season: 2 },
+            'lastChance': { name: 'Last Chance Cache', emoji: '⏰', desc: 'URGENT: Store at least 15 food before the first frost - your life depends on it!', type: 'cache', goal: 15, reward: 250, season: 2 },
 
-            // WINTER QUESTS
-            'survivor': { name: 'The Survivor', emoji: '❄️', desc: 'Survive winter with health above 50', type: 'survive', goal: 50, reward: 250, season: 3 },
-            'winterWarrior': { name: 'Winter Warrior', emoji: '⚔️', desc: 'Defend your cache 3 times', type: 'defend', goal: 3, reward: 200, season: 3 },
-            'fortress': { name: 'Weather the Storm', emoji: '🌨️', desc: 'Rest successfully during 3 storms', type: 'weather', goal: 3, reward: 150, season: 3 },
-            'sharingSoul': { name: 'Sharing Soul', emoji: '💝', desc: 'Share food with flock members 5 times', type: 'share', goal: 5, reward: 175, season: 3 },
-            'bossSlayer': { name: 'Boss Slayer', emoji: '👑', desc: 'Defeat a boss enemy (Rat King, Owl, etc.)', type: 'boss', goal: 1, reward: 500, season: 3 },
+            // WINTER QUESTS - Focus on survival, conservation, community
+            'survivor': { name: 'The Survivor', emoji: '❄️', desc: 'Many birds perish in winter - keep your health above 50 to see spring again', type: 'survive', goal: 50, reward: 250, season: 3 },
+            'winterWarrior': { name: 'Winter Warrior', emoji: '⚔️', desc: 'Desperate birds will raid your cache - defend it 3 times or starve', type: 'defend', goal: 3, reward: 200, season: 3 },
+            'fortress': { name: 'Weather the Storm', emoji: '🌨️', desc: 'Blizzards are deadly - survive 3 storms by hunkering down safely', type: 'weather', goal: 3, reward: 150, season: 3 },
+            'sharingSoul': { name: 'Sharing Soul', emoji: '💝', desc: 'Share food with struggling flock members 5 times - generosity builds bonds', type: 'share', goal: 5, reward: 175, season: 3 },
+            'bossSlayer': { name: 'Boss Slayer', emoji: '👑', desc: 'Hungry predators are more aggressive in winter - defeat a boss to prove your strength', type: 'boss', goal: 1, reward: 500, season: 3 },
+            'endurance': { name: 'Endurance Test', emoji: '💪', desc: 'Make it through winter without your health dropping below 30 - the ultimate challenge', type: 'survive', goal: 30, reward: 300, season: 3 },
 
             // YEAR-ROUND QUESTS
             'legacy': { name: 'Build a Legacy', emoji: '🌟', desc: 'Raise 6 offspring to independence', type: 'offspring', goal: 6, reward: 600, season: -1 },
