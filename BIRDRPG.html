@@ -1,1 +1,2348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐦 Seasons of the Flock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        #game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        #game-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #game-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        /* Stats Panel */
+        #stats-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .stat-bar {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 8px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .bar-container {
+            background: #ddd;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .health-bar { background: linear-gradient(90deg, #ff6b6b, #ee5a6f); }
+        .hunger-bar { background: linear-gradient(90deg, #f9ca24, #f0932b); }
+        .energy-bar { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+
+        /* Season Info */
+        #season-info {
+            text-align: center;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        #level-info {
+            text-align: center;
+            background: #34495e;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        /* Main Content Area */
+        #main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            min-height: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Map View */
+        #map-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .territory {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+            border: 3px solid #4dd0e1;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            padding: 5px;
+        }
+
+        .territory:active {
+            transform: scale(0.95);
+        }
+
+        .territory.current {
+            border-color: #f39c12;
+            background: linear-gradient(135deg, #fff9e6, #ffe6b3);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+        }
+
+        .territory.adjacent {
+            border-color: #95a5a6;
+            cursor: pointer;
+        }
+
+        .territory.distant {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .territory-name {
+            font-size: 9px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 2px;
+            color: #2c3e50;
+        }
+
+        .territory-emoji {
+            font-size: 28px;
+            margin-bottom: 2px;
+        }
+
+        .territory-info {
+            font-size: 16px;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        /* Message Log */
+        #message-log {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .message {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #3498db;
+            padding-left: 8px;
+        }
+
+        .message.success { border-left-color: #2ecc71; }
+        .message.danger { border-left-color: #e74c3c; }
+        .message.warning { border-left-color: #f39c12; }
+        .message.info { border-left-color: #3498db; }
+
+        /* Action Buttons */
+        #action-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .action-btn.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .action-btn.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .btn-emoji {
+            font-size: 24px;
+        }
+
+        .btn-text {
+            font-size: 12px;
+        }
+
+        /* Dice Roller Modal */
+        #dice-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #dice-modal.active {
+            display: flex;
+        }
+
+        .dice-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        #dice-display {
+            font-size: 120px;
+            margin: 20px 0;
+            animation: roll 0.5s ease;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+        }
+
+        @keyframes critSuccess {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+        @keyframes critFail {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+
+        .crit-success {
+            animation: critSuccess 0.6s ease;
+            color: #2ecc71;
+            text-shadow: 0 0 20px #2ecc71;
+        }
+
+        .crit-fail {
+            animation: critFail 0.6s ease;
+            color: #e74c3c;
+        }
+
+        #dice-result {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        /* Quest Panel */
+        #quest-panel {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .quest-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #856404;
+        }
+
+        .quest-item {
+            font-size: 13px;
+            padding: 5px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #ffc107;
+            padding-left: 10px;
+        }
+
+        /* Modal/Dialog */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        /* Combat Screen */
+        #combat-screen {
+            text-align: center;
+        }
+
+        .enemy-display {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+
+        .enemy-health {
+            background: #e74c3c;
+            height: 30px;
+            border-radius: 15px;
+            margin: 10px 0;
+            transition: width 0.3s;
+        }
+
+        .combat-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (min-width: 600px) {
+            #stats-panel {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            #action-panel {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .territory-emoji {
+                font-size: 36px;
+            }
+
+            .territory-name {
+                font-size: 11px;
+            }
+        }
+
+        /* Inventory */
+        #inventory {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .inventory-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2e7d32;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .inventory-item {
+            background: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+
+        /* Skills Display */
+        #skills-display {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .skill-item {
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .skill-level {
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Header -->
+        <div id="game-header">
+            <div id="game-title">🐦 SEASONS OF THE FLOCK</div>
+
+            <!-- Season & Turn Info -->
+            <div id="season-info">🌸 Spring - Turn 1/10</div>
+            <div id="level-info">Level 1 Bluebird | XP: 0/100</div>
+
+            <!-- Stats -->
+            <div id="stats-panel">
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>❤️ Health</span>
+                        <span id="health-value">100/100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill health-bar" id="health-bar" style="width: 100%">100</div>
+                    </div>
+                </div>
+
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>🍖 Hunger</span>
+                        <span id="hunger-value">0/100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill hunger-bar" id="hunger-bar" style="width: 0%">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>⚡ Energy</span>
+                        <span id="energy-value">100/100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill energy-bar" id="energy-bar" style="width: 100%">100</div>
+                    </div>
+                </div>
+
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>⭐ Standing</span>
+                        <span id="standing-value">50/100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill energy-bar" id="standing-bar" style="width: 50%">50</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory -->
+            <div id="inventory">
+                <div class="inventory-title">📦 Inventory</div>
+                <div class="inventory-items" id="inventory-items">
+                    <span class="inventory-item">🌰 Food: <span id="food-count">0</span></span>
+                    <span class="inventory-item">🌿 Twigs: <span id="twig-count">0</span></span>
+                    <span class="inventory-item">🥚 Eggs: <span id="egg-count">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content">
+            <!-- Quest Panel -->
+            <div id="quest-panel" style="display: none;">
+                <div class="quest-title">📜 Active Quest</div>
+                <div id="quest-content"></div>
+            </div>
+
+            <!-- Skills (hidden by default, shown in character screen) -->
+            <div id="skills-display" style="display: none;">
+                <div class="skill-item"><span>🔍 Foraging</span><span class="skill-level" id="skill-foraging">1</span></div>
+                <div class="skill-item"><span>🏗️ Building</span><span class="skill-level" id="skill-building">1</span></div>
+                <div class="skill-item"><span>🦅 Flying</span><span class="skill-level" id="skill-flying">1</span></div>
+                <div class="skill-item"><span>⚔️ Combat</span><span class="skill-level" id="skill-combat">1</span></div>
+                <div class="skill-item"><span>👥 Flocking</span><span class="skill-level" id="skill-flocking">1</span></div>
+                <div class="skill-item"><span>👁️ Perception</span><span class="skill-level" id="skill-perception">1</span></div>
+            </div>
+
+            <!-- Weather Display -->
+            <div id="weather-display" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span id="weather-icon">☀️</span>
+                <span id="weather-text">Clear skies</span>
+            </div>
+
+            <!-- Canvas Map (Visual) -->
+            <div style="margin-bottom: 10px;">
+                <canvas id="map-canvas" width="600" height="600" style="max-width: 100%; height: auto; border-radius: 12px;"></canvas>
+            </div>
+
+            <!-- Interactive Map -->
+            <div id="map-container" style="position: relative;"></div>
+
+            <!-- Message Log -->
+            <div id="message-log"></div>
+
+            <!-- Action Panel -->
+            <div id="action-panel"></div>
+        </div>
+    </div>
+
+    <!-- Dice Roll Modal -->
+    <div id="dice-modal">
+        <div class="dice-container">
+            <div id="dice-title" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
+            <div id="dice-display">🎲</div>
+            <div id="dice-result"></div>
+            <button class="modal-btn primary" onclick="closeDiceModal()" style="margin-top: 15px;">Continue</button>
+        </div>
+    </div>
+
+    <!-- Generic Modal -->
+    <div id="generic-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title"></div>
+            <div id="modal-body"></div>
+            <div class="modal-buttons" id="modal-buttons"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== GAME STATE =====
+        const SEASONS = ['Spring', 'Summer', 'Fall', 'Winter'];
+        const SEASON_EMOJIS = { Spring: '🌸', Summer: '☀️', Fall: '🍂', Winter: '❄️' };
+        const TURNS_PER_SEASON = 10;
+
+        let gameState = {
+            // Character
+            species: 'Bluebird',
+            level: 1,
+            xp: 0,
+            xpNeeded: 100,
+
+            // Stats
+            health: 100,
+            maxHealth: 100,
+            hunger: 0,
+            energy: 100,
+            maxEnergy: 100,
+            socialStanding: 50,
+
+            // Skills (1-10)
+            skills: {
+                foraging: 1,
+                building: 1,
+                flying: 1,
+                combat: 1,
+                flocking: 1,
+                perception: 1
+            },
+
+            // Inventory
+            food: 0,
+            twigs: 0,
+            eggs: 0,
+            cachedFood: 0,
+
+            // World
+            season: 0, // 0=Spring, 1=Summer, 2=Fall, 3=Winter
+            turn: 1,
+            year: 1,
+            currentLocation: 4, // Center of 3x3 grid (0-8)
+            weather: 'clear', // clear, rain, storm, snow, wind
+            weatherIntensity: 0, // 0-1
+            timeOfDay: 'day', // day/night
+
+            // Life Story Diary
+            diary: [],
+            totalDistance: 0,
+
+            // Progress
+            hasNest: false,
+            nestProgress: 0, // 0-10 twigs
+            hasMate: false,
+            offspring: 0,
+
+            // Quests
+            activeQuests: [],
+            completedQuests: [],
+
+            // NPCs and Enemies
+            territories: [],
+
+            // Flags
+            isInCombat: false,
+            combatEnemy: null,
+            gameOver: false,
+            hasSeenIntro: false,
+
+            // Tutorial
+            tutorialStep: 0,
+            tutorialActive: false
+        };
+
+        // Territory definitions (3x3 grid, 0-8)
+        const TERRITORIES = [
+            { id: 0, name: 'Pine Forest', emoji: '🌲', resources: ['twig', 'seed'], danger: 0.1 },
+            { id: 1, name: 'Mountain Peak', emoji: '⛰️', resources: ['stone'], danger: 0.3 },
+            { id: 2, name: 'Berry Patch', emoji: '🫐', resources: ['berry', 'berry'], danger: 0.1 },
+            { id: 3, name: 'Birch Grove', emoji: '🌳', resources: ['twig', 'worm'], danger: 0.1 },
+            { id: 4, name: 'Oak Meadow', emoji: '🌳', resources: ['twig', 'seed', 'worm'], danger: 0.05 },
+            { id: 5, name: 'Willow Pond', emoji: '💧', resources: ['worm', 'insect'], danger: 0.2 },
+            { id: 6, name: 'Flower Field', emoji: '🌻', resources: ['seed', 'insect'], danger: 0.05 },
+            { id: 7, name: 'Ancient Oak', emoji: '🌳', resources: ['twig', 'twig'], danger: 0.15 },
+            { id: 8, name: 'Rock Garden', emoji: '🪨', resources: ['seed'], danger: 0.2 }
+        ];
+
+        // Initialize territories with random NPCs and items
+        function initTerritories() {
+            gameState.territories = TERRITORIES.map(t => ({
+                ...t,
+                npcs: [],
+                predators: [],
+                visibleFood: Math.random() > 0.5 ? Math.floor(Math.random() * 3) : 0,
+                visibleTwigs: Math.random() > 0.6 ? Math.floor(Math.random() * 2) : 0
+            }));
+
+            // Add some NPCs
+            for (let i = 0; i < 5; i++) {
+                const randomLoc = Math.floor(Math.random() * 9);
+                if (randomLoc !== 4) { // Don't spawn on player start
+                    gameState.territories[randomLoc].npcs.push({
+                        species: ['Cardinal', 'Sparrow', 'Robin'][Math.floor(Math.random() * 3)],
+                        emoji: ['🐦', '🦅', '🐦‍⬛'][Math.floor(Math.random() * 3)]
+                    });
+                }
+            }
+        }
+
+        // ===== SAVE/LOAD =====
+        function saveGame() {
+            try {
+                localStorage.setItem('seasonsOfTheFlock_save', JSON.stringify(gameState));
+            } catch(e) {
+                console.error('Failed to save game:', e);
+            }
+        }
+
+        function loadGame() {
+            try {
+                const saved = localStorage.getItem('seasonsOfTheFlock_save');
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    // Merge with defaults in case of new properties
+                    gameState = { ...gameState, ...loaded };
+                    return true;
+                }
+            } catch(e) {
+                console.error('Failed to load game:', e);
+            }
+            return false;
+        }
+
+        function newGame() {
+            localStorage.removeItem('seasonsOfTheFlock_save');
+            location.reload();
+        }
+
+        // ===== UI UPDATES =====
+        function updateUI() {
+            // Stats
+            document.getElementById('health-value').textContent = `${gameState.health}/${gameState.maxHealth}`;
+            document.getElementById('health-bar').style.width = `${(gameState.health / gameState.maxHealth) * 100}%`;
+            document.getElementById('health-bar').textContent = gameState.health;
+
+            document.getElementById('hunger-value').textContent = `${gameState.hunger}/100`;
+            document.getElementById('hunger-bar').style.width = `${gameState.hunger}%`;
+            document.getElementById('hunger-bar').textContent = gameState.hunger;
+
+            document.getElementById('energy-value').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            document.getElementById('energy-bar').style.width = `${(gameState.energy / gameState.maxEnergy) * 100}%`;
+            document.getElementById('energy-bar').textContent = gameState.energy;
+
+            document.getElementById('standing-value').textContent = `${gameState.socialStanding}/100`;
+            document.getElementById('standing-bar').style.width = `${gameState.socialStanding}%`;
+            document.getElementById('standing-bar').textContent = gameState.socialStanding;
+
+            // Season & Level
+            const seasonName = SEASONS[gameState.season];
+            const seasonEmoji = SEASON_EMOJIS[seasonName];
+            document.getElementById('season-info').textContent =
+                `${seasonEmoji} ${seasonName} - Turn ${gameState.turn}/${TURNS_PER_SEASON} | Year ${gameState.year} | ${gameState.timeOfDay === 'day' ? '☀️ Day' : '🌙 Night'}`;
+
+            document.getElementById('level-info').textContent =
+                `Level ${gameState.level} ${gameState.species} | XP: ${gameState.xp}/${gameState.xpNeeded}`;
+
+            // Inventory
+            document.getElementById('food-count').textContent = gameState.food;
+            document.getElementById('twig-count').textContent = gameState.twigs;
+            document.getElementById('egg-count').textContent = gameState.eggs;
+
+            // Skills
+            Object.keys(gameState.skills).forEach(skill => {
+                const el = document.getElementById(`skill-${skill}`);
+                if (el) el.textContent = gameState.skills[skill];
+            });
+
+            // Update map and actions
+            updateMap();
+            updateActions();
+            updateQuests();
+
+            // Auto-save
+            saveGame();
+        }
+
+        function updateMap() {
+            const mapContainer = document.getElementById('map-container');
+            mapContainer.innerHTML = '';
+
+            const currentLoc = gameState.currentLocation;
+            const row = Math.floor(currentLoc / 3);
+            const col = currentLoc % 3;
+
+            for (let i = 0; i < 9; i++) {
+                const tRow = Math.floor(i / 3);
+                const tCol = i % 3;
+                const distance = Math.abs(row - tRow) + Math.abs(col - tCol);
+
+                const territory = gameState.territories[i];
+                const div = document.createElement('div');
+                div.className = 'territory';
+
+                if (i === currentLoc) {
+                    div.classList.add('current');
+                } else if (distance === 1) {
+                    div.classList.add('adjacent');
+                    div.onclick = () => moveToTerritory(i);
+                } else {
+                    div.classList.add('distant');
+                }
+
+                // Build territory display
+                let infoText = '';
+                if (territory.npcs.length > 0) infoText += territory.npcs[0].emoji;
+                if (territory.predators.length > 0) infoText += '⚠️';
+
+                div.innerHTML = `
+                    <div class="territory-info">${infoText}</div>
+                    <div class="territory-emoji">${territory.emoji}</div>
+                    <div class="territory-name">${territory.name}</div>
+                `;
+
+                mapContainer.appendChild(div);
+            }
+        }
+
+        function updateActions() {
+            if (gameState.isInCombat) {
+                renderCombatActions();
+                return;
+            }
+
+            const actionPanel = document.getElementById('action-panel');
+            actionPanel.innerHTML = '';
+
+            const actions = [
+                { emoji: '🔍', text: 'Forage', action: 'forage', energyCost: 10 },
+                { emoji: '🌿', text: 'Gather', action: 'gather', energyCost: 10 },
+                { emoji: '🏗️', text: 'Build Nest', action: 'build', energyCost: 15, disabled: gameState.twigs < 1 },
+                { emoji: '😴', text: 'Rest', action: 'rest', energyCost: 0 },
+                { emoji: '🍖', text: 'Eat', action: 'eat', disabled: gameState.food < 1 },
+                { emoji: '👥', text: 'Socialize', action: 'socialize', energyCost: 5 },
+                { emoji: '📊', text: 'Character', action: 'character', energyCost: 0 },
+                { emoji: '📖', text: 'Diary', action: 'diary', energyCost: 0 },
+                { emoji: '⏭️', text: 'End Turn', action: 'endTurn', energyCost: 0, class: 'warning' }
+            ];
+
+            actions.forEach(a => {
+                const btn = document.createElement('button');
+                btn.className = `action-btn ${a.class || ''}`;
+                btn.disabled = a.disabled || (a.energyCost && gameState.energy < a.energyCost);
+                btn.innerHTML = `
+                    <div class="btn-emoji">${a.emoji}</div>
+                    <div class="btn-text">${a.text}</div>
+                    ${a.energyCost ? `<div class="btn-text" style="font-size: 10px;">-${a.energyCost} ⚡</div>` : ''}
+                `;
+                btn.onclick = () => performAction(a.action);
+                actionPanel.appendChild(btn);
+            });
+        }
+
+        function updateQuests() {
+            const questPanel = document.getElementById('quest-panel');
+            const questContent = document.getElementById('quest-content');
+
+            if (gameState.activeQuests.length > 0) {
+                questPanel.style.display = 'block';
+                questContent.innerHTML = gameState.activeQuests.map(q =>
+                    `<div class="quest-item">${q.emoji} ${q.name}: ${q.progress}/${q.goal}</div>`
+                ).join('');
+            } else {
+                questPanel.style.display = 'none';
+            }
+        }
+
+        // ===== ACTIONS =====
+        function performAction(action) {
+            switch(action) {
+                case 'forage':
+                    forage();
+                    break;
+                case 'gather':
+                    gather();
+                    break;
+                case 'build':
+                    buildNest();
+                    break;
+                case 'rest':
+                    rest();
+                    break;
+                case 'eat':
+                    eat();
+                    break;
+                case 'socialize':
+                    socialize();
+                    break;
+                case 'character':
+                    showCharacterSheet();
+                    break;
+                case 'diary':
+                    showDiary();
+                    break;
+                case 'endTurn':
+                    endTurn();
+                    break;
+            }
+        }
+
+        function moveToTerritory(locationId) {
+            const distance = 1; // Adjacent only
+            const energyCost = 15;
+
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy to fly!', 'danger');
+                return;
+            }
+
+            rollSkillCheck('Flying', 10, (success) => {
+                if (success) {
+                    gameState.currentLocation = locationId;
+                    gameState.energy -= energyCost;
+                    addMessage(`Flew to ${TERRITORIES[locationId].name} ${TERRITORIES[locationId].emoji}`, 'success');
+
+                    // Check for random encounter
+                    checkRandomEncounter();
+                } else {
+                    gameState.energy -= Math.floor(energyCost / 2);
+                    addMessage('Failed to fly efficiently, wasted some energy', 'warning');
+                }
+                updateUI();
+            }, { action: 'flying', destination: TERRITORIES[locationId].name });
+        }
+
+        function forage() {
+            const weatherMods = getWeatherModifiers();
+            const energyCost = 10 + Math.abs(weatherMods.energyCost);
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            const territory = gameState.territories[gameState.currentLocation];
+            const baseDC = gameState.season === 3 ? 20 : 10; // Winter is harder
+            const dc = baseDC + Math.abs(weatherMods.forageDC);
+
+            rollSkillCheck('Foraging', dc, (success, roll) => {
+                gameState.energy -= energyCost;
+
+                if (roll >= 20) {
+                    // Critical success
+                    const found = 5;
+                    gameState.food += found;
+                    addMessage(`🌟 Amazing foraging! Found ${found} food!`, 'success');
+                    gainXP(20);
+                } else if (success) {
+                    const found = Math.floor(Math.random() * 2) + 2;
+                    gameState.food += found;
+                    addMessage(`Found ${found} food 🌰`, 'success');
+                    gainXP(10);
+                } else if (roll === 1) {
+                    addMessage('💥 Critical failure! A predator spotted you!', 'danger');
+                    spawnPredator();
+                } else {
+                    const found = 1;
+                    gameState.food += found;
+                    addMessage(`Only found ${found} food`, 'info');
+                    gainXP(5);
+                }
+
+                gameState.hunger += 5;
+                updateQuestProgress('forage', 1);
+                updateUI();
+            }, { action: 'foraging' });
+        }
+
+        function gather() {
+            const energyCost = 10;
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            rollSkillCheck('Building', 12, (success, roll) => {
+                gameState.energy -= energyCost;
+
+                if (roll >= 20) {
+                    const found = 3;
+                    gameState.twigs += found;
+                    addMessage(`🌟 Perfect gathering! Found ${found} twigs!`, 'success');
+                    gainXP(15);
+                } else if (success) {
+                    const found = Math.floor(Math.random() * 2) + 1;
+                    gameState.twigs += found;
+                    addMessage(`Gathered ${found} twigs 🌿`, 'success');
+                    gainXP(10);
+                } else {
+                    addMessage('Failed to find good materials', 'warning');
+                    gainXP(2);
+                }
+
+                gameState.hunger += 5;
+                updateQuestProgress('gather', 1);
+                updateUI();
+            }, { action: 'gathering' });
+        }
+
+        function buildNest() {
+            const energyCost = 15;
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            if (gameState.twigs < 1) {
+                addMessage('Need at least 1 twig to work on nest!', 'danger');
+                return;
+            }
+
+            rollSkillCheck('Building', 12, (success, roll) => {
+                gameState.energy -= energyCost;
+
+                if (success) {
+                    const twigsUsed = Math.min(gameState.twigs, 2);
+                    gameState.twigs -= twigsUsed;
+                    gameState.nestProgress += twigsUsed;
+
+                    if (gameState.nestProgress >= 10 && !gameState.hasNest) {
+                        gameState.hasNest = true;
+                        addMessage('🎉 Nest completed! You now have a home!', 'success');
+                        addDiaryEntry('Built my first nest! I finally have a home 🏠', 'milestone');
+                        gainXP(100);
+                        completeQuest('firstHome');
+                    } else {
+                        addMessage(`Built nest (${gameState.nestProgress}/10 progress) 🏗️`, 'success');
+                        gainXP(20);
+                    }
+                } else {
+                    gameState.twigs -= 1;
+                    gameState.nestProgress += 1;
+                    addMessage(`Struggled with building (${gameState.nestProgress}/10)`, 'warning');
+                    gainXP(5);
+                }
+
+                gameState.hunger += 5;
+                updateUI();
+            }, { action: 'building' });
+        }
+
+        function rest() {
+            const energyGain = gameState.timeOfDay === 'night' ? 50 : 30;
+            gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + energyGain);
+            gameState.hunger += 10;
+
+            if (gameState.timeOfDay === 'night' && Math.random() < 0.2) {
+                addMessage('😴 Slept through the night peacefully...', 'success');
+                endTurn();
+            } else {
+                addMessage(`Rested and regained ${energyGain} energy ⚡`, 'success');
+            }
+
+            updateUI();
+        }
+
+        function eat() {
+            if (gameState.food < 1) {
+                addMessage('No food to eat!', 'danger');
+                return;
+            }
+
+            const foodEaten = Math.min(gameState.food, 3);
+            gameState.food -= foodEaten;
+            gameState.hunger = Math.max(0, gameState.hunger - foodEaten * 20);
+
+            addMessage(`Ate ${foodEaten} food. Hunger reduced! 🍖`, 'success');
+            updateUI();
+        }
+
+        function socialize() {
+            const energyCost = 5;
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            const territory = gameState.territories[gameState.currentLocation];
+            if (territory.npcs.length === 0) {
+                addMessage('No other birds here to socialize with!', 'warning');
+                return;
+            }
+
+            rollSkillCheck('Flocking', 12, (success) => {
+                gameState.energy -= energyCost;
+
+                if (success) {
+                    const standingGain = Math.floor(Math.random() * 10) + 5;
+                    gameState.socialStanding = Math.min(100, gameState.socialStanding + standingGain);
+                    addMessage(`Had a pleasant chat with ${territory.npcs[0].emoji}. Standing +${standingGain}`, 'success');
+                    gainXP(15);
+
+                    // Chance to find mate in spring
+                    if (gameState.season === 0 && !gameState.hasMate && Math.random() < 0.3) {
+                        gameState.hasMate = true;
+                        addMessage('💕 You found a mate!', 'success');
+                        addDiaryEntry('Found a mate! Love is in the air 💕', 'social');
+                        gainXP(50);
+                        completeQuest('findMate');
+                    }
+                } else {
+                    addMessage('Awkward conversation...', 'warning');
+                    gainXP(5);
+                }
+
+                gameState.hunger += 5;
+                updateUI();
+            }, { action: 'flocking' });
+        }
+
+        // ===== DICE ROLLING =====
+        function rollSkillCheck(skillName, dc, callback, context = {}) {
+            const skill = skillName.toLowerCase();
+            const skillLevel = gameState.skills[skill] || 0;
+            const roll = Math.floor(Math.random() * 20) + 1;
+            const total = roll + skillLevel;
+            const success = total >= dc;
+
+            showDiceRoll(roll, skillLevel, dc, success, skillName, context, () => {
+                callback(success, roll, total);
+            });
+        }
+
+        function getFlavorText(action, roll, success, context = {}) {
+            const isCrit = roll === 20;
+            const isFail = roll === 1;
+            const seasonName = SEASONS[gameState.season];
+            const location = TERRITORIES[gameState.currentLocation].name;
+
+            const flavors = {
+                foraging: {
+                    critSuccess: [
+                        `You spot a hidden cache of seeds beneath the ${location} foliage! 🌟`,
+                        `A gust of wind reveals a bounty of berries you hadn't noticed! 🌟`,
+                        `Your keen eyes spot a feast of insects swarming nearby! 🌟`,
+                        `You discover a mother lode of worms after the recent rain! 🌟`
+                    ],
+                    success: [
+                        `You peck around and find some tasty morsels.`,
+                        `Your search through the ${location} yields food.`,
+                        `You manage to snag a few seeds and berries.`,
+                        `Some insects cross your path - dinner time!`
+                    ],
+                    fail: [
+                        `You scratch around but find mostly dirt and disappointment.`,
+                        `The ${location} seems picked clean today.`,
+                        `Other birds must have gotten here first...`,
+                        `You find something, but it's not edible.`
+                    ],
+                    critFail: [
+                        `Your frantic searching attracts unwanted attention! 💥`,
+                        `You disturb something dangerous while foraging! 💥`,
+                        `A predator was watching you this whole time! 💥`
+                    ]
+                },
+                gathering: {
+                    critSuccess: [
+                        `You find the perfect twigs - sturdy and just the right size! 🌟`,
+                        `A dead branch falls nearby, providing excellent materials! 🌟`,
+                        `You discover a nest-builder's paradise! 🌟`
+                    ],
+                    success: [
+                        `You gather some decent building materials.`,
+                        `These twigs should work for your nest.`,
+                        `You collect what you can carry.`
+                    ],
+                    fail: [
+                        `The twigs here are too brittle and break easily.`,
+                        `You can't find quality materials in the ${location}.`,
+                        `Everything you find is the wrong size.`
+                    ],
+                    critFail: [
+                        `A twig snaps back and hits you in the beak! Ow! 💥`,
+                        `You get tangled in some brambles while gathering! 💥`
+                    ]
+                },
+                building: {
+                    critSuccess: [
+                        `Your nest-building skills shine! This section is perfect! 🌟`,
+                        `You weave the twigs with masterful precision! 🌟`,
+                        `This is coming together beautifully! 🌟`
+                    ],
+                    success: [
+                        `You carefully add to your nest structure.`,
+                        `Bit by bit, your home takes shape.`,
+                        `Steady progress on your nest.`
+                    ],
+                    fail: [
+                        `The twigs won't stay in place. Frustrating!`,
+                        `You struggle to get the structure right.`,
+                        `Some of your work comes loose.`
+                    ],
+                    critFail: [
+                        `A strong gust scatters your work! 💥`,
+                        `The section you just built collapses! 💥`
+                    ]
+                },
+                flying: {
+                    critSuccess: [
+                        `You soar gracefully through the air! What a flight! 🌟`,
+                        `The wind carries you effortlessly to your destination! 🌟`,
+                        `Perfect takeoff, perfect landing! 🌟`
+                    ],
+                    success: [
+                        `You wing your way to your destination.`,
+                        `A smooth flight brings you to ${context.destination || 'your destination'}.`,
+                        `You navigate the airways with ease.`
+                    ],
+                    fail: [
+                        `You struggle against the wind, wasting energy.`,
+                        `Your flight path is clumsy and inefficient.`,
+                        `Turbulence throws you off course.`
+                    ],
+                    critFail: [
+                        `You crash-land awkwardly! 💥`,
+                        `A sudden wind gust sends you tumbling! 💥`
+                    ]
+                },
+                combat: {
+                    critSuccess: [
+                        `Your attack is devastating! A perfect strike! 🌟`,
+                        `You catch ${context.enemy || 'the enemy'} completely off-guard! 🌟`,
+                        `A fierce and accurate blow lands true! 🌟`
+                    ],
+                    success: [
+                        `Your talons find their mark!`,
+                        `You land a solid hit on ${context.enemy || 'the enemy'}!`,
+                        `Your beak strikes with precision!`
+                    ],
+                    fail: [
+                        `${context.enemy || 'The enemy'} dodges your attack!`,
+                        `You miss completely!`,
+                        `Your strike goes wide!`
+                    ],
+                    critFail: [
+                        `You lose your balance and stumble! 💥`,
+                        `Your attack leaves you wide open! 💥`,
+                        `You accidentally hurt yourself! 💥`
+                    ]
+                },
+                flocking: {
+                    critSuccess: [
+                        `The other bird is charmed by your charisma! 🌟`,
+                        `You make an instant connection! 🌟`,
+                        `What a delightful conversation! 🌟`
+                    ],
+                    success: [
+                        `You share a pleasant exchange.`,
+                        `The other bird seems to enjoy your company.`,
+                        `You make a good impression.`
+                    ],
+                    fail: [
+                        `The conversation falls flat.`,
+                        `You seem to have said the wrong thing.`,
+                        `Awkward silence fills the air.`
+                    ],
+                    critFail: [
+                        `You've somehow offended the other bird! 💥`,
+                        `Your attempt at small talk goes terribly wrong! 💥`
+                    ]
+                },
+                perception: {
+                    critSuccess: [
+                        `Your sharp eyes catch every detail! 🌟`,
+                        `Nothing escapes your notice! 🌟`,
+                        `You spot something others would miss! 🌟`
+                    ],
+                    success: [
+                        `You observe your surroundings carefully.`,
+                        `Your senses pick up useful information.`,
+                        `You notice important details.`
+                    ],
+                    fail: [
+                        `Everything seems like a blur.`,
+                        `You fail to notice anything special.`,
+                        `Your attention wanders.`
+                    ],
+                    critFail: [
+                        `You were so focused on looking, you missed what was right in front of you! 💥`,
+                        `A distraction pulls your attention away! 💥`
+                    ]
+                }
+            };
+
+            const actionType = action.toLowerCase();
+            let category = 'success';
+
+            if (isCrit) category = 'critSuccess';
+            else if (isFail) category = 'critFail';
+            else if (!success) category = 'fail';
+
+            const pool = flavors[actionType]?.[category] || flavors.perception[category];
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function showDiceRoll(roll, modifier, dc, success, skillName, context, callback) {
+            const modal = document.getElementById('dice-modal');
+            const display = document.getElementById('dice-display');
+            const result = document.getElementById('dice-result');
+            const title = document.getElementById('dice-title');
+
+            title.textContent = `${skillName} Check (DC ${dc})`;
+            modal.classList.add('active');
+
+            // Animate dice roll
+            let counter = 0;
+            const rollInterval = setInterval(() => {
+                display.textContent = '🎲';
+                display.className = '';
+                counter++;
+                if (counter > 8) {
+                    clearInterval(rollInterval);
+
+                    // Show result
+                    display.textContent = roll;
+
+                    // Get flavor text
+                    const flavorText = getFlavorText(skillName, roll, success, context);
+
+                    if (roll === 20) {
+                        display.classList.add('crit-success');
+                        result.innerHTML = `<div style="color: #2ecc71; font-size: 24px;">🌟 CRITICAL SUCCESS! 🌟</div>
+                            <div style="margin: 15px 0; padding: 10px; background: #f0f9f4; border-radius: 8px; font-style: italic; color: #333;">
+                                "${flavorText}"
+                            </div>
+                            <div>Rolled: ${roll} + ${modifier} = ${roll + modifier}</div>
+                            <div>DC: ${dc}</div>`;
+                    } else if (roll === 1) {
+                        display.classList.add('crit-fail');
+                        result.innerHTML = `<div style="color: #e74c3c; font-size: 24px;">💥 CRITICAL FAILURE! 💥</div>
+                            <div style="margin: 15px 0; padding: 10px; background: #ffe6e6; border-radius: 8px; font-style: italic; color: #333;">
+                                "${flavorText}"
+                            </div>
+                            <div>Rolled: ${roll} + ${modifier} = ${roll + modifier}</div>
+                            <div>DC: ${dc}</div>`;
+                    } else {
+                        result.innerHTML = `
+                            <div style="color: ${success ? '#2ecc71' : '#e67e22'}; font-size: 20px;">
+                                ${success ? '✅ SUCCESS' : '❌ FAILURE'}
+                            </div>
+                            <div style="margin: 15px 0; padding: 10px; background: ${success ? '#f0f9f4' : '#fff4e6'}; border-radius: 8px; font-style: italic; color: #333;">
+                                "${flavorText}"
+                            </div>
+                            <div>Rolled: ${roll} + ${modifier} (skill) = ${roll + modifier}</div>
+                            <div>DC: ${dc}</div>
+                        `;
+                    }
+
+                    // Store callback
+                    window.currentDiceCallback = callback;
+                }
+            }, 100);
+        }
+
+        function closeDiceModal() {
+            document.getElementById('dice-modal').classList.remove('active');
+            if (window.currentDiceCallback) {
+                window.currentDiceCallback();
+                window.currentDiceCallback = null;
+            }
+        }
+
+        // ===== COMBAT =====
+        function spawnPredator() {
+            const predators = [
+                { name: 'Rat', emoji: '🐀', health: 30, attack: [10, 15], xp: 50 },
+                { name: 'Squirrel', emoji: '🐿️', health: 40, attack: [12, 18], xp: 60 },
+                { name: 'Owl', emoji: '🦉', health: 60, attack: [25, 35], xp: 100 }
+            ];
+
+            // Weight by danger
+            let predator;
+            if (gameState.level <= 2) {
+                predator = { ...predators[0] }; // Rat for low levels
+            } else if (Math.random() < 0.7) {
+                predator = { ...predators[Math.floor(Math.random() * 2)] };
+            } else {
+                predator = { ...predators[2] }; // Owl is rare
+            }
+
+            gameState.isInCombat = true;
+            gameState.combatEnemy = predator;
+
+            addMessage(`⚠️ A ${predator.emoji} ${predator.name} appeared!`, 'danger');
+            updateUI();
+        }
+
+        function renderCombatActions() {
+            const actionPanel = document.getElementById('action-panel');
+            const enemy = gameState.combatEnemy;
+
+            actionPanel.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; font-size: 48px; margin: 20px 0;">
+                    ${enemy.emoji}
+                </div>
+                <div style="grid-column: 1 / -1; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+                    ${enemy.name} - HP: ${enemy.health}
+                </div>
+            `;
+
+            const combatActions = [
+                { emoji: '⚔️', text: 'Attack', action: () => combatAttack() },
+                { emoji: '🛡️', text: 'Defend', action: () => combatDefend() },
+                { emoji: '🏃', text: 'Flee', action: () => combatFlee() }
+            ];
+
+            combatActions.forEach(a => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn danger';
+                btn.innerHTML = `
+                    <div class="btn-emoji">${a.emoji}</div>
+                    <div class="btn-text">${a.text}</div>
+                `;
+                btn.onclick = a.action;
+                actionPanel.appendChild(btn);
+            });
+        }
+
+        function combatAttack() {
+            const enemy = gameState.combatEnemy;
+            rollSkillCheck('Combat', 15, (success, roll) => {
+                if (success) {
+                    const damage = Math.floor(Math.random() * 15) + 10 + gameState.skills.combat * 2;
+                    enemy.health -= damage;
+                    addMessage(`You dealt ${damage} damage to the ${enemy.name}! ⚔️`, 'success');
+
+                    if (enemy.health <= 0) {
+                        winCombat();
+                        return;
+                    }
+                } else {
+                    addMessage('Your attack missed!', 'warning');
+                }
+
+                // Enemy attacks back
+                enemyAttack();
+            }, { action: 'combat', enemy: enemy.name });
+        }
+
+        function combatDefend() {
+            const enemy = gameState.combatEnemy;
+            rollSkillCheck('Combat', 12, (success) => {
+                if (success) {
+                    addMessage('You brace for the attack! 🛡️', 'success');
+                    gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + 10);
+
+                    // Enemy attack with reduced damage
+                    enemyAttack(0.5);
+                } else {
+                    addMessage('Failed to defend properly!', 'warning');
+                    enemyAttack();
+                }
+            }, { action: 'combat', enemy: enemy.name });
+        }
+
+        function combatFlee() {
+            const enemy = gameState.combatEnemy;
+            rollSkillCheck('Flying', 18, (success) => {
+                if (success) {
+                    addMessage('Successfully fled from combat! 🏃', 'success');
+                    gameState.isInCombat = false;
+                    gameState.combatEnemy = null;
+                    gameState.energy -= 20;
+                    updateUI();
+                } else {
+                    addMessage('Failed to escape!', 'danger');
+                    enemyAttack();
+                }
+            }, { action: 'flying', enemy: enemy.name });
+        }
+
+        function enemyAttack(damageMultiplier = 1) {
+            const enemy = gameState.combatEnemy;
+            const damage = Math.floor((Math.random() * (enemy.attack[1] - enemy.attack[0]) + enemy.attack[0]) * damageMultiplier);
+
+            gameState.health -= damage;
+            addMessage(`The ${enemy.name} attacks for ${damage} damage! 💥`, 'danger');
+
+            if (gameState.health <= 0) {
+                gameOver();
+            } else {
+                updateUI();
+            }
+        }
+
+        function winCombat() {
+            const enemy = gameState.combatEnemy;
+            addMessage(`🎉 Defeated the ${enemy.name}!`, 'success');
+            addDiaryEntry(`Defeated a ${enemy.name}! Proved my courage in battle`, 'combat');
+            gainXP(enemy.xp);
+
+            gameState.isInCombat = false;
+            gameState.combatEnemy = null;
+            gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
+
+            updateQuestProgress('combat', 1);
+            updateUI();
+        }
+
+        // ===== TURN & SEASON MANAGEMENT =====
+        function endTurn() {
+            // Passive effects
+            gameState.hunger += 5;
+
+            if (gameState.hunger >= 100) {
+                gameState.health -= 10;
+                addMessage('⚠️ Starving! Losing health!', 'danger');
+            }
+
+            // Advance time
+            gameState.turn++;
+            gameState.timeOfDay = gameState.timeOfDay === 'day' ? 'night' : 'day';
+
+            // Update weather periodically (every 3 turns)
+            if (gameState.turn % 3 === 0) {
+                updateWeather();
+            }
+
+            // Random events
+            if (Math.random() < 0.1) {
+                checkRandomEncounter();
+            }
+
+            // End of season
+            if (gameState.turn > TURNS_PER_SEASON) {
+                advanceSeason();
+            }
+
+            // Check game over
+            if (gameState.health <= 0) {
+                gameOver();
+            } else {
+                addMessage(`Turn ${gameState.turn} begins...`, 'info');
+                updateUI();
+            }
+        }
+
+        function advanceSeason() {
+            gameState.season++;
+            gameState.turn = 1;
+
+            if (gameState.season >= 4) {
+                gameState.season = 0;
+                gameState.year++;
+                addMessage(`🎊 Year ${gameState.year} begins!`, 'success');
+                addDiaryEntry(`Survived my first year! Now in year ${gameState.year}`, 'milestone');
+
+                // Yearly bonuses
+                if (gameState.hasNest && gameState.hasMate) {
+                    gameState.eggs += Math.floor(Math.random() * 3) + 2;
+                    addMessage(`🥚 Your mate laid ${gameState.eggs} eggs!`, 'success');
+                    addDiaryEntry(`My mate laid ${gameState.eggs} eggs! Starting a family 🥚`, 'social');
+                    gainXP(100);
+                }
+            }
+
+            const seasonName = SEASONS[gameState.season];
+            addMessage(`${SEASON_EMOJIS[seasonName]} ${seasonName} has arrived!`, 'success');
+            addDiaryEntry(`${seasonName} has arrived`, 'event');
+
+            // Add seasonal quest
+            addSeasonalQuest();
+
+            updateUI();
+        }
+
+        // ===== QUEST SYSTEM =====
+        function addSeasonalQuest() {
+            const seasonQuests = {
+                0: { name: 'First Home', emoji: '🏠', type: 'build', goal: 1, progress: gameState.hasNest ? 1 : 0, id: 'firstHome' },
+                1: { name: 'Provider', emoji: '🍖', type: 'forage', goal: 20, progress: 0, id: 'provider' },
+                2: { name: 'Winter Prep', emoji: '🌰', type: 'cache', goal: 20, progress: gameState.cachedFood, id: 'winterPrep' },
+                3: { name: 'Survivor', emoji: '❄️', type: 'survive', goal: 1, progress: 0, id: 'survivor' }
+            };
+
+            const quest = seasonQuests[gameState.season];
+            if (quest && !gameState.activeQuests.find(q => q.id === quest.id)) {
+                gameState.activeQuests.push(quest);
+                addMessage(`📜 New Quest: ${quest.emoji} ${quest.name}`, 'info');
+            }
+        }
+
+        function updateQuestProgress(type, amount) {
+            gameState.activeQuests.forEach(quest => {
+                if (quest.type === type) {
+                    quest.progress += amount;
+                    if (quest.progress >= quest.goal) {
+                        completeQuest(quest.id);
+                    }
+                }
+            });
+        }
+
+        function completeQuest(questId) {
+            const questIndex = gameState.activeQuests.findIndex(q => q.id === questId);
+            if (questIndex !== -1) {
+                const quest = gameState.activeQuests[questIndex];
+                addMessage(`🎉 Quest Complete: ${quest.name}!`, 'success');
+                gainXP(150);
+                gameState.completedQuests.push(quest);
+                gameState.activeQuests.splice(questIndex, 1);
+            }
+        }
+
+        // ===== PROGRESSION =====
+        function gainXP(amount) {
+            gameState.xp += amount;
+            addMessage(`+${amount} XP`, 'info');
+
+            while (gameState.xp >= gameState.xpNeeded && gameState.level < 5) {
+                levelUp();
+            }
+        }
+
+        function levelUp() {
+            gameState.level++;
+            gameState.xp -= gameState.xpNeeded;
+            gameState.xpNeeded = Math.floor(gameState.xpNeeded * 1.5);
+            gameState.maxHealth += 10;
+            gameState.health = gameState.maxHealth;
+            gameState.maxEnergy += 5;
+            gameState.energy = gameState.maxEnergy;
+
+            addMessage(`🌟 LEVEL UP! Now level ${gameState.level}!`, 'success');
+            addDiaryEntry(`Reached level ${gameState.level}! Growing stronger 🌟`, 'milestone');
+
+            // Let player choose skill to increase
+            showSkillChoice();
+        }
+
+        function showSkillChoice() {
+            const modal = document.getElementById('generic-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const buttons = document.getElementById('modal-buttons');
+
+            title.textContent = '🌟 Choose a Skill to Improve!';
+            body.innerHTML = '<div style="margin: 15px 0;">Select one skill to increase by 1:</div>';
+
+            buttons.innerHTML = '';
+            Object.keys(gameState.skills).forEach(skill => {
+                const btn = document.createElement('button');
+                btn.className = 'modal-btn primary';
+                btn.textContent = `${skill.charAt(0).toUpperCase() + skill.slice(1)} (${gameState.skills[skill]} → ${gameState.skills[skill] + 1})`;
+                btn.style.margin = '5px';
+                btn.onclick = () => {
+                    gameState.skills[skill]++;
+                    modal.classList.remove('active');
+                    addMessage(`${skill.charAt(0).toUpperCase() + skill.slice(1)} increased to ${gameState.skills[skill]}!`, 'success');
+                    updateUI();
+                };
+                buttons.appendChild(btn);
+            });
+
+            modal.classList.add('active');
+        }
+
+        // ===== RANDOM EVENTS =====
+        function checkRandomEncounter() {
+            const roll = Math.random();
+
+            if (roll < 0.15) {
+                spawnPredator();
+            } else if (roll < 0.3) {
+                // Find bonus resources
+                const bonus = Math.floor(Math.random() * 3) + 1;
+                gameState.food += bonus;
+                addMessage(`🍀 Found ${bonus} bonus food!`, 'success');
+            } else if (roll < 0.4) {
+                // Weather event
+                const events = ['A storm approaches...', 'The sun shines warmly', 'Wind picks up'];
+                addMessage(`🌤️ ${events[Math.floor(Math.random() * events.length)]}`, 'info');
+            }
+        }
+
+        // ===== CHARACTER SHEET =====
+        function showCharacterSheet() {
+            const modal = document.getElementById('generic-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const buttons = document.getElementById('modal-buttons');
+
+            title.textContent = '📊 Character Sheet';
+            body.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px;">🐦</div>
+                    <div style="font-size: 20px; font-weight: bold;">Level ${gameState.level} ${gameState.species}</div>
+                    <div style="font-size: 14px; color: #666;">Year ${gameState.year} | ${gameState.offspring} Offspring</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0;">
+                    <div class="skill-item"><span>🔍 Foraging</span><span class="skill-level">${gameState.skills.foraging}</span></div>
+                    <div class="skill-item"><span>🏗️ Building</span><span class="skill-level">${gameState.skills.building}</span></div>
+                    <div class="skill-item"><span>🦅 Flying</span><span class="skill-level">${gameState.skills.flying}</span></div>
+                    <div class="skill-item"><span>⚔️ Combat</span><span class="skill-level">${gameState.skills.combat}</span></div>
+                    <div class="skill-item"><span>👥 Flocking</span><span class="skill-level">${gameState.skills.flocking}</span></div>
+                    <div class="skill-item"><span>👁️ Perception</span><span class="skill-level">${gameState.skills.perception}</span></div>
+                </div>
+
+                <div style="margin: 15px 0; padding: 10px; background: #f0f0f0; border-radius: 8px;">
+                    <div><strong>Nest:</strong> ${gameState.hasNest ? '✅ Built' : `🏗️ ${gameState.nestProgress}/10`}</div>
+                    <div><strong>Mate:</strong> ${gameState.hasMate ? '💕 Yes' : '❌ No'}</div>
+                    <div><strong>Completed Quests:</strong> ${gameState.completedQuests.length}</div>
+                </div>
+            `;
+
+            buttons.innerHTML = '<button class="modal-btn primary" onclick="closeModal()">Close</button>';
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('generic-modal').classList.remove('active');
+        }
+
+        // ===== DIARY SYSTEM =====
+        function addDiaryEntry(text, type = 'event') {
+            const entry = {
+                turn: gameState.turn,
+                season: SEASONS[gameState.season],
+                year: gameState.year,
+                text: text,
+                type: type, // event, milestone, combat, social
+                timestamp: Date.now()
+            };
+            gameState.diary.push(entry);
+
+            // Keep last 50 entries
+            if (gameState.diary.length > 50) {
+                gameState.diary.shift();
+            }
+        }
+
+        function showDiary() {
+            const modal = document.getElementById('generic-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const buttons = document.getElementById('modal-buttons');
+
+            title.textContent = '📖 Life Story';
+
+            if (gameState.diary.length === 0) {
+                body.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
+                        <p>Your story has just begun...<br/>Live your life and return to read your tale!</p>
+                    </div>
+                `;
+            } else {
+                const entries = gameState.diary.slice().reverse().map(entry => {
+                    const icon = {
+                        event: '📅',
+                        milestone: '⭐',
+                        combat: '⚔️',
+                        social: '💬'
+                    }[entry.type] || '📅';
+
+                    const bgColor = {
+                        event: '#f0f9ff',
+                        milestone: '#fff9e6',
+                        combat: '#ffe6e6',
+                        social: '#f0f9f4'
+                    }[entry.type] || '#f0f0f0';
+
+                    return `
+                        <div style="background: ${bgColor}; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #667eea;">
+                            <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
+                                ${icon} ${entry.season} Year ${entry.year}, Turn ${entry.turn}
+                            </div>
+                            <div style="font-size: 13px;">${entry.text}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                body.innerHTML = `
+                    <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <div style="font-size: 14px; color: #666;">
+                                Your journey through ${gameState.year} year(s) | ${gameState.diary.length} memories
+                            </div>
+                        </div>
+                        ${entries}
+                    </div>
+                `;
+            }
+
+            buttons.innerHTML = '<button class="modal-btn primary" onclick="closeModal()">Close</button>';
+            modal.classList.add('active');
+        }
+
+        // ===== WEATHER SYSTEM =====
+        const WEATHER_TYPES = {
+            clear: { icon: '☀️', name: 'Clear skies', color: '#e3f2fd', forageMod: 0, energyMod: 0 },
+            rain: { icon: '🌧️', name: 'Rainy', color: '#cfd8dc', forageMod: -2, energyMod: -5 },
+            storm: { icon: '⛈️', name: 'Stormy', color: '#90a4ae', forageMod: -5, energyMod: -10 },
+            snow: { icon: '❄️', name: 'Snowy', color: '#e1f5fe', forageMod: -3, energyMod: -8 },
+            wind: { icon: '💨', name: 'Windy', color: '#b2ebf2', forageMod: -1, energyMod: -3 }
+        };
+
+        function updateWeather() {
+            // Weather changes based on season
+            const seasonWeather = {
+                0: ['clear', 'clear', 'rain', 'wind'], // Spring
+                1: ['clear', 'clear', 'clear', 'rain'], // Summer
+                2: ['clear', 'rain', 'wind', 'wind'], // Fall
+                3: ['snow', 'snow', 'wind', 'clear'] // Winter
+            };
+
+            const possibleWeather = seasonWeather[gameState.season];
+            const newWeather = possibleWeather[Math.floor(Math.random() * possibleWeather.length)];
+
+            // Chance of storm
+            if (Math.random() < 0.1) {
+                newWeather = gameState.season === 3 ? 'snow' : 'storm';
+            }
+
+            gameState.weather = newWeather;
+            gameState.weatherIntensity = Math.random() * 0.5 + 0.5;
+
+            // Update UI
+            const weatherData = WEATHER_TYPES[gameState.weather];
+            document.getElementById('weather-icon').textContent = weatherData.icon;
+            document.getElementById('weather-text').textContent = weatherData.name;
+            document.getElementById('weather-display').style.background = `linear-gradient(135deg, ${weatherData.color}, ${weatherData.color}cc)`;
+
+            // Add diary entry for significant weather
+            if (gameState.weather === 'storm') {
+                addDiaryEntry('A fierce storm rolled in, making survival difficult.', 'event');
+            } else if (gameState.weather === 'snow' && gameState.season === 3) {
+                addDiaryEntry('Snow blanketed the landscape, signaling winter\'s harsh grip.', 'event');
+            }
+        }
+
+        function getWeatherModifiers() {
+            const weather = WEATHER_TYPES[gameState.weather] || WEATHER_TYPES.clear;
+            return {
+                forageDC: weather.forageMod,
+                energyCost: weather.energyMod
+            };
+        }
+
+        // ===== CANVAS MAP SYSTEM =====
+        function drawCanvasMap() {
+            const canvas = document.getElementById('map-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const cellSize = 200;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#e3f2fd');
+            gradient.addColorStop(1, '#bbdefb');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw territories
+            for (let i = 0; i < 9; i++) {
+                const row = Math.floor(i / 3);
+                const col = i % 3;
+                const x = col * cellSize;
+                const y = row * cellSize;
+
+                const territory = gameState.territories[i];
+                const isCurrent = i === gameState.currentLocation;
+
+                // Territory background
+                ctx.fillStyle = isCurrent ? '#fff9e6' : '#e0f7fa';
+                ctx.strokeStyle = isCurrent ? '#f39c12' : '#4dd0e1';
+                ctx.lineWidth = isCurrent ? 6 : 3;
+
+                ctx.beginPath();
+                ctx.roundRect(x + 5, y + 5, cellSize - 10, cellSize - 10, 15);
+                ctx.fill();
+                ctx.stroke();
+
+                // Territory emoji (larger)
+                ctx.font = '64px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(territory.emoji, x + cellSize / 2, y + cellSize / 2 - 20);
+
+                // Territory name
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText(territory.name, x + cellSize / 2, y + cellSize - 30);
+
+                // NPCs and predators
+                if (territory.npcs.length > 0) {
+                    ctx.font = '24px serif';
+                    ctx.fillText(territory.npcs[0].emoji, x + 30, y + 30);
+                }
+                if (territory.predators.length > 0) {
+                    ctx.fillText('⚠️', x + cellSize - 30, y + 30);
+                }
+
+                // Player bird indicator (animated)
+                if (isCurrent) {
+                    ctx.font = '48px serif';
+                    const bounce = Math.sin(Date.now() / 300) * 3;
+                    ctx.fillText('🐦', x + cellSize / 2, y + cellSize / 2 + 40 + bounce);
+                }
+            }
+
+            // Weather overlay
+            if (gameState.weather !== 'clear') {
+                ctx.globalAlpha = 0.15;
+                ctx.fillStyle = WEATHER_TYPES[gameState.weather].color;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Animate canvas map
+        function animateMap() {
+            drawCanvasMap();
+            requestAnimationFrame(animateMap);
+        }
+
+        // ===== MESSAGES =====
+        function addMessage(text, type = 'info') {
+            const log = document.getElementById('message-log');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            log.appendChild(msg);
+            log.scrollTop = log.scrollHeight;
+
+            // Keep only last 20 messages
+            while (log.children.length > 20) {
+                log.removeChild(log.firstChild);
+            }
+        }
+
+        // ===== GAME OVER =====
+        function gameOver() {
+            gameState.gameOver = true;
+
+            const modal = document.getElementById('generic-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const buttons = document.getElementById('modal-buttons');
+
+            title.textContent = '💀 Game Over';
+            body.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 72px; margin-bottom: 20px;">🪦</div>
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">Your journey has ended...</div>
+                    <div style="font-size: 14px; margin: 10px 0;">
+                        <div>Survived: ${gameState.year} year(s), ${SEASONS[gameState.season]}</div>
+                        <div>Level: ${gameState.level}</div>
+                        <div>Offspring: ${gameState.offspring}</div>
+                        <div>Quests Completed: ${gameState.completedQuests.length}</div>
+                    </div>
+                </div>
+            `;
+
+            buttons.innerHTML = '<button class="modal-btn primary" onclick="newGame()">New Game</button>';
+            modal.classList.add('active');
+        }
+
+        // ===== TUTORIAL =====
+        const TUTORIAL_STEPS = [
+            {
+                title: '🐦 Welcome to Seasons of the Flock!',
+                content: `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 72px; margin-bottom: 10px;">🐦</div>
+                        <p style="font-size: 18px; font-weight: bold; color: #667eea;">You are a young Bluebird</p>
+                    </div>
+
+                    <p style="margin-bottom: 15px; line-height: 1.6;">
+                        Welcome to the wild! You've just left the nest and must now survive on your own.
+                        The seasons will test you, but with wit and determination, you can thrive.
+                    </p>
+
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p style="font-weight: bold; margin-bottom: 10px;">🎯 Your Goals:</p>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                            <li>🏠 Build a nest (10 twigs required)</li>
+                            <li>💕 Find a mate through socializing</li>
+                            <li>🌍 Survive all 4 seasons</li>
+                            <li>🐣 Raise offspring</li>
+                            <li>⭐ Become a legendary bird</li>
+                        </ul>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '📊 Understanding Your Stats',
+                content: `
+                    <p style="margin-bottom: 15px;">Four vital stats determine your survival:</p>
+
+                    <div style="display: grid; gap: 12px;">
+                        <div style="background: #ffe6e6; padding: 12px; border-radius: 8px; border-left: 4px solid #ff6b6b;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">❤️ Health (100 max)</div>
+                            <div style="font-size: 13px;">Your life force. If it reaches 0, game over! Restore by completing seasons and leveling up.</div>
+                        </div>
+
+                        <div style="background: #fff4e6; padding: 12px; border-radius: 8px; border-left: 4px solid #f9ca24;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🍖 Hunger (0-100)</div>
+                            <div style="font-size: 13px;">Increases each turn. If it hits 100, you start losing health! Eat food to reduce it.</div>
+                        </div>
+
+                        <div style="background: #f0f0ff; padding: 12px; border-radius: 8px; border-left: 4px solid #6c5ce7;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">⚡ Energy (100 max)</div>
+                            <div style="font-size: 13px;">Used for actions. Rest to restore it. Running out of energy limits what you can do!</div>
+                        </div>
+
+                        <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; border-left: 4px solid #6c5ce7;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">⭐ Social Standing (0-100)</div>
+                            <div style="font-size: 13px;">Your reputation. Higher standing helps you find mates and allies!</div>
+                        </div>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🎲 Skill Checks & Dice Rolling',
+                content: `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 48px;">🎲</div>
+                    </div>
+
+                    <p style="margin-bottom: 15px;">Most actions require a <strong>skill check</strong> - you roll a 20-sided die (d20) and add your skill level!</p>
+
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; font-family: monospace;">
+                        <div style="text-align: center; font-size: 16px;">
+                            <strong>Roll + Skill Level ≥ Difficulty</strong>
+                        </div>
+                        <div style="text-align: center; font-size: 13px; margin-top: 5px; color: #666;">
+                            Example: Roll 14 + Foraging 2 = 16 (beats DC 10!)
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                        <div style="background: #d4edda; padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 5px;">🌟</div>
+                            <div style="font-weight: bold; margin-bottom: 3px;">Natural 20</div>
+                            <div style="font-size: 12px;">Critical Success!<br/>Amazing results!</div>
+                        </div>
+
+                        <div style="background: #f8d7da; padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 5px;">💥</div>
+                            <div style="font-weight: bold; margin-bottom: 3px;">Natural 1</div>
+                            <div style="font-size: 12px;">Critical Failure!<br/>Things go wrong!</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <p style="font-size: 13px; margin: 0;">
+                            💡 <strong>Tip:</strong> Level up to increase your skills and succeed more often!
+                        </p>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🗺️ Exploring the World',
+                content: `
+                    <p style="margin-bottom: 15px;">The world is divided into a <strong>3×3 grid of territories</strong>. Each location offers different resources and dangers.</p>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 20px 0; max-width: 300px; margin-left: auto; margin-right: auto;">
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌲</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">⛰️</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🫐</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌳</div>
+                        <div style="background: #fff9e6; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 3px solid #f39c12; font-weight: bold;">🐦</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">💧</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌻</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌳</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🪨</div>
+                    </div>
+
+                    <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin: 15px 0;">
+                        <p style="margin: 0; font-size: 13px; line-height: 1.6;">
+                            🧭 <strong>Your current location</strong> is highlighted in gold.<br/>
+                            ✈️ <strong>Click adjacent territories</strong> to fly there (costs 15 energy).<br/>
+                            👀 You can see NPCs 🐦 and dangers ⚠️ in other territories.
+                        </p>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🎬 Key Actions',
+                content: `
+                    <p style="margin-bottom: 15px;">Here are the essential actions you'll use:</p>
+
+                    <div style="display: grid; gap: 10px;">
+                        <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🔍 Forage</div>
+                            <div style="font-size: 12px;">Search for food (seeds, berries, worms). Essential for survival!</div>
+                        </div>
+
+                        <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🌿 Gather</div>
+                            <div style="font-size: 12px;">Collect twigs for nest building. You need 10 total!</div>
+                        </div>
+
+                        <div style="background: #fff3e0; padding: 10px; border-radius: 8px; border-left: 4px solid #ff9800;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🏗️ Build Nest</div>
+                            <div style="font-size: 12px;">Use twigs to build your home. A completed nest is crucial!</div>
+                        </div>
+
+                        <div style="background: #f3e5f5; padding: 10px; border-radius: 8px; border-left: 4px solid #9c27b0;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">👥 Socialize</div>
+                            <div style="font-size: 12px;">Chat with other birds. Increases standing and may lead to finding a mate!</div>
+                        </div>
+
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">😴 Rest</div>
+                            <div style="font-size: 12px;">Restore energy. Rest at night for bonus recovery!</div>
+                        </div>
+
+                        <div style="background: #ffe0b2; padding: 10px; border-radius: 8px; border-left: 4px solid #ff6f00;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🍖 Eat</div>
+                            <div style="font-size: 12px;">Consume food to reduce hunger. Don't let hunger reach 100!</div>
+                        </div>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🌸 Seasons & Time',
+                content: `
+                    <p style="margin-bottom: 15px;">Time passes through <strong>four seasons</strong>, each lasting <strong>10 turns</strong>:</p>
+
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        <div style="background: linear-gradient(135deg, #ffeef8, #ffe6f0); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🌸 Spring</div>
+                            <div style="font-size: 13px;">Time to build your nest and find a mate!</div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #fff8e1, #ffecb3); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">☀️ Summer</div>
+                            <div style="font-size: 13px;">Raise babies, defend your nest from predators.</div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🍂 Fall</div>
+                            <div style="font-size: 13px;">Prepare for winter! Gather resources.</div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #e1f5fe, #b3e5fc); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">❄️ Winter</div>
+                            <div style="font-size: 13px;">Survive! Food is scarce, energy drains faster.</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <p style="font-size: 13px; margin: 0;">
+                            ⏰ Each turn alternates between ☀️ <strong>Day</strong> and 🌙 <strong>Night</strong><br/>
+                            🎯 Complete seasonal quests for bonus XP!
+                        </p>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '⚔️ Combat & Dangers',
+                content: `
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="font-size: 48px;">🐀 🐿️ 🦉</div>
+                    </div>
+
+                    <p style="margin-bottom: 15px;">The wild is dangerous! You may encounter <strong>predators</strong> that want to eat you or raid your nest:</p>
+
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        <div style="background: #ffebee; padding: 10px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🐀 Rat (HP: 30)</div>
+                            <div style="font-size: 12px;">Common threat. Steals eggs and food.</div>
+                        </div>
+
+                        <div style="background: #ffebee; padding: 10px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🐿️ Squirrel (HP: 40)</div>
+                            <div style="font-size: 12px;">Opportunistic. Raids nests for materials.</div>
+                        </div>
+
+                        <div style="background: #ffebee; padding: 10px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🦉 Owl (HP: 60)</div>
+                            <div style="font-size: 12px;">Deadly night hunter. Very dangerous!</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <p style="font-weight: bold; margin-bottom: 8px;">Combat Options:</p>
+                        <ul style="margin-left: 20px; font-size: 13px; line-height: 1.6;">
+                            <li>⚔️ <strong>Attack:</strong> Deal damage (requires Combat check)</li>
+                            <li>🛡️ <strong>Defend:</strong> Reduce incoming damage</li>
+                            <li>🏃 <strong>Flee:</strong> Escape combat (requires Flying check)</li>
+                        </ul>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🚀 Ready to Begin!',
+                content: `
+                    <div style="text-align: center; margin: 20px 0;">
+                        <div style="font-size: 64px; margin-bottom: 15px;">🐦✨</div>
+                        <p style="font-size: 18px; font-weight: bold; color: #667eea; margin-bottom: 10px;">
+                            Your adventure awaits!
+                        </p>
+                    </div>
+
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p style="font-weight: bold; margin-bottom: 10px;">📋 Quick Start Tips:</p>
+                        <ol style="margin-left: 20px; font-size: 13px; line-height: 1.8;">
+                            <li>Start by <strong>foraging</strong> and <strong>gathering</strong> to build up resources</li>
+                            <li>Build your <strong>nest</strong> as soon as you have 10 twigs</li>
+                            <li>Keep hunger below 100 by eating regularly</li>
+                            <li>Socialize with other birds to find a mate</li>
+                            <li>Rest when energy is low (especially at night!)</li>
+                            <li>Watch the dice rolls and learn the patterns</li>
+                        </ol>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 12px; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; font-size: 14px;">
+                            💾 <strong>Game auto-saves after every action!</strong><br/>
+                            <span style="font-size: 12px;">You can close the browser and return anytime.</span>
+                        </p>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px; font-size: 24px;">
+                        🌸 Good luck, young bird! 🌸
+                    </div>
+                `,
+                button: 'Start My Journey! 🐦'
+            }
+        ];
+
+        function showTutorial(step = 0) {
+            const modal = document.getElementById('generic-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const buttons = document.getElementById('modal-buttons');
+
+            if (step >= TUTORIAL_STEPS.length) {
+                startGame();
+                return;
+            }
+
+            const tutorialData = TUTORIAL_STEPS[step];
+            title.textContent = tutorialData.title;
+            body.innerHTML = tutorialData.content;
+
+            buttons.innerHTML = `
+                ${step > 0 ? '<button class="modal-btn secondary" onclick="showTutorial(' + (step - 1) + ')">Back</button>' : ''}
+                <button class="modal-btn primary" onclick="showTutorial(${step + 1})">${tutorialData.button}</button>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function startGame() {
+            gameState.hasSeenIntro = true;
+            gameState.tutorialActive = true;
+            closeModal();
+            addMessage('🌸 Spring has arrived! Your journey begins in Oak Meadow...', 'success');
+            addMessage('💡 Tip: Start by foraging for food or gathering twigs!', 'info');
+            addSeasonalQuest();
+            updateUI();
+        }
+
+        // ===== INIT =====
+        function init() {
+            // Try to load save
+            const loaded = loadGame();
+
+            if (!loaded) {
+                // New game
+                initTerritories();
+                saveGame();
+            }
+
+            // Initialize weather and canvas map
+            updateWeather();
+            animateMap();
+
+            updateUI();
+
+            if (!gameState.hasSeenIntro) {
+                showTutorial(0);
+            } else {
+                addMessage('Game loaded. Welcome back!', 'info');
+            }
+        }
+
+        // Start game on load
+        window.onload = init;
+    </script>
+</body>
+</html>
