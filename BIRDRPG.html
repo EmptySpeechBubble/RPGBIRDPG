@@ -976,9 +976,23 @@
 
             if (gameState.activeQuests.length > 0) {
                 questPanel.style.display = 'block';
-                questContent.innerHTML = gameState.activeQuests.map(q =>
-                    `<div class="quest-item">${q.emoji} ${q.name}: ${q.progress}/${q.goal}</div>`
-                ).join('');
+                questContent.innerHTML = gameState.activeQuests.map(q => {
+                    const progressPercent = Math.min(100, (q.progress / q.goal) * 100);
+                    const progressColor = progressPercent >= 100 ? '#27ae60' : progressPercent >= 50 ? '#f39c12' : '#3498db';
+                    return `
+                        <div class="quest-item" style="margin-bottom: 10px; padding: 10px; background: linear-gradient(135deg, #f0f9ff, #e3f2fd); border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${q.emoji} ${q.name}</div>
+                            <div style="font-size: 11px; color: #666; margin-bottom: 5px;">${q.desc}</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="flex: 1; background: #ddd; border-radius: 10px; height: 12px; overflow: hidden;">
+                                    <div style="width: ${progressPercent}%; background: ${progressColor}; height: 100%; transition: width 0.3s;"></div>
+                                </div>
+                                <div style="font-size: 11px; font-weight: bold;">${q.progress}/${q.goal}</div>
+                            </div>
+                            <div style="font-size: 10px; color: #27ae60; margin-top: 3px;">Reward: ${q.reward} XP</div>
+                        </div>
+                    `;
+                }).join('');
             } else {
                 questPanel.style.display = 'none';
             }
@@ -2259,18 +2273,67 @@
         }
 
         // ===== QUEST SYSTEM =====
-        function addSeasonalQuest() {
-            const seasonQuests = {
-                0: { name: 'First Home', emoji: '🏠', type: 'build', goal: 1, progress: gameState.hasNest ? 1 : 0, id: 'firstHome' },
-                1: { name: 'Provider', emoji: '🍖', type: 'forage', goal: 20, progress: 0, id: 'provider' },
-                2: { name: 'Winter Prep', emoji: '🌰', type: 'cache', goal: 20, progress: gameState.cachedFood, id: 'winterPrep' },
-                3: { name: 'Survivor', emoji: '❄️', type: 'survive', goal: 1, progress: 0, id: 'survivor' }
-            };
+        const ALL_QUESTS = {
+            // SPRING QUESTS
+            'firstHome': { name: 'Build Your First Home', emoji: '🏠', desc: 'Construct a nest to start your new life', type: 'build', goal: 1, reward: 100, season: 0 },
+            'perfectMatch': { name: 'Find Your Perfect Match', emoji: '💕', desc: 'Court and bond with a mate', type: 'mate', goal: 1, reward: 150, season: 0 },
+            'territorialVictor': { name: 'Defend Your Territory', emoji: '⚔️', desc: 'Drive away 3 intruders', type: 'combat', goal: 3, reward: 200, season: 0 },
+            'springGatherer': { name: 'Spring Gatherer', emoji: '🌿', desc: 'Collect 15 twigs for building', type: 'gather', goal: 15, reward: 75, season: 0 },
+            'socialButterfly': { name: 'Social Butterfly', emoji: '🦋', desc: 'Reach 70 social standing', type: 'social', goal: 70, reward: 100, season: 0 },
 
-            const quest = seasonQuests[gameState.season];
-            if (quest && !gameState.activeQuests.find(q => q.id === quest.id)) {
-                gameState.activeQuests.push(quest);
-                addMessage(`📜 New Quest: ${quest.emoji} ${quest.name}`, 'info');
+            // SUMMER QUESTS
+            'provider': { name: 'The Provider', emoji: '🍖', desc: 'Gather 25 food for your family', type: 'forage', goal: 25, reward: 150, season: 1 },
+            'guardianNest': { name: 'Guardian of the Nest', emoji: '🛡️', desc: 'Successfully defend against a predator', type: 'defend', goal: 1, reward: 200, season: 1 },
+            'raisingYoung': { name: 'Raising the Young', emoji: '🐣', desc: 'Raise 2 babies to fledgling stage', type: 'family', goal: 2, reward: 250, season: 1 },
+            'explorerSpring': { name: 'Summer Explorer', emoji: '🗺️', desc: 'Visit all 9 territories', type: 'explore', goal: 9, reward: 175, season: 1 },
+            'ratHunter': { name: 'Rat Hunter', emoji: '🐀', desc: 'Defeat 5 rats to protect the grove', type: 'combat', goal: 5, reward: 300, season: 1 },
+
+            // FALL QUESTS
+            'winterPrep': { name: 'Winter Preparation', emoji: '🌰', desc: 'Cache 20 food items for winter', type: 'cache', goal: 20, reward: 200, season: 2 },
+            'fortification': { name: 'Fortify Your Home', emoji: '🏰', desc: 'Build a birdhouse (upgraded home)', type: 'upgrade', goal: 1, reward: 250, season: 2 },
+            'alliance': { name: 'Form an Alliance', emoji: '🤝', desc: 'Recruit 3 birds to your flock', type: 'flock', goal: 3, reward: 175, season: 2 },
+            'autumnHarvest': { name: 'Autumn Harvest', emoji: '🍂', desc: 'Forage 30 food before winter', type: 'forage', goal: 30, reward: 150, season: 2 },
+            'skillMaster': { name: 'Skill Mastery', emoji: '⭐', desc: 'Reach level 5', type: 'level', goal: 5, reward: 300, season: 2 },
+
+            // WINTER QUESTS
+            'survivor': { name: 'The Survivor', emoji: '❄️', desc: 'Survive winter with health above 50', type: 'survive', goal: 50, reward: 250, season: 3 },
+            'winterWarrior': { name: 'Winter Warrior', emoji: '⚔️', desc: 'Defend your cache 3 times', type: 'defend', goal: 3, reward: 200, season: 3 },
+            'fortress': { name: 'Weather the Storm', emoji: '🌨️', desc: 'Rest successfully during 3 storms', type: 'weather', goal: 3, reward: 150, season: 3 },
+            'sharingSoul': { name: 'Sharing Soul', emoji: '💝', desc: 'Share food with flock members 5 times', type: 'share', goal: 5, reward: 175, season: 3 },
+            'bossSlayer': { name: 'Boss Slayer', emoji: '👑', desc: 'Defeat a boss enemy (Rat King, Owl, etc.)', type: 'boss', goal: 1, reward: 500, season: 3 },
+
+            // YEAR-ROUND QUESTS
+            'legacy': { name: 'Build a Legacy', emoji: '🌟', desc: 'Raise 6 offspring to independence', type: 'offspring', goal: 6, reward: 600, season: -1 },
+            'apexBird': { name: 'Apex Bird', emoji: '🦅', desc: 'Reach level 10', type: 'level', goal: 10, reward: 1000, season: -1 },
+            'dynastyBuilder': { name: 'Dynasty Builder', emoji: '👨‍👩‍👧‍👦', desc: 'Raise 10 total offspring', type: 'offspring', goal: 10, reward: 800, season: -1 },
+        };
+
+        function addSeasonalQuest() {
+            // Find quests for current season
+            const availableQuests = Object.entries(ALL_QUESTS)
+                .filter(([id, quest]) => quest.season === gameState.season || quest.season === -1)
+                .filter(([id, quest]) => !gameState.completedQuests.includes(id))
+                .filter(([id, quest]) => !gameState.activeQuests.find(q => q.id === id));
+
+            // Add 1-2 quests per season
+            const numQuestsToAdd = Math.min(2, availableQuests.length);
+            for (let i = 0; i < numQuestsToAdd; i++) {
+                if (availableQuests[i]) {
+                    const [id, questData] = availableQuests[i];
+                    const quest = { ...questData, id, progress: 0 };
+
+                    // Set initial progress for some quest types
+                    if (quest.type === 'build' && gameState.hasNest) quest.progress = 1;
+                    if (quest.type === 'mate' && gameState.hasMate) quest.progress = 1;
+                    if (quest.type === 'cache') quest.progress = gameState.cachedFood;
+                    if (quest.type === 'social') quest.progress = gameState.socialStanding;
+                    if (quest.type === 'level') quest.progress = gameState.level;
+                    if (quest.type === 'offspring') quest.progress = gameState.offspring;
+
+                    gameState.activeQuests.push(quest);
+                    addMessage(`📜 New Quest: ${quest.emoji} ${quest.name}!`, 'info');
+                    addMessage(`   ${quest.desc}`, 'info');
+                }
             }
         }
 
@@ -2289,10 +2352,15 @@
             const questIndex = gameState.activeQuests.findIndex(q => q.id === questId);
             if (questIndex !== -1) {
                 const quest = gameState.activeQuests[questIndex];
-                addMessage(`🎉 Quest Complete: ${quest.name}!`, 'success');
-                gainXP(150);
-                gameState.completedQuests.push(quest);
+                addMessage(`🎉 Quest Complete: ${quest.emoji} ${quest.name}!`, 'success');
+                addMessage(`   Reward: +${quest.reward} XP!`, 'success');
+                addDiaryEntry(`Completed quest: ${quest.name}! ${quest.desc}`, 'achievement');
+                gainXP(quest.reward);
+                gameState.completedQuests.push(questId); // Just push the ID
                 gameState.activeQuests.splice(questIndex, 1);
+
+                // Check if we should add a new quest
+                addSeasonalQuest();
             }
         }
 
