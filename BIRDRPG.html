@@ -510,7 +510,14 @@
                     <span class="inventory-item">🌰 Food: <span id="food-count">0</span></span>
                     <span class="inventory-item">🌿 Twigs: <span id="twig-count">0</span></span>
                     <span class="inventory-item">🥚 Eggs: <span id="egg-count">0</span></span>
+                    <span class="inventory-item">🌰📦 Cached: <span id="cached-count">0</span></span>
                 </div>
+            </div>
+
+            <!-- Quick Actions Bar -->
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <button onclick="newGame()" style="flex: 1; padding: 8px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">🔄 New Game</button>
+                <button onclick="saveGame(); addMessage('Game saved!', 'success')" style="flex: 1; padding: 8px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">💾 Save</button>
             </div>
         </div>
 
@@ -539,7 +546,7 @@
             </div>
 
             <!-- Canvas Map (Visual) -->
-            <div style="margin-bottom: 8px;">
+            <div style="margin-bottom: 8px; display: flex; justify-content: center;">
                 <canvas id="map-canvas" width="450" height="450" style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></canvas>
             </div>
 
@@ -698,7 +705,13 @@
             mushroomModeTurns: 0,
             flockMembers: [], // {species, emoji, skill}
             ufoEncounterHappened: false,
-            lastUFOTurn: -999
+            lastUFOTurn: -999,
+
+            // Phase 2.5 Features
+            hasWindChimes: false,
+            windChimesInstalled: false,
+            visitedPondThisTurn: false,
+            frogFriendship: 0 // 0-100
         };
 
         // Territory definitions (3x3 grid, 0-8)
@@ -797,6 +810,7 @@
             document.getElementById('food-count').textContent = gameState.food;
             document.getElementById('twig-count').textContent = gameState.twigs;
             document.getElementById('egg-count').textContent = gameState.eggs;
+            document.getElementById('cached-count').textContent = gameState.cachedFood;
 
             // Skills
             Object.keys(gameState.skills).forEach(skill => {
@@ -854,6 +868,16 @@
             // Mushroom Mode
             if (gameState.mushroomFound && !gameState.mushroomModeActive) {
                 actions.push({ emoji: '🍄', text: 'Eat Mushroom', action: 'eatMushroom', energyCost: 0, class: 'warning' });
+            }
+
+            // Wind Chimes (if at nest and have wind chimes)
+            if (gameState.hasWindChimes && !gameState.windChimesInstalled && (gameState.hasNest || gameState.hasBirdhouse)) {
+                actions.push({ emoji: '🎐', text: 'Install Chimes', action: 'installWindChimes', energyCost: 10 });
+            }
+
+            // Pond interaction (if at Willow Pond - location 5)
+            if (gameState.currentLocation === 5) {
+                actions.push({ emoji: '🐸', text: 'Visit Pond', action: 'visitPond', energyCost: 5 });
             }
 
             // Standard UI actions
@@ -924,6 +948,12 @@
                     break;
                 case 'eatMushroom':
                     eatMushroom();
+                    break;
+                case 'installWindChimes':
+                    installWindChimes();
+                    break;
+                case 'visitPond':
+                    visitPond();
                     break;
                 case 'character':
                     showCharacterSheet();
@@ -1316,6 +1346,74 @@
             // Temporary stat boost
             gameState.skills.perception = Math.min(10, gameState.skills.perception + 3);
 
+            updateUI();
+        }
+
+        function installWindChimes() {
+            const energyCost = 10;
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            gameState.energy -= energyCost;
+            gameState.windChimesInstalled = true;
+            gameState.hasWindChimes = false; // Used up the item
+
+            addMessage('🎐 Wind chimes installed! You\'ll be alerted to approaching predators.', 'success');
+            addDiaryEntry('Hung wind chimes on my home tree. The gentle tinkling soothes me 🎐', 'event');
+            gainXP(30);
+            updateUI();
+        }
+
+        function visitPond() {
+            const energyCost = 5;
+            if (gameState.energy < energyCost) {
+                addMessage('Not enough energy!', 'danger');
+                return;
+            }
+
+            if (gameState.visitedPondThisTurn) {
+                addMessage('You already visited the pond this turn!', 'warning');
+                return;
+            }
+
+            gameState.energy -= energyCost;
+            gameState.visitedPondThisTurn = true;
+
+            // Frog encounter!
+            const roll = Math.random();
+
+            if (roll < 0.3) {
+                // Make friends with frog
+                gameState.frogFriendship = Math.min(100, gameState.frogFriendship + 10);
+                const gift = Math.floor(Math.random() * 2) + 1;
+                gameState.food += gift;
+                addMessage(`🐸 A friendly frog brings you ${gift} insects as a gift!`, 'success');
+
+                if (gameState.frogFriendship >= 50 && gameState.frogFriendship < 60) {
+                    addMessage('🐸 The frog seems to really like you now!', 'success');
+                    gainXP(25);
+                }
+            } else if (roll < 0.6) {
+                // Bathe and restore energy
+                const energyGain = 15;
+                gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + energyGain);
+                addMessage(`💧 You bathe in the cool pond water. Refreshing! +${energyGain} energy`, 'success');
+                gameState.socialStanding = Math.min(100, gameState.socialStanding + 5);
+            } else {
+                // Find something in the water
+                if (Math.random() < 0.7) {
+                    gameState.food += 2;
+                    addMessage('💧 You found 2 fish near the pond!', 'success');
+                } else {
+                    gameState.twigs += 1;
+                    addMessage('💧 You found a nice twig floating in the pond.', 'success');
+                }
+            }
+
+            gameState.hunger += 3;
+            gainXP(10);
             updateUI();
         }
 
@@ -2175,6 +2273,127 @@
             };
         }
 
+        // ===== BIRD DRAWING =====
+        function drawBird(ctx, x, y, size, color, animate = false) {
+            // Simplified bird drawing based on simulation
+            const sizeMultiplier = size / 20; // Base size of 20
+
+            // Wing flap animation for animated bird
+            const wingFlap = animate ? Date.now() / 200 : 0;
+            const yOffset = animate ? Math.sin(Date.now() / 300) * 1.5 : 0;
+            const wingSpread = animate ? Math.abs(Math.sin(wingFlap)) * 0.8 + 0.2 : 0.3;
+
+            // Direction (facing right)
+            const direction = 1;
+
+            ctx.save();
+
+            // Draw tail
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x - 8 * sizeMultiplier, y + yOffset);
+            ctx.lineTo(x - 13 * sizeMultiplier, y - 2 * sizeMultiplier + yOffset);
+            ctx.lineTo(x - 13 * sizeMultiplier, y + 2 * sizeMultiplier + yOffset);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw wings
+            ctx.fillStyle = shadeColor(color, -20); // Darker wings
+
+            // Left wing
+            ctx.beginPath();
+            ctx.moveTo(x - 3 * sizeMultiplier, y + yOffset);
+            ctx.quadraticCurveTo(
+                x - 6 * sizeMultiplier * wingSpread,
+                y + 2 * sizeMultiplier * wingSpread,
+                x - 8 * sizeMultiplier * wingSpread,
+                y + 4 * sizeMultiplier
+            );
+            ctx.lineTo(x - 7 * sizeMultiplier * wingSpread, y + 6 * sizeMultiplier);
+            ctx.quadraticCurveTo(
+                x - 5 * sizeMultiplier * wingSpread,
+                y + 5 * sizeMultiplier,
+                x - 3 * sizeMultiplier,
+                y + 2 * sizeMultiplier + yOffset
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            // Right wing (mirror)
+            ctx.beginPath();
+            ctx.moveTo(x + 3 * sizeMultiplier, y + yOffset);
+            ctx.quadraticCurveTo(
+                x + 6 * sizeMultiplier * wingSpread,
+                y + 2 * sizeMultiplier * wingSpread,
+                x + 8 * sizeMultiplier * wingSpread,
+                y + 4 * sizeMultiplier
+            );
+            ctx.lineTo(x + 7 * sizeMultiplier * wingSpread, y + 6 * sizeMultiplier);
+            ctx.quadraticCurveTo(
+                x + 5 * sizeMultiplier * wingSpread,
+                y + 5 * sizeMultiplier,
+                x + 3 * sizeMultiplier,
+                y + 2 * sizeMultiplier + yOffset
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw body
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.ellipse(
+                x, y + yOffset,
+                8 * sizeMultiplier,
+                6 * sizeMultiplier,
+                0, 0, Math.PI * 2
+            );
+            ctx.fill();
+
+            // Draw belly (lighter)
+            ctx.fillStyle = shadeColor(color, 40);
+            ctx.beginPath();
+            ctx.ellipse(
+                x, y + 2 * sizeMultiplier + yOffset,
+                6 * sizeMultiplier,
+                4 * sizeMultiplier,
+                0, 0, Math.PI
+            );
+            ctx.fill();
+
+            // Draw head
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x + 5 * sizeMultiplier, y - 3 * sizeMultiplier + yOffset, 4 * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw eye
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(x + 7 * sizeMultiplier, y - 3 * sizeMultiplier + yOffset, 1 * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw beak
+            ctx.fillStyle = '#ff9800';
+            ctx.beginPath();
+            ctx.moveTo(x + 9 * sizeMultiplier, y - 3 * sizeMultiplier + yOffset);
+            ctx.lineTo(x + 12 * sizeMultiplier, y - 2.5 * sizeMultiplier + yOffset);
+            ctx.lineTo(x + 9 * sizeMultiplier, y - 2 * sizeMultiplier + yOffset);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Helper function to lighten/darken colors
+        function shadeColor(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+            const G = Math.min(255, Math.max(0, (num >> 8 & 0x00FF) + amt));
+            const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+            return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+        }
+
         // ===== CANVAS MAP SYSTEM =====
         function drawCanvasMap() {
             const canvas = document.getElementById('map-canvas');
@@ -2226,8 +2445,8 @@
 
                 // NPCs and predators
                 if (territory.npcs.length > 0) {
-                    ctx.font = '18px serif';
-                    ctx.fillText(territory.npcs[0].emoji, x + 20, y + 20);
+                    // Draw NPC bird in neutral gray
+                    drawBird(ctx, x + 25, y + 25, 14, '#95a5a6', false);
                 }
                 if (territory.predators.length > 0) {
                     ctx.fillText('⚠️', x + cellSize - 20, y + 20);
@@ -2235,9 +2454,8 @@
 
                 // Player bird indicator (animated)
                 if (isCurrent) {
-                    ctx.font = '36px serif';
-                    const bounce = Math.sin(Date.now() / 300) * 2;
-                    ctx.fillText('🐦', x + cellSize / 2, y + cellSize / 2 + 30 + bounce);
+                    const playerColor = BIRD_SPECIES[gameState.species].color;
+                    drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + 30, 24, playerColor, true);
                 }
             }
 
