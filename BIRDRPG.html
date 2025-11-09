@@ -1026,24 +1026,7 @@
 
         // ===== UI UPDATES =====
         function updateUI() {
-            // Stats (header - keeping these for now, they show progress bars)
-            document.getElementById('health-value').textContent = `${gameState.health}/${gameState.maxHealth}`;
-            document.getElementById('health-bar').style.width = `${(gameState.health / gameState.maxHealth) * 100}%`;
-            document.getElementById('health-bar').textContent = gameState.health;
-
-            document.getElementById('hunger-value').textContent = `${gameState.hunger}/100`;
-            document.getElementById('hunger-bar').style.width = `${gameState.hunger}%`;
-            document.getElementById('hunger-bar').textContent = gameState.hunger;
-
-            document.getElementById('energy-value').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
-            document.getElementById('energy-bar').style.width = `${(gameState.energy / gameState.maxEnergy) * 100}%`;
-            document.getElementById('energy-bar').textContent = gameState.energy;
-
-            document.getElementById('standing-value').textContent = `${gameState.socialStanding}/100`;
-            document.getElementById('standing-bar').style.width = `${gameState.socialStanding}%`;
-            document.getElementById('standing-bar').textContent = gameState.socialStanding;
-
-            // Header Stats - Quick reference
+            // Header Stats - Compact display in header
             document.getElementById('header-health').textContent = `${gameState.health}/${gameState.maxHealth}`;
             document.getElementById('header-hunger').textContent = `${gameState.hunger}/100`;
             document.getElementById('header-energy').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
