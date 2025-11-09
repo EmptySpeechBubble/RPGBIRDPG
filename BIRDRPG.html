@@ -931,7 +931,7 @@
                 0 0 0 2px #333,
                 inset 0 2px 5px rgba(255, 255, 255, 0.1),
                 inset 0 -2px 5px rgba(0, 0, 0, 0.5);
-            width: 300px;
+            width: 360px;
         }
 
         /* Title Bar */
@@ -1009,9 +1009,23 @@
             margin: 0;
             padding: 0;
             min-height: auto;
-            max-height: 500px;
+            max-height: 580px;
             overflow-y: auto;
             background: transparent;
+        }
+
+        /* Adjust elements inside floating window for better fit */
+        .bird-rpg-float #game-header {
+            margin-bottom: 4px;
+        }
+
+        .bird-rpg-float #main-content {
+            margin-bottom: 4px;
+            padding: 8px;
+        }
+
+        .bird-rpg-float #map-canvas {
+            border-radius: 6px;
         }
 
         /* Minimized State */
@@ -1059,7 +1073,7 @@
             }
 
             .bird-rpg-device {
-                width: 280px;
+                width: 320px;
             }
 
             .bird-rpg-float {
@@ -1071,6 +1085,10 @@
             .bird-rpg-float.minimized {
                 right: 10px;
                 bottom: 10px;
+            }
+
+            .bird-rpg-float #game-container {
+                max-height: 520px;
             }
         }
     </style>
