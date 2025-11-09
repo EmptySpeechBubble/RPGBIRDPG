@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🐦 Seasons of the Flock</title>
     <style>
+        /* Squarespace & iframe compatibility - force fullscreen, no borders */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Remove any potential iframe borders/margins */
+        body.sqs-edit-mode-active,
+        .sqs-block-content,
+        .sqs-block-html {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -18,13 +35,16 @@
             min-height: 100vh;
             color: #333;
             overflow-x: hidden;
+            position: relative;
         }
 
+        /* Game container - responsive and fullscreen compatible */
         #game-container {
             max-width: 800px;
             margin: 0 auto;
             padding: 8px;
             min-height: 100vh;
+            width: 100%;
         }
 
         /* Header */
@@ -2608,10 +2628,7 @@
             // Wing flap animation for animated bird
             const wingFlap = animate ? Date.now() / 200 : 0;
             const yOffset = animate ? Math.sin(Date.now() / 300) * 1.5 : 0;
-            const wingSpread = animate ? Math.abs(Math.sin(wingFlap)) * 0.8 + 0.2 : 0.3;
-
-            // Direction (facing right)
-            const direction = 1;
+            const wingAngle = animate ? Math.sin(wingFlap) * 0.6 : 0.2; // Angle for wing rotation
 
             ctx.save();
 
@@ -2624,48 +2641,7 @@
             ctx.closePath();
             ctx.fill();
 
-            // Draw wings
-            ctx.fillStyle = shadeColor(color, -20); // Darker wings
-
-            // Left wing
-            ctx.beginPath();
-            ctx.moveTo(x - 3 * sizeMultiplier, y + yOffset);
-            ctx.quadraticCurveTo(
-                x - 6 * sizeMultiplier * wingSpread,
-                y + 2 * sizeMultiplier * wingSpread,
-                x - 8 * sizeMultiplier * wingSpread,
-                y + 4 * sizeMultiplier
-            );
-            ctx.lineTo(x - 7 * sizeMultiplier * wingSpread, y + 6 * sizeMultiplier);
-            ctx.quadraticCurveTo(
-                x - 5 * sizeMultiplier * wingSpread,
-                y + 5 * sizeMultiplier,
-                x - 3 * sizeMultiplier,
-                y + 2 * sizeMultiplier + yOffset
-            );
-            ctx.closePath();
-            ctx.fill();
-
-            // Right wing (mirror)
-            ctx.beginPath();
-            ctx.moveTo(x + 3 * sizeMultiplier, y + yOffset);
-            ctx.quadraticCurveTo(
-                x + 6 * sizeMultiplier * wingSpread,
-                y + 2 * sizeMultiplier * wingSpread,
-                x + 8 * sizeMultiplier * wingSpread,
-                y + 4 * sizeMultiplier
-            );
-            ctx.lineTo(x + 7 * sizeMultiplier * wingSpread, y + 6 * sizeMultiplier);
-            ctx.quadraticCurveTo(
-                x + 5 * sizeMultiplier * wingSpread,
-                y + 5 * sizeMultiplier,
-                x + 3 * sizeMultiplier,
-                y + 2 * sizeMultiplier + yOffset
-            );
-            ctx.closePath();
-            ctx.fill();
-
-            // Draw body
+            // Draw body first
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.ellipse(
@@ -2684,6 +2660,33 @@
                 6 * sizeMultiplier,
                 4 * sizeMultiplier,
                 0, 0, Math.PI
+            );
+            ctx.fill();
+
+            // Draw wings ON TOP of body for visibility
+            ctx.fillStyle = shadeColor(color, -15); // Slightly darker wings
+
+            // Left wing (visible on left side)
+            ctx.beginPath();
+            ctx.ellipse(
+                x - 4 * sizeMultiplier,
+                y + yOffset,
+                10 * sizeMultiplier,
+                4 * sizeMultiplier,
+                -Math.PI / 4 - wingAngle, // Angled wing
+                0, Math.PI * 2
+            );
+            ctx.fill();
+
+            // Right wing (visible on right side)
+            ctx.beginPath();
+            ctx.ellipse(
+                x + 4 * sizeMultiplier,
+                y + yOffset,
+                10 * sizeMultiplier,
+                4 * sizeMultiplier,
+                Math.PI / 4 + wingAngle, // Angled wing (mirrored)
+                0, Math.PI * 2
             );
             ctx.fill();
 
@@ -2783,6 +2786,25 @@
                 if (isCurrent) {
                     const playerColor = BIRD_SPECIES[gameState.species].color;
                     drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + 30, 24, playerColor, true);
+
+                    // Draw flock members circling around player
+                    if (gameState.flockMembers && gameState.flockMembers.length > 0) {
+                        const time = Date.now() / 1000;
+                        gameState.flockMembers.forEach((member, index) => {
+                            const angle = (time + index * (Math.PI * 2 / gameState.flockMembers.length)) % (Math.PI * 2);
+                            const radius = 35 + Math.sin(time * 2 + index) * 5; // Orbit radius with variation
+                            const flockX = x + cellSize / 2 + Math.cos(angle) * radius;
+                            const flockY = y + cellSize / 2 + 30 + Math.sin(angle) * radius * 0.6; // Elliptical orbit
+
+                            // Determine flock member color
+                            let flockColor = '#95a5a6'; // Default gray
+                            if (member.species && BIRD_SPECIES[member.species]) {
+                                flockColor = BIRD_SPECIES[member.species].color;
+                            }
+
+                            drawBird(ctx, flockX, flockY, 16, flockColor, true);
+                        });
+                    }
                 }
             }
 
@@ -3215,6 +3237,10 @@
             }
         ];
 
+        function skipTutorial() {
+            showSpeciesSelection();
+        }
+
         function showTutorial(step = 0) {
             const modal = document.getElementById('generic-modal');
             const title = document.getElementById('modal-title');
@@ -3228,7 +3254,13 @@
 
             const tutorialData = TUTORIAL_STEPS[step];
             title.textContent = tutorialData.title;
-            body.innerHTML = tutorialData.content;
+            body.innerHTML = tutorialData.content + `
+                <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+                    <button class="modal-btn secondary" onclick="skipTutorial()" style="font-size: 11px; padding: 6px 12px;">
+                        ⏭️ Skip Tutorial (Press ESC)
+                    </button>
+                </div>
+            `;
 
             buttons.innerHTML = `
                 ${step > 0 ? '<button class="modal-btn secondary" onclick="showTutorial(' + (step - 1) + ')">Back</button>' : ''}
@@ -3236,6 +3268,13 @@
             `;
 
             modal.classList.add('active');
+
+            // Add ESC key listener (remove previous listeners first)
+            document.onkeydown = function(e) {
+                if (e.key === 'Escape') {
+                    skipTutorial();
+                }
+            };
         }
 
         function showSpeciesSelection() {
