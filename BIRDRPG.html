@@ -1046,7 +1046,12 @@
         /* Hide title and buttons - titlebar has this */
         .bird-rpg-float #game-title,
         .bird-rpg-float #game-header > div:first-of-type {
-            display: none;
+            display: none !important;
+        }
+
+        /* Show header buttons in floating window */
+        .bird-rpg-float #game-header button {
+            display: inline-block !important;
         }
 
         /* Info line */
@@ -1073,11 +1078,20 @@
             gap: 6px !important;
         }
 
+        .bird-rpg-float #stats-grid {
+            display: flex !important;
+            justify-content: space-around !important;
+        }
+
         .bird-rpg-float .stat-compact {
             font-size: 12px !important;
             padding: 6px 8px !important;
             background: rgba(102, 126, 234, 0.08) !important;
             border-radius: 5px !important;
+        }
+
+        .bird-rpg-float .stat-compact-label {
+            display: inline !important;
         }
 
         .bird-rpg-float .stat-compact-value {
@@ -1090,6 +1104,12 @@
             text-align: center !important;
             font-size: 11px !important;
             margin-top: 8px !important;
+            padding: 0 3px !important;
+            background: transparent !important;
+        }
+
+        .bird-rpg-float .inventory-title {
+            display: inline !important;
         }
 
         .bird-rpg-float .inventory-item {
@@ -1108,6 +1128,17 @@
             padding: 12px !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
             flex: initial !important;
+            display: block !important;
+            min-height: initial !important;
+        }
+
+        .bird-rpg-float #map-actions-container {
+            display: block !important;
+            flex: initial !important;
+            min-height: initial !important;
+            align-items: initial !important;
+            justify-content: initial !important;
+            margin: 0 !important;
         }
 
         /* Weather */
@@ -1160,6 +1191,8 @@
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 8px !important;
             margin-top: 10px !important;
+            width: 100% !important;
+            max-width: none !important;
         }
 
         .bird-rpg-float .action-btn {
@@ -1181,10 +1214,10 @@
 
         /* Family section */
         .bird-rpg-float #family-section {
-            font-size: 11px;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 6px;
+            font-size: 11px !important;
+            padding: 10px !important;
+            margin: 0 0 10px 0 !important;
+            border-radius: 6px !important;
         }
 
         /* === MODALS & MENUS === */
