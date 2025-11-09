@@ -39,13 +39,13 @@
             transition: background 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
         }
 
-        /* Day/Night indicator in corner */
+        /* Day/Night indicator in corner - positioned relative to widget */
         #day-night-indicator {
-            position: fixed;
+            position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 48px;
-            z-index: 10;
+            font-size: 32px;
+            z-index: 100;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
             animation: float 3s ease-in-out infinite;
             pointer-events: none;
@@ -56,9 +56,9 @@
             50% { transform: translateY(-10px); }
         }
 
-        /* Stars for night mode */
+        /* Stars for night mode - positioned relative to widget */
         .stars {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -1058,6 +1058,8 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+            position: relative;
+            transition: background 0.5s ease, box-shadow 0.5s ease;
         }
 
         /* ===== FRESH CLEAN DESIGN FOR FLOATING WINDOW ===== */
@@ -1073,6 +1075,8 @@
             background: linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 100%) !important;
             display: block !important;
             flex-direction: initial !important;
+            position: relative;
+            z-index: 10;
         }
 
         /* Custom scrollbar */
@@ -1587,12 +1591,6 @@
     </style>
 </head>
 <body>
-    <!-- Day/Night Indicator -->
-    <div id="day-night-indicator">☀️</div>
-
-    <!-- Stars for Night Mode -->
-    <div id="stars-container" class="stars"></div>
-
     <!-- Launch Button -->
     <button id="bird-rpg-launcher" class="rpg-launcher-btn">
         🐦 Bird RPG
@@ -1613,6 +1611,12 @@
 
             <!-- Device Screen -->
             <div class="bird-rpg-screen">
+                <!-- Day/Night Indicator (inside widget) -->
+                <div id="day-night-indicator">☀️</div>
+
+                <!-- Stars for Night Mode (inside widget) -->
+                <div id="stars-container" class="stars"></div>
+
                 <div id="game-container">
         <!-- Header -->
         <div id="game-header">
@@ -2058,7 +2062,7 @@
         // ===== UI UPDATES =====
         function updateUI() {
             // Update day/night background colors
-            const body = document.body;
+            const screen = document.querySelector('.bird-rpg-screen');
             const header = document.getElementById('game-header');
             const mainContent = document.getElementById('main-content');
             const messageLog = document.getElementById('message-log');
@@ -2082,25 +2086,24 @@
                 if (starsContainer) {
                     starsContainer.classList.remove('active');
                 }
-                // Day: bright sky blue gradient with warm glow
-                if (isMobile) {
-                    body.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
-                    body.style.boxShadow = 'inset 0 0 100px rgba(255, 230, 100, 0.3)';
-                    header.style.background = 'rgba(250, 250, 250, 0.9)';
-                    header.style.color = '#2d3436';
-                } else {
-                    body.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
-                    body.style.boxShadow = 'inset 0 0 150px rgba(255, 230, 100, 0.2)';
-                    body.style.color = '#2d3436';
-                    header.style.background = 'rgba(250, 250, 250, 0.95)';
-                    header.style.color = '#2d3436';
-                    header.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)';
-                    mainContent.style.background = 'rgba(250, 247, 240, 0.95)';
-                    mainContent.style.color = '#2d3436';
-                    mainContent.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)';
-                    messageLog.style.background = 'rgba(44, 62, 80, 0.9)';
-                    messageLog.style.color = '#ecf0f1';
+                // Day: bright sky blue gradient with warm glow (applied to widget screen)
+                if (screen) {
+                    if (isMobile) {
+                        screen.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        screen.style.boxShadow = 'inset 0 0 100px rgba(255, 230, 100, 0.3)';
+                    } else {
+                        screen.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        screen.style.boxShadow = 'inset 0 0 150px rgba(255, 230, 100, 0.2)';
+                    }
                 }
+                header.style.background = 'rgba(250, 250, 250, 0.95)';
+                header.style.color = '#2d3436';
+                header.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)';
+                mainContent.style.background = 'rgba(250, 247, 240, 0.95)';
+                mainContent.style.color = '#2d3436';
+                mainContent.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)';
+                messageLog.style.background = 'rgba(44, 62, 80, 0.9)';
+                messageLog.style.color = '#ecf0f1';
 
                 // Day mode for season/level info
                 seasonInfo.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
@@ -2131,25 +2134,24 @@
                     starsContainer.classList.add('active');
                 }
 
-                // Night: dark blue/purple gradient with stars and moonlit glow
-                if (isMobile) {
-                    body.style.background = 'linear-gradient(180deg, #05061a 0%, #0c1445 30%, #1a1a2e 70%, #0a0a1a 100%)';
-                    body.style.boxShadow = 'inset 0 0 150px rgba(100, 100, 200, 0.4)';
-                    header.style.background = 'rgba(15, 15, 30, 0.95)';
-                    header.style.color = '#e0e0e0';
-                } else {
-                    body.style.background = 'radial-gradient(ellipse at top, #1a1a3e 0%, #0c1445 30%, #050515 100%)';
-                    body.style.boxShadow = 'inset 0 0 200px rgba(100, 100, 200, 0.3)';
-                    body.style.color = '#e0e0e0';
-                    header.style.background = 'rgba(15, 20, 35, 0.95)';
-                    header.style.color = '#e0e0e0';
-                    header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,100,200,0.3), 0 0 30px rgba(100,100,200,0.1)';
-                    mainContent.style.background = 'rgba(20, 25, 40, 0.95)';
-                    mainContent.style.color = '#e0e0e0';
-                    mainContent.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,100,200,0.3), 0 0 30px rgba(100,100,200,0.1)';
-                    messageLog.style.background = 'rgba(10, 15, 25, 0.9)';
-                    messageLog.style.color = '#d0d0d0';
+                // Night: dark blue/purple gradient with stars and moonlit glow (applied to widget screen)
+                if (screen) {
+                    if (isMobile) {
+                        screen.style.background = 'linear-gradient(180deg, #05061a 0%, #0c1445 30%, #1a1a2e 70%, #0a0a1a 100%)';
+                        screen.style.boxShadow = 'inset 0 0 150px rgba(100, 100, 200, 0.4)';
+                    } else {
+                        screen.style.background = 'radial-gradient(ellipse at top, #1a1a3e 0%, #0c1445 30%, #050515 100%)';
+                        screen.style.boxShadow = 'inset 0 0 200px rgba(100, 100, 200, 0.3)';
+                    }
                 }
+                header.style.background = 'rgba(15, 20, 35, 0.95)';
+                header.style.color = '#e0e0e0';
+                header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,100,200,0.3), 0 0 30px rgba(100,100,200,0.1)';
+                mainContent.style.background = 'rgba(20, 25, 40, 0.95)';
+                mainContent.style.color = '#e0e0e0';
+                mainContent.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,100,200,0.3), 0 0 30px rgba(100,100,200,0.1)';
+                messageLog.style.background = 'rgba(10, 15, 25, 0.9)';
+                messageLog.style.color = '#d0d0d0';
 
                 // Night mode for season/level info - darker with good contrast
                 seasonInfo.style.background = 'linear-gradient(135deg, #6a4c93 0%, #4a3870 100%)';
