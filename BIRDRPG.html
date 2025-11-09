@@ -1178,10 +1178,21 @@
         .bird-rpg-float #weather-display {
             text-align: center !important;
             font-size: 11px !important;
-            padding: 6px !important;
-            background: rgba(102, 126, 234, 0.08) !important;
-            border-radius: 5px !important;
+            padding: 8px 10px !important;
+            background: linear-gradient(135deg, rgba(227, 242, 253, 0.8), rgba(187, 222, 251, 0.8)) !important;
+            border-radius: 6px !important;
             margin-bottom: 8px !important;
+            font-weight: 600 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .bird-rpg-float #weather-icon {
+            font-size: 16px !important;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) !important;
         }
 
         /* Message log */
@@ -1231,30 +1242,63 @@
         /* Quick Stats Reference */
         .bird-rpg-float #quick-stats-ref {
             display: flex !important;
-            justify-content: space-around !important;
-            margin-top: 8px !important;
-            padding: 6px 8px !important;
-            background: rgba(102, 126, 234, 0.08) !important;
-            border-radius: 5px !important;
+            justify-content: space-between !important;
+            margin-top: 10px !important;
+            padding: 8px 10px !important;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12)) !important;
+            border-radius: 8px !important;
             font-size: 10px !important;
-            gap: 4px !important;
+            gap: 6px !important;
+            border: 1px solid rgba(102, 126, 234, 0.2) !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
         }
 
         .bird-rpg-float .quick-stat-item {
             display: flex !important;
+            flex-direction: column !important;
             align-items: center !important;
             gap: 3px !important;
-            white-space: nowrap !important;
+            flex: 1 !important;
+            padding: 4px !important;
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-radius: 6px !important;
+            transition: transform 0.2s ease !important;
+        }
+
+        .bird-rpg-float .quick-stat-item:hover {
+            transform: translateY(-2px) !important;
+            background: rgba(255, 255, 255, 0.7) !important;
         }
 
         .bird-rpg-float .quick-stat-icon {
-            font-size: 12px !important;
+            font-size: 16px !important;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) !important;
         }
 
         .bird-rpg-float .quick-stat-value {
-            font-size: 10px !important;
-            font-weight: 600 !important;
-            color: #667eea !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            color: #2d3436 !important;
+            transition: color 0.3s ease !important;
+        }
+
+        /* Color-coded stat values */
+        .bird-rpg-float .quick-stat-value.stat-critical {
+            color: #e74c3c !important;
+            animation: pulse-critical 1.5s ease-in-out infinite !important;
+        }
+
+        .bird-rpg-float .quick-stat-value.stat-low {
+            color: #f39c12 !important;
+        }
+
+        .bird-rpg-float .quick-stat-value.stat-good {
+            color: #27ae60 !important;
+        }
+
+        @keyframes pulse-critical {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
 
         .bird-rpg-float .action-btn {
@@ -1262,16 +1306,85 @@
             min-height: 60px !important;
             border-radius: 7px !important;
             font-size: 10px !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            position: relative !important;
+            cursor: pointer !important;
+        }
+
+        .bird-rpg-float .action-btn:hover:not(:disabled) {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .bird-rpg-float .action-btn:active:not(:disabled) {
+            transform: translateY(-1px) scale(0.98) !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .bird-rpg-float .action-btn:disabled {
+            opacity: 0.4 !important;
+            cursor: not-allowed !important;
+            filter: grayscale(60%) !important;
+            transform: none !important;
+        }
+
+        .bird-rpg-float .action-btn:disabled::after {
+            content: '🔒' !important;
+            position: absolute !important;
+            top: 4px !important;
+            right: 4px !important;
+            font-size: 10px !important;
+            opacity: 0.6 !important;
         }
 
         .bird-rpg-float .btn-emoji {
             font-size: 22px !important;
             margin-bottom: 3px !important;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)) !important;
+            transition: transform 0.2s ease !important;
+        }
+
+        .bird-rpg-float .action-btn:hover:not(:disabled) .btn-emoji {
+            transform: scale(1.1) !important;
         }
 
         .bird-rpg-float .btn-text {
             font-size: 11px !important;
             line-height: 1.3 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Helpful hint box */
+        .bird-rpg-float #hint-box {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.15)) !important;
+            border: 1px solid rgba(52, 152, 219, 0.3) !important;
+            border-radius: 6px !important;
+            padding: 8px 10px !important;
+            margin: 0 0 10px 0 !important;
+            font-size: 10px !important;
+            line-height: 1.4 !important;
+            color: #2c3e50 !important;
+            position: relative !important;
+        }
+
+        .bird-rpg-float #hint-box::before {
+            content: '💡' !important;
+            margin-right: 4px !important;
+            font-size: 12px !important;
+        }
+
+        .bird-rpg-float .hint-close {
+            position: absolute !important;
+            top: 4px !important;
+            right: 6px !important;
+            cursor: pointer !important;
+            font-size: 12px !important;
+            opacity: 0.6 !important;
+            transition: opacity 0.2s !important;
+        }
+
+        .bird-rpg-float .hint-close:hover {
+            opacity: 1 !important;
         }
 
         /* Family section */
@@ -1491,6 +1604,12 @@
                 <div class="skill-item"><span>⚔️ Combat</span><span class="skill-level" id="skill-combat">1</span></div>
                 <div class="skill-item"><span>👥 Flocking</span><span class="skill-level" id="skill-flocking">1</span></div>
                 <div class="skill-item"><span>👁️ Perception</span><span class="skill-level" id="skill-perception">1</span></div>
+            </div>
+
+            <!-- Helpful Hint -->
+            <div id="hint-box" style="display: none;">
+                <span class="hint-close" onclick="document.getElementById('hint-box').style.display='none'">✕</span>
+                <span id="hint-text">Hover over action buttons to see what they do!</span>
             </div>
 
             <!-- Weather Display -->
@@ -1897,10 +2016,27 @@
             document.getElementById('header-energy').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
             document.getElementById('header-social').textContent = `${gameState.socialStanding}/100`;
 
-            // Update quick stats reference
-            document.getElementById('quick-health').textContent = `${gameState.health}/${gameState.maxHealth}`;
-            document.getElementById('quick-energy').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
-            document.getElementById('quick-hunger').textContent = `${gameState.hunger}/100`;
+            // Update quick stats reference with color coding
+            const quickHealthEl = document.getElementById('quick-health');
+            const quickEnergyEl = document.getElementById('quick-energy');
+            const quickHungerEl = document.getElementById('quick-hunger');
+
+            quickHealthEl.textContent = `${gameState.health}/${gameState.maxHealth}`;
+            quickEnergyEl.textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            quickHungerEl.textContent = `${gameState.hunger}/100`;
+
+            // Color code based on thresholds
+            const healthPercent = (gameState.health / gameState.maxHealth) * 100;
+            quickHealthEl.className = 'quick-stat-value ' +
+                (healthPercent <= 20 ? 'stat-critical' : healthPercent <= 50 ? 'stat-low' : 'stat-good');
+
+            const energyPercent = (gameState.energy / gameState.maxEnergy) * 100;
+            quickEnergyEl.className = 'quick-stat-value ' +
+                (energyPercent <= 20 ? 'stat-critical' : energyPercent <= 50 ? 'stat-low' : 'stat-good');
+
+            const hungerLevel = gameState.hunger;
+            quickHungerEl.className = 'quick-stat-value ' +
+                (hungerLevel >= 80 ? 'stat-critical' : hungerLevel >= 50 ? 'stat-low' : 'stat-good');
 
             // Season & Level
             const seasonName = SEASONS[gameState.season];
@@ -1933,8 +2069,51 @@
             updateQuests();
             updateFamilyDisplay();
 
+            // Show helpful hints for new players
+            updateHints();
+
             // Auto-save
             saveGame();
+        }
+
+        function updateHints() {
+            const hintBox = document.getElementById('hint-box');
+            const hintText = document.getElementById('hint-text');
+
+            // Only show hints to newer players (first 20 turns)
+            if (gameState.turn > 20) {
+                hintBox.style.display = 'none';
+                return;
+            }
+
+            let hint = '';
+
+            // Contextual hints based on game state
+            if (gameState.turn <= 3) {
+                hint = 'Hover over action buttons to see what they do! Use Forage and Gather to collect resources.';
+            } else if (gameState.turn <= 6 && !gameState.hasNest && gameState.twigs >= 1) {
+                hint = 'You have twigs! Build a nest to unlock more features like resting and finding a mate.';
+            } else if (gameState.energy < 30) {
+                hint = 'Your energy is low! Rest to recover energy, or rest at your nest for faster recovery.';
+            } else if (gameState.hunger > 70) {
+                hint = 'You\'re very hungry! Eat food to reduce hunger and restore health.';
+            } else if (gameState.health < 50) {
+                hint = 'Your health is low! Eat food to recover health, and avoid risky actions.';
+            } else if (gameState.turn > 8 && gameState.food > 5 && !gameState.hasNest) {
+                hint = 'You have lots of food! Consider building a nest to progress in the game.';
+            } else if (gameState.hasNest && gameState.socialStanding < 30) {
+                hint = 'Try Socializing to increase your standing with other birds!';
+            } else {
+                // Default hint
+                hint = 'Check the quick stats below actions to make informed decisions!';
+            }
+
+            if (hint) {
+                hintText.textContent = hint;
+                hintBox.style.display = 'block';
+            } else {
+                hintBox.style.display = 'none';
+            }
         }
 
         function updateFamilyDisplay() {
@@ -1981,88 +2160,123 @@
             actionPanel.innerHTML = '';
 
             const actions = [
-                { emoji: '🔍', text: 'Forage', action: 'forage', energyCost: 10 },
-                { emoji: '🌿', text: 'Gather', action: 'gather', energyCost: 10 },
-                { emoji: '😴', text: 'Rest', action: 'rest', energyCost: 0 },
-                { emoji: '🍖', text: 'Eat', action: 'eat', disabled: gameState.food < 1 },
-                { emoji: '👥', text: 'Socialize', action: 'socialize', energyCost: 5 }
+                { emoji: '🔍', text: 'Forage', action: 'forage', energyCost: 10,
+                  tooltip: 'Search for food and resources in your current location' },
+                { emoji: '🌿', text: 'Gather', action: 'gather', energyCost: 10,
+                  tooltip: 'Collect twigs and materials for building' },
+                { emoji: '😴', text: 'Rest', action: 'rest', energyCost: 0,
+                  tooltip: 'Recover energy and hunger slowly increases' },
+                { emoji: '🍖', text: 'Eat', action: 'eat', disabled: gameState.food < 1,
+                  tooltip: 'Consume food to reduce hunger and restore health' },
+                { emoji: '👥', text: 'Socialize', action: 'socialize', energyCost: 5,
+                  tooltip: 'Interact with other birds to increase social standing' }
             ];
 
             // Conditional actions
             if (!gameState.hasNest && !gameState.hasBirdhouse) {
-                actions.push({ emoji: '🏗️', text: 'Build Nest', action: 'buildNest', energyCost: 15, disabled: gameState.twigs < 1 });
+                actions.push({ emoji: '🏗️', text: 'Build Nest', action: 'buildNest', energyCost: 15, disabled: gameState.twigs < 1,
+                  tooltip: 'Construct a basic nest using twigs (requires 1+ twigs)' });
                 if (gameState.twigs >= 15) {
-                    actions.push({ emoji: '🏠', text: 'Build Birdhouse', action: 'buildBirdhouse', energyCost: 20, class: 'success' });
+                    actions.push({ emoji: '🏠', text: 'Build Birdhouse', action: 'buildBirdhouse', energyCost: 20, class: 'success',
+                      tooltip: 'Build a superior birdhouse for better rest and protection (requires 15 twigs)' });
                 }
             }
 
             // Rest at nest (recover energy when you have a home)
             if ((gameState.hasNest || gameState.hasBirdhouse) && gameState.energy < gameState.maxEnergy * 0.6) {
-                actions.push({ emoji: '😴', text: 'Rest at Nest', action: 'restAtNest', energyCost: 0, class: 'success' });
+                actions.push({ emoji: '😴', text: 'Rest at Nest', action: 'restAtNest', energyCost: 0, class: 'success',
+                  tooltip: 'Rest in your nest for faster energy recovery' });
             }
 
             // Food caching (unlock after level 3 or in Fall)
             if (gameState.level >= 3 || gameState.season === 2) {
-                actions.push({ emoji: '🌰', text: 'Cache Food', action: 'cacheFood', energyCost: 5, disabled: gameState.food < 1 });
+                actions.push({ emoji: '🌰', text: 'Cache Food', action: 'cacheFood', energyCost: 5, disabled: gameState.food < 1,
+                  tooltip: 'Hide food in this location to retrieve later' });
                 const localCache = gameState.foodCaches.find(c => c.location === gameState.currentLocation);
                 if (localCache && localCache.amount > 0) {
-                    actions.push({ emoji: '🔓', text: 'Retrieve Cache', action: 'retrieveCache', energyCost: 5 });
+                    actions.push({ emoji: '🔓', text: 'Retrieve Cache', action: 'retrieveCache', energyCost: 5,
+                      tooltip: `Recover cached food from this location (${localCache.amount} food)` });
                 }
             }
 
             // Flock leadership (unlock after level 5 and social standing 70+)
             if (gameState.level >= 5 && gameState.socialStanding >= 70) {
-                actions.push({ emoji: '🦅', text: 'Recruit Bird', action: 'recruitBird', energyCost: 10 });
+                actions.push({ emoji: '🦅', text: 'Recruit Bird', action: 'recruitBird', energyCost: 10,
+                  tooltip: 'Recruit a bird to join your flock (requires high social standing)' });
             }
 
             // Mushroom Mode
             if (gameState.mushroomFound && !gameState.mushroomModeActive) {
-                actions.push({ emoji: '🍄', text: 'Eat Mushroom', action: 'eatMushroom', energyCost: 0, class: 'warning' });
+                actions.push({ emoji: '🍄', text: 'Eat Mushroom', action: 'eatMushroom', energyCost: 0, class: 'warning',
+                  tooltip: 'Consume the strange mushroom... who knows what will happen?' });
             }
 
             // Wind Chimes (if at nest and have wind chimes)
             if (gameState.hasWindChimes && !gameState.windChimesInstalled && (gameState.hasNest || gameState.hasBirdhouse)) {
-                actions.push({ emoji: '🎐', text: 'Install Chimes', action: 'installWindChimes', energyCost: 10 });
+                actions.push({ emoji: '🎐', text: 'Install Chimes', action: 'installWindChimes', energyCost: 10,
+                  tooltip: 'Install wind chimes at your nest for ambient music and bonuses' });
             }
 
             // Pond interaction (if at Willow Pond - location 5)
             if (gameState.currentLocation === 5) {
-                actions.push({ emoji: '🐸', text: 'Visit Pond', action: 'visitPond', energyCost: 5 });
+                actions.push({ emoji: '🐸', text: 'Visit Pond', action: 'visitPond', energyCost: 5,
+                  tooltip: 'Interact with the peaceful pond and its inhabitants' });
             }
 
             // Courtship & Family Actions
             // Court a mate (Spring/Summer, have nest, no mate yet, decent social standing)
             if (!gameState.hasMate && (gameState.season === 0 || gameState.season === 1) &&
                 (gameState.hasNest || gameState.hasBirdhouse) && gameState.socialStanding >= 50) {
-                actions.push({ emoji: '💕', text: 'Find Mate', action: 'courtMate', energyCost: 15, class: 'primary' });
+                actions.push({ emoji: '💕', text: 'Find Mate', action: 'courtMate', energyCost: 15, class: 'primary',
+                  tooltip: 'Court a potential mate during breeding season' });
             }
 
             // Lay eggs (have mate, nest, Spring, no eggs currently)
             if (gameState.hasMate && (gameState.hasNest || gameState.hasBirdhouse) &&
                 gameState.season === 0 && gameState.eggs === 0 && gameState.eggsLaid === 0) {
-                actions.push({ emoji: '🥚', text: 'Lay Eggs', action: 'layEggs', energyCost: 20, class: 'primary' });
+                actions.push({ emoji: '🥚', text: 'Lay Eggs', action: 'layEggs', energyCost: 20, class: 'primary',
+                  tooltip: 'Lay eggs with your mate (Spring only)' });
             }
 
             // Incubate eggs (have eggs, need to keep them warm)
             if (gameState.eggs > 0) {
-                actions.push({ emoji: '🪺', text: 'Incubate Eggs', action: 'incubateEggs', energyCost: 5 });
+                actions.push({ emoji: '🪺', text: 'Incubate Eggs', action: 'incubateEggs', energyCost: 5,
+                  tooltip: `Keep your eggs warm (${gameState.incubationTurns}/5 turns to hatch)` });
             }
 
             // Feed babies (have babies that need food)
             const hungryBabies = gameState.babies.filter(b => b.hunger > 50);
             if (hungryBabies.length > 0) {
                 actions.push({ emoji: '🍼', text: `Feed Babies (${hungryBabies.length})`, action: 'feedBabies',
-                    energyCost: 10, disabled: gameState.food < hungryBabies.length, class: 'danger' });
+                    energyCost: 10, disabled: gameState.food < hungryBabies.length, class: 'danger',
+                    tooltip: `Feed your hungry babies (needs ${hungryBabies.length} food)` });
             }
 
             // Standard UI actions
-            actions.push({ emoji: '📊', text: 'Character', action: 'character', energyCost: 0 });
-            actions.push({ emoji: '📖', text: 'Diary', action: 'diary', energyCost: 0 });
+            actions.push({ emoji: '📊', text: 'Character', action: 'character', energyCost: 0,
+              tooltip: 'View your character stats, skills, and achievements' });
+            actions.push({ emoji: '📖', text: 'Diary', action: 'diary', energyCost: 0,
+              tooltip: 'Read your adventure diary and past events' });
 
             actions.forEach(a => {
                 const btn = document.createElement('button');
                 btn.className = `action-btn ${a.class || ''}`;
                 btn.disabled = a.disabled || (a.energyCost && gameState.energy < a.energyCost);
+
+                // Add tooltip if available
+                if (a.tooltip) {
+                    btn.title = a.tooltip;
+                }
+
+                // Add disabled reason
+                if (btn.disabled) {
+                    if (a.disabled) {
+                        btn.title = (a.tooltip ? a.tooltip + ' - ' : '') + 'Requirements not met';
+                    } else if (a.energyCost && gameState.energy < a.energyCost) {
+                        btn.title = (a.tooltip ? a.tooltip + ' - ' : '') + `Not enough energy (need ${a.energyCost})`;
+                    }
+                }
+
                 btn.innerHTML = `
                     <div class="btn-emoji">${a.emoji}</div>
                     <div class="btn-text">${a.text}</div>
