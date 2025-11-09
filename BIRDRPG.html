@@ -54,80 +54,158 @@
             overflow: visible;
         }
 
-        /* Mobile: fit everything on screen */
+        /* Mobile: Tamagotchi/Handheld Gaming Device Style - Ultra Compact */
         @media (max-width: 599px) {
+            body {
+                background: #1a1a1a;
+            }
+
             #game-container {
-                padding: 2px;
+                padding: 0;
                 max-height: 100vh;
                 display: flex;
                 flex-direction: column;
+                overflow: hidden;
             }
 
+            /* ULTRA COMPACT HEADER - Single line with just icons and numbers */
             #game-header {
-                padding: 6px;
-                margin-bottom: 4px;
+                padding: 1px;
+                margin: 0;
                 flex-shrink: 0;
+                border-radius: 0;
+                background: #2a2a2a;
+                box-shadow: none;
             }
 
             #game-title {
-                font-size: 16px;
-                margin-bottom: 4px;
+                font-size: 8px;
+                margin: 0;
+                padding: 1px;
+                text-align: center;
+            }
+
+            /* Hide New Game / Help buttons on mobile */
+            #game-header > div:first-of-type {
+                display: none;
+            }
+
+            /* Single line info - ultra minimal */
+            #season-info, #level-info {
+                display: inline-block;
+                font-size: 5px;
+                margin: 0;
+                padding: 0 2px;
+                background: transparent;
+                border-radius: 0;
+            }
+
+            #action-info {
+                display: inline-block;
+                font-size: 5px;
+                margin: 0;
+                padding: 0 2px;
+            }
+
+            /* Just numbers, no labels */
+            .stat-compact-label {
+                display: none;
             }
 
             #stats-grid {
-                gap: 3px;
-                margin: 4px 0;
+                display: none;
+            }
+
+            /* Single line stats - just emoji + number */
+            #game-header > div:nth-child(3) {
+                font-size: 6px;
+                line-height: 1;
+                margin: 0;
+                padding: 1px;
             }
 
             .stat-compact {
-                padding: 3px 5px;
-                font-size: 10px;
+                padding: 0 2px;
+                font-size: 6px;
+                background: transparent;
+                border-radius: 0;
             }
 
-            #season-info, #level-info, #action-info {
-                font-size: 10px;
-                margin: 2px 0;
-            }
-
+            /* Inventory - minimal inline */
             #inventory {
-                padding: 4px;
-                margin-bottom: 4px;
-                font-size: 10px;
+                padding: 0 2px;
+                margin: 0;
+                font-size: 6px;
+                background: transparent;
+                border-radius: 0;
+                text-align: center;
             }
 
+            .inventory-title {
+                display: none;
+            }
+
+            .inventory-item {
+                font-size: 5px;
+                margin: 0;
+                padding: 0 1px;
+                background: transparent;
+            }
+
+            /* Weather - inline, minimal */
             #weather-display {
-                padding: 4px;
-                margin-bottom: 4px;
-                font-size: 11px;
+                padding: 0 2px;
+                margin: 0;
+                font-size: 5px;
+                background: transparent;
+                border-radius: 0;
             }
 
+            /* Message log - super minimal */
             #message-log {
-                max-height: 40px;
-                margin-bottom: 4px;
-                padding: 4px;
-                font-size: 10px;
+                max-height: 12px;
+                margin: 0;
+                padding: 1px;
+                font-size: 5px;
+                line-height: 1;
+                background: #1a1a1a;
+                border-radius: 0;
             }
 
+            .message {
+                margin: 0;
+                padding: 0;
+                font-size: 5px;
+                border-left-width: 1px;
+            }
+
+            /* BIGGER MAP - the star of the show */
             #map-canvas {
-                width: 280px;
-                height: 280px;
+                width: 240px;
+                height: 240px;
+                border-radius: 4px;
             }
 
             #map-wrapper {
-                width: 280px;
+                width: 240px;
+                margin: 0 auto;
             }
 
+            /* TINY action buttons - just icons */
             .action-btn {
-                padding: 4px 3px;
-                font-size: 9px;
+                padding: 2px 1px;
+                font-size: 5px;
+                border-radius: 2px;
+                gap: 0;
             }
 
             .btn-emoji {
-                font-size: 14px;
+                font-size: 10px;
             }
 
             .btn-text {
-                font-size: 8px;
+                font-size: 5px;
+                display: none; /* Hide text, just show emoji */
             }
 
             #main-content {
@@ -135,25 +213,64 @@
                 min-height: 0;
                 display: flex;
                 flex-direction: column;
+                padding: 1px;
+                margin: 0;
+                background: transparent;
+                border-radius: 0;
+                box-shadow: none;
             }
 
             #map-actions-container {
                 flex: 1;
                 min-height: 0;
-                margin-bottom: 2px;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
             }
 
+            #action-panel {
+                margin-top: 1px;
+                gap: 1px;
+                width: 240px;
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            /* Quest - hidden on main page, only in menu */
             #quest-panel {
-                font-size: 10px;
-                padding: 4px;
-                margin-bottom: 4px;
+                display: none !important;
+            }
+
+            .quest-title {
+                display: none;
             }
 
             #family-section {
-                padding: 4px;
-                margin-bottom: 4px;
-                font-size: 10px;
+                padding: 1px;
+                margin: 0;
+                font-size: 5px;
             }
+
+            /* Hide button text on mobile */
+            #game-header button {
+                display: none;
+            }
+        }
+
+        /* Default weather display */
+        #weather-display {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         /* Header */
@@ -479,28 +596,30 @@
 
         /* Quest Panel */
         #quest-panel {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
+            background: rgba(255, 243, 205, 0.5);
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 3px 5px;
+            margin-bottom: 2px;
+            font-size: 8px;
         }
 
         .quest-title {
             font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 9px;
+            margin-bottom: 2px;
             color: #856404;
         }
 
         .quest-item {
-            font-size: 13px;
-            padding: 5px;
-            margin: 5px 0;
-            background: white;
-            border-radius: 5px;
-            border-left: 3px solid #ffc107;
-            padding-left: 10px;
+            font-size: 8px;
+            padding: 2px;
+            margin: 2px 0;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 3px;
+            border-left: 2px solid #ffc107;
+            padding-left: 4px;
+            line-height: 1.2;
         }
 
         /* Modal/Dialog */
@@ -626,31 +745,32 @@
 
         /* Inventory */
         #inventory {
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 13px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 4px;
+            padding: 3px 6px;
+            margin-bottom: 3px;
+            font-size: 9px;
         }
 
         .inventory-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
             color: #2e7d32;
+            font-size: 9px;
         }
 
         .inventory-items {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 4px;
         }
 
         .inventory-item {
-            background: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 18px;
+            display: inline-block;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-size: 9px;
+            background: rgba(255, 255, 255, 0.5);
         }
 
         /* Skills Display */
@@ -684,20 +804,20 @@
         }
 
         .stat-compact {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            background: linear-gradient(135deg, #f5f3ed, #ebe8df);
-            border-radius: 6px;
-            padding: 6px 8px;
-            font-size: 11px;
+            gap: 2px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: 9px;
         }
 
         .stat-compact-label {
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .stat-compact-value {
@@ -713,45 +833,34 @@
             <div id="game-title">🐦 BIRD WINDOW RPG</div>
 
             <!-- Quick Actions Bar -->
-            <div style="display: flex; gap: 8px; margin: 8px 0;">
-                <button onclick="newGame()" style="flex: 1; padding: 6px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">🔄 New Game</button>
-                <button onclick="showTutorial(0)" style="flex: 1; padding: 6px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px;">❓ Help</button>
+            <div style="display: flex; gap: 4px; margin: 3px 0;">
+                <button onclick="newGame()" style="flex: 1; padding: 4px; background: #e74c3c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 9px;">🔄 New</button>
+                <button onclick="showTutorial(0)" style="flex: 1; padding: 4px; background: #3498db; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 9px;">❓ Help</button>
             </div>
 
-            <!-- Season & Turn Info -->
-            <div id="season-info">🌸 Spring - Turn 1/10</div>
-            <div id="level-info">Level 1 Bluebird | XP: 0/100</div>
-            <div id="action-info" style="text-align: center; font-size: 11px; font-weight: bold; color: #2980b9; margin: 4px 0;">⚡ Actions: 0/5</div>
-
-            <!-- Compact Stats -->
-            <div id="stats-grid">
-                <div class="stat-compact">
-                    <span class="stat-compact-label">❤️ Health</span>
-                    <span class="stat-compact-value" id="header-health">100/100</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-compact-label">⚡ Energy</span>
-                    <span class="stat-compact-value" id="header-energy">100/100</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-compact-label">🍖 Hunger</span>
-                    <span class="stat-compact-value" id="header-hunger">0/100</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-compact-label">⭐ Social</span>
-                    <span class="stat-compact-value" id="header-social">50/100</span>
-                </div>
+            <!-- Season, Level & Action Info (Combined) -->
+            <div style="text-align: center; margin: 2px 0;">
+                <span id="season-info" style="display: inline-block;">🌸 Spring - Turn 1/10</span>
+                <span id="level-info" style="display: inline-block;">Level 1 Bluebird | XP: 0/100</span>
+                <span id="action-info" style="display: inline-block; font-weight: bold; color: #2980b9;">⚡ Actions: 0/5</span>
             </div>
 
-            <!-- Inventory -->
-            <div id="inventory">
-                <div class="inventory-title">📦 Inventory</div>
-                <div class="inventory-items" id="inventory-items">
-                    <span class="inventory-item">🌰 Food: <span id="food-count">0</span></span>
-                    <span class="inventory-item">🌿 Twigs: <span id="twig-count">0</span></span>
-                    <span class="inventory-item">🥚 Eggs: <span id="egg-count">0</span></span>
-                    <span class="inventory-item">🌰📦 Cached: <span id="cached-count">0</span></span>
-                </div>
+            <!-- Compact Stats & Inventory Combined -->
+            <div style="display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin: 2px 0; font-size: 9px;">
+                <span class="stat-compact">❤️<span class="stat-compact-value" id="header-health">100/100</span></span>
+                <span class="stat-compact">⚡<span class="stat-compact-value" id="header-energy">100/100</span></span>
+                <span class="stat-compact">🍖<span class="stat-compact-value" id="header-hunger">0/100</span></span>
+                <span class="stat-compact">⭐<span class="stat-compact-value" id="header-social">50/100</span></span>
+            </div>
+
+            <div id="stats-grid" style="display: none;"></div>
+
+            <!-- Inventory (Inline) -->
+            <div id="inventory" style="text-align: center;">
+                <span class="inventory-item">🌰<span id="food-count">0</span></span>
+                <span class="inventory-item">🌿<span id="twig-count">0</span></span>
+                <span class="inventory-item">🥚<span id="egg-count">0</span></span>
+                <span class="inventory-item">📦<span id="cached-count">0</span></span>
             </div>
 
             <!-- Family Section -->
@@ -780,7 +889,7 @@
             </div>
 
             <!-- Weather Display -->
-            <div id="weather-display" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <div id="weather-display">
                 <span id="weather-icon">☀️</span>
                 <span id="weather-text">Clear skies</span>
             </div>
@@ -1202,7 +1311,7 @@
                 btn.innerHTML = `
                     <div class="btn-emoji">${a.emoji}</div>
                     <div class="btn-text">${a.text}</div>
-                    ${a.energyCost ? `<div class="btn-text" style="font-size: 10px;">-${a.energyCost} ⚡</div>` : ''}
+                    ${a.energyCost ? `<div class="btn-text" style="font-size: 6px;">-${a.energyCost} ⚡</div>` : ''}
                 `;
                 btn.onclick = () => performAction(a.action);
                 actionPanel.appendChild(btn);
@@ -1219,16 +1328,12 @@
                     const progressPercent = Math.min(100, (q.progress / q.goal) * 100);
                     const progressColor = progressPercent >= 100 ? '#27ae60' : progressPercent >= 50 ? '#f39c12' : '#3498db';
                     return `
-                        <div class="quest-item" style="margin-bottom: 10px; padding: 10px; background: linear-gradient(135deg, #f0f9ff, #e3f2fd); border-radius: 8px;">
-                            <div style="font-weight: bold; margin-bottom: 5px;">${q.emoji} ${q.name}</div>
-                            <div style="font-size: 11px; color: #666; margin-bottom: 5px;">${q.desc}</div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="flex: 1; background: #ddd; border-radius: 10px; height: 12px; overflow: hidden;">
-                                    <div style="width: ${progressPercent}%; background: ${progressColor}; height: 100%; transition: width 0.3s;"></div>
-                                </div>
-                                <div style="font-size: 11px; font-weight: bold;">${q.progress}/${q.goal}</div>
+                        <div class="quest-item" style="margin: 0; padding: 1px; display: flex; align-items: center; gap: 2px; font-size: 5px;">
+                            <span>${q.emoji}</span>
+                            <div style="flex: 1; background: #555; border-radius: 1px; height: 3px; overflow: hidden;">
+                                <div style="width: ${progressPercent}%; background: ${progressColor}; height: 100%;"></div>
                             </div>
-                            <div style="font-size: 10px; color: #27ae60; margin-top: 3px;">Reward: ${q.reward} XP</div>
+                            <span style="font-size: 5px;">${q.progress}/${q.goal}</span>
                         </div>
                     `;
                 }).join('');
@@ -2871,6 +2976,29 @@
                     <div><strong>Mate:</strong> ${gameState.hasMate ? '💕 Yes' : '❌ No'}</div>
                     <div><strong>Completed Quests:</strong> ${gameState.completedQuests.length}</div>
                 </div>
+
+                ${gameState.activeQuests.length > 0 ? `
+                    <div style="margin: 15px 0; padding: 10px; background: #fff3cd; border-radius: 8px;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">📜 Active Quests</div>
+                        ${gameState.activeQuests.map(q => {
+                            const progressPercent = Math.min(100, (q.progress / q.goal) * 100);
+                            const progressColor = progressPercent >= 100 ? '#27ae60' : progressPercent >= 50 ? '#f39c12' : '#3498db';
+                            return `
+                                <div style="margin: 10px 0; padding: 8px; background: white; border-radius: 5px;">
+                                    <div style="font-weight: bold; margin-bottom: 5px;">${q.emoji} ${q.name}</div>
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">${q.desc}</div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="flex: 1; background: #ddd; border-radius: 10px; height: 12px; overflow: hidden;">
+                                            <div style="width: ${progressPercent}%; background: ${progressColor}; height: 100%;"></div>
+                                        </div>
+                                        <div style="font-size: 12px; font-weight: bold;">${q.progress}/${q.goal}</div>
+                                    </div>
+                                    <div style="font-size: 11px; color: #27ae60; margin-top: 3px;">Reward: ${q.reward} XP</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : ''}
             `;
 
             buttons.innerHTML = '<button class="modal-btn primary" onclick="closeModal()">Close</button>';
