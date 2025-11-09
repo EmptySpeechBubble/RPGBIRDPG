@@ -31,11 +31,12 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #7B9E89 0%, #5A7D6E 100%);
+            background: linear-gradient(135deg, #87CEEB 0%, #B0D8F0 100%);
             min-height: 100vh;
             color: #2d3436;
             overflow-x: hidden;
             position: relative;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         /* Game container - responsive and fullscreen compatible */
@@ -290,6 +291,7 @@
             padding: 12px;
             margin-bottom: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         #game-title {
@@ -375,6 +377,7 @@
             padding: 12px;
             margin-bottom: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         /* Canvas Map */
@@ -418,6 +421,7 @@
             margin-bottom: 8px;
             font-size: 11px;
             line-height: 1.3;
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         .message {
@@ -1154,20 +1158,41 @@
             // Update day/night background colors
             const body = document.body;
             const header = document.getElementById('game-header');
+            const mainContent = document.getElementById('main-content');
+            const messageLog = document.getElementById('message-log');
+            const isMobile = window.innerWidth <= 599;
 
             if (gameState.timeOfDay === 'day') {
                 // Day: bright sky blue gradient
-                body.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #D4E8F5 100%)';
-                if (window.innerWidth <= 599) {
+                if (isMobile) {
+                    body.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #D4E8F5 100%)';
                     header.style.background = 'rgba(250, 250, 250, 0.9)';
                     header.style.color = '#2d3436';
+                } else {
+                    body.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 100%)';
+                    body.style.color = '#2d3436';
+                    header.style.background = 'rgba(250, 250, 250, 0.95)';
+                    header.style.color = '#2d3436';
+                    mainContent.style.background = 'rgba(250, 247, 240, 0.95)';
+                    mainContent.style.color = '#2d3436';
+                    messageLog.style.background = 'rgba(44, 62, 80, 0.9)';
+                    messageLog.style.color = '#ecf0f1';
                 }
             } else {
                 // Night: dark blue/purple gradient
-                body.style.background = 'linear-gradient(180deg, #0c1445 0%, #1a1a2e 50%, #16213e 100%)';
-                if (window.innerWidth <= 599) {
+                if (isMobile) {
+                    body.style.background = 'linear-gradient(180deg, #0c1445 0%, #1a1a2e 50%, #16213e 100%)';
                     header.style.background = 'rgba(20, 20, 40, 0.95)';
                     header.style.color = '#e0e0e0';
+                } else {
+                    body.style.background = 'linear-gradient(135deg, #0c1445 0%, #1a1a2e 100%)';
+                    body.style.color = '#e0e0e0';
+                    header.style.background = 'rgba(20, 25, 45, 0.95)';
+                    header.style.color = '#e0e0e0';
+                    mainContent.style.background = 'rgba(25, 30, 50, 0.95)';
+                    mainContent.style.color = '#e0e0e0';
+                    messageLog.style.background = 'rgba(10, 15, 30, 0.9)';
+                    messageLog.style.color = '#d0d0d0';
                 }
             }
 
