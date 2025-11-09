@@ -1464,8 +1464,8 @@
 
         /* Minimized State */
         .bird-rpg-float.minimized .bird-rpg-device {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             padding: 4px;
         }
 
@@ -1479,13 +1479,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 32px;
             cursor: pointer;
+            overflow: visible;
         }
 
         .bird-rpg-float.minimized .bird-rpg-screen::before {
             content: '🐦';
             animation: birdBob 2s ease-in-out infinite;
+            line-height: 1;
         }
 
         @keyframes birdBob {
