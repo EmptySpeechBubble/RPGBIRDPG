@@ -599,8 +599,19 @@
                 <div class="skill-item"><span>👁️ Perception</span><span class="skill-level" id="skill-perception">1</span></div>
             </div>
 
-            <!-- Map -->
-            <div id="map-container"></div>
+            <!-- Weather Display -->
+            <div id="weather-display" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span id="weather-icon">☀️</span>
+                <span id="weather-text">Clear skies</span>
+            </div>
+
+            <!-- Canvas Map (Visual) -->
+            <div style="margin-bottom: 10px;">
+                <canvas id="map-canvas" width="600" height="600" style="max-width: 100%; height: auto; border-radius: 12px;"></canvas>
+            </div>
+
+            <!-- Interactive Map -->
+            <div id="map-container" style="position: relative;"></div>
 
             <!-- Message Log -->
             <div id="message-log"></div>
@@ -671,8 +682,13 @@
             turn: 1,
             year: 1,
             currentLocation: 4, // Center of 3x3 grid (0-8)
-            weather: 'clear',
+            weather: 'clear', // clear, rain, storm, snow, wind
+            weatherIntensity: 0, // 0-1
             timeOfDay: 'day', // day/night
+
+            // Life Story Diary
+            diary: [],
+            totalDistance: 0,
 
             // Progress
             hasNest: false,
@@ -868,6 +884,7 @@
                 { emoji: '🍖', text: 'Eat', action: 'eat', disabled: gameState.food < 1 },
                 { emoji: '👥', text: 'Socialize', action: 'socialize', energyCost: 5 },
                 { emoji: '📊', text: 'Character', action: 'character', energyCost: 0 },
+                { emoji: '📖', text: 'Diary', action: 'diary', energyCost: 0 },
                 { emoji: '⏭️', text: 'End Turn', action: 'endTurn', energyCost: 0, class: 'warning' }
             ];
 
@@ -923,6 +940,9 @@
                 case 'character':
                     showCharacterSheet();
                     break;
+                case 'diary':
+                    showDiary();
+                    break;
                 case 'endTurn':
                     endTurn();
                     break;
@@ -955,14 +975,16 @@
         }
 
         function forage() {
-            const energyCost = 10;
+            const weatherMods = getWeatherModifiers();
+            const energyCost = 10 + Math.abs(weatherMods.energyCost);
             if (gameState.energy < energyCost) {
                 addMessage('Not enough energy!', 'danger');
                 return;
             }
 
             const territory = gameState.territories[gameState.currentLocation];
-            const dc = gameState.season === 3 ? 20 : 10; // Winter is harder
+            const baseDC = gameState.season === 3 ? 20 : 10; // Winter is harder
+            const dc = baseDC + Math.abs(weatherMods.forageDC);
 
             rollSkillCheck('Foraging', dc, (success, roll) => {
                 gameState.energy -= energyCost;
@@ -1048,6 +1070,7 @@
                     if (gameState.nestProgress >= 10 && !gameState.hasNest) {
                         gameState.hasNest = true;
                         addMessage('🎉 Nest completed! You now have a home!', 'success');
+                        addDiaryEntry('Built my first nest! I finally have a home 🏠', 'milestone');
                         gainXP(100);
                         completeQuest('firstHome');
                     } else {
@@ -1121,6 +1144,7 @@
                     if (gameState.season === 0 && !gameState.hasMate && Math.random() < 0.3) {
                         gameState.hasMate = true;
                         addMessage('💕 You found a mate!', 'success');
+                        addDiaryEntry('Found a mate! Love is in the air 💕', 'social');
                         gainXP(50);
                         completeQuest('findMate');
                     }
@@ -1512,6 +1536,7 @@
         function winCombat() {
             const enemy = gameState.combatEnemy;
             addMessage(`🎉 Defeated the ${enemy.name}!`, 'success');
+            addDiaryEntry(`Defeated a ${enemy.name}! Proved my courage in battle`, 'combat');
             gainXP(enemy.xp);
 
             gameState.isInCombat = false;
@@ -1535,6 +1560,11 @@
             // Advance time
             gameState.turn++;
             gameState.timeOfDay = gameState.timeOfDay === 'day' ? 'night' : 'day';
+
+            // Update weather periodically (every 3 turns)
+            if (gameState.turn % 3 === 0) {
+                updateWeather();
+            }
 
             // Random events
             if (Math.random() < 0.1) {
@@ -1563,17 +1593,20 @@
                 gameState.season = 0;
                 gameState.year++;
                 addMessage(`🎊 Year ${gameState.year} begins!`, 'success');
+                addDiaryEntry(`Survived my first year! Now in year ${gameState.year}`, 'milestone');
 
                 // Yearly bonuses
                 if (gameState.hasNest && gameState.hasMate) {
                     gameState.eggs += Math.floor(Math.random() * 3) + 2;
                     addMessage(`🥚 Your mate laid ${gameState.eggs} eggs!`, 'success');
+                    addDiaryEntry(`My mate laid ${gameState.eggs} eggs! Starting a family 🥚`, 'social');
                     gainXP(100);
                 }
             }
 
             const seasonName = SEASONS[gameState.season];
             addMessage(`${SEASON_EMOJIS[seasonName]} ${seasonName} has arrived!`, 'success');
+            addDiaryEntry(`${seasonName} has arrived`, 'event');
 
             // Add seasonal quest
             addSeasonalQuest();
@@ -1639,6 +1672,7 @@
             gameState.energy = gameState.maxEnergy;
 
             addMessage(`🌟 LEVEL UP! Now level ${gameState.level}!`, 'success');
+            addDiaryEntry(`Reached level ${gameState.level}! Growing stronger 🌟`, 'milestone');
 
             // Let player choose skill to increase
             showSkillChoice();
@@ -1726,6 +1760,213 @@
 
         function closeModal() {
             document.getElementById('generic-modal').classList.remove('active');
+        }
+
+        // ===== DIARY SYSTEM =====
+        function addDiaryEntry(text, type = 'event') {
+            const entry = {
+                turn: gameState.turn,
+                season: SEASONS[gameState.season],
+                year: gameState.year,
+                text: text,
+                type: type, // event, milestone, combat, social
+                timestamp: Date.now()
+            };
+            gameState.diary.push(entry);
+
+            // Keep last 50 entries
+            if (gameState.diary.length > 50) {
+                gameState.diary.shift();
+            }
+        }
+
+        function showDiary() {
+            const modal = document.getElementById('generic-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const buttons = document.getElementById('modal-buttons');
+
+            title.textContent = '📖 Life Story';
+
+            if (gameState.diary.length === 0) {
+                body.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
+                        <p>Your story has just begun...<br/>Live your life and return to read your tale!</p>
+                    </div>
+                `;
+            } else {
+                const entries = gameState.diary.slice().reverse().map(entry => {
+                    const icon = {
+                        event: '📅',
+                        milestone: '⭐',
+                        combat: '⚔️',
+                        social: '💬'
+                    }[entry.type] || '📅';
+
+                    const bgColor = {
+                        event: '#f0f9ff',
+                        milestone: '#fff9e6',
+                        combat: '#ffe6e6',
+                        social: '#f0f9f4'
+                    }[entry.type] || '#f0f0f0';
+
+                    return `
+                        <div style="background: ${bgColor}; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #667eea;">
+                            <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
+                                ${icon} ${entry.season} Year ${entry.year}, Turn ${entry.turn}
+                            </div>
+                            <div style="font-size: 13px;">${entry.text}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                body.innerHTML = `
+                    <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <div style="font-size: 14px; color: #666;">
+                                Your journey through ${gameState.year} year(s) | ${gameState.diary.length} memories
+                            </div>
+                        </div>
+                        ${entries}
+                    </div>
+                `;
+            }
+
+            buttons.innerHTML = '<button class="modal-btn primary" onclick="closeModal()">Close</button>';
+            modal.classList.add('active');
+        }
+
+        // ===== WEATHER SYSTEM =====
+        const WEATHER_TYPES = {
+            clear: { icon: '☀️', name: 'Clear skies', color: '#e3f2fd', forageMod: 0, energyMod: 0 },
+            rain: { icon: '🌧️', name: 'Rainy', color: '#cfd8dc', forageMod: -2, energyMod: -5 },
+            storm: { icon: '⛈️', name: 'Stormy', color: '#90a4ae', forageMod: -5, energyMod: -10 },
+            snow: { icon: '❄️', name: 'Snowy', color: '#e1f5fe', forageMod: -3, energyMod: -8 },
+            wind: { icon: '💨', name: 'Windy', color: '#b2ebf2', forageMod: -1, energyMod: -3 }
+        };
+
+        function updateWeather() {
+            // Weather changes based on season
+            const seasonWeather = {
+                0: ['clear', 'clear', 'rain', 'wind'], // Spring
+                1: ['clear', 'clear', 'clear', 'rain'], // Summer
+                2: ['clear', 'rain', 'wind', 'wind'], // Fall
+                3: ['snow', 'snow', 'wind', 'clear'] // Winter
+            };
+
+            const possibleWeather = seasonWeather[gameState.season];
+            const newWeather = possibleWeather[Math.floor(Math.random() * possibleWeather.length)];
+
+            // Chance of storm
+            if (Math.random() < 0.1) {
+                newWeather = gameState.season === 3 ? 'snow' : 'storm';
+            }
+
+            gameState.weather = newWeather;
+            gameState.weatherIntensity = Math.random() * 0.5 + 0.5;
+
+            // Update UI
+            const weatherData = WEATHER_TYPES[gameState.weather];
+            document.getElementById('weather-icon').textContent = weatherData.icon;
+            document.getElementById('weather-text').textContent = weatherData.name;
+            document.getElementById('weather-display').style.background = `linear-gradient(135deg, ${weatherData.color}, ${weatherData.color}cc)`;
+
+            // Add diary entry for significant weather
+            if (gameState.weather === 'storm') {
+                addDiaryEntry('A fierce storm rolled in, making survival difficult.', 'event');
+            } else if (gameState.weather === 'snow' && gameState.season === 3) {
+                addDiaryEntry('Snow blanketed the landscape, signaling winter\'s harsh grip.', 'event');
+            }
+        }
+
+        function getWeatherModifiers() {
+            const weather = WEATHER_TYPES[gameState.weather] || WEATHER_TYPES.clear;
+            return {
+                forageDC: weather.forageMod,
+                energyCost: weather.energyMod
+            };
+        }
+
+        // ===== CANVAS MAP SYSTEM =====
+        function drawCanvasMap() {
+            const canvas = document.getElementById('map-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const cellSize = 200;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#e3f2fd');
+            gradient.addColorStop(1, '#bbdefb');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw territories
+            for (let i = 0; i < 9; i++) {
+                const row = Math.floor(i / 3);
+                const col = i % 3;
+                const x = col * cellSize;
+                const y = row * cellSize;
+
+                const territory = gameState.territories[i];
+                const isCurrent = i === gameState.currentLocation;
+
+                // Territory background
+                ctx.fillStyle = isCurrent ? '#fff9e6' : '#e0f7fa';
+                ctx.strokeStyle = isCurrent ? '#f39c12' : '#4dd0e1';
+                ctx.lineWidth = isCurrent ? 6 : 3;
+
+                ctx.beginPath();
+                ctx.roundRect(x + 5, y + 5, cellSize - 10, cellSize - 10, 15);
+                ctx.fill();
+                ctx.stroke();
+
+                // Territory emoji (larger)
+                ctx.font = '64px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(territory.emoji, x + cellSize / 2, y + cellSize / 2 - 20);
+
+                // Territory name
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText(territory.name, x + cellSize / 2, y + cellSize - 30);
+
+                // NPCs and predators
+                if (territory.npcs.length > 0) {
+                    ctx.font = '24px serif';
+                    ctx.fillText(territory.npcs[0].emoji, x + 30, y + 30);
+                }
+                if (territory.predators.length > 0) {
+                    ctx.fillText('⚠️', x + cellSize - 30, y + 30);
+                }
+
+                // Player bird indicator (animated)
+                if (isCurrent) {
+                    ctx.font = '48px serif';
+                    const bounce = Math.sin(Date.now() / 300) * 3;
+                    ctx.fillText('🐦', x + cellSize / 2, y + cellSize / 2 + 40 + bounce);
+                }
+            }
+
+            // Weather overlay
+            if (gameState.weather !== 'clear') {
+                ctx.globalAlpha = 0.15;
+                ctx.fillStyle = WEATHER_TYPES[gameState.weather].color;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Animate canvas map
+        function animateMap() {
+            drawCanvasMap();
+            requestAnimationFrame(animateMap);
         }
 
         // ===== MESSAGES =====
@@ -2086,6 +2327,10 @@
                 initTerritories();
                 saveGame();
             }
+
+            // Initialize weather and canvas map
+            updateWeather();
+            animateMap();
 
             updateUI();
 
