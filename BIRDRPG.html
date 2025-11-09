@@ -2808,8 +2808,99 @@
                 `;
             }
 
-            buttons.innerHTML = '<button class="modal-btn primary" onclick="closeModal()">Close</button>';
+            // Add Copy Story button if there are diary entries
+            if (gameState.diary.length > 0) {
+                buttons.innerHTML = `
+                    <button class="modal-btn success" onclick="copyStoryToClipboard()" style="background: #27ae60;">📋 Copy Story</button>
+                    <button class="modal-btn primary" onclick="closeModal()">Close</button>
+                `;
+            } else {
+                buttons.innerHTML = '<button class="modal-btn primary" onclick="closeModal()">Close</button>';
+            }
+
             modal.classList.add('active');
+        }
+
+        function copyStoryToClipboard() {
+            const storyText = formatStoryForSharing();
+
+            // Try to copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(storyText).then(() => {
+                    addMessage('📋 Story copied to clipboard! Share your bird\'s journey! 🐦', 'success');
+                }).catch(err => {
+                    // Fallback: show text in an alert for manual copying
+                    prompt('📋 Copy this text to share your story:', storyText);
+                });
+            } else {
+                // Fallback for browsers without clipboard API
+                prompt('📋 Copy this text to share your story:', storyText);
+            }
+        }
+
+        function formatStoryForSharing() {
+            // Create a shareable text version of the bird's life story
+            const stats = gameState;
+            const seasonName = SEASONS[stats.season];
+
+            let story = `🐦 BIRD WINDOW RPG - My Life Story 🐦\n\n`;
+
+            // Header with character info
+            story += `📊 ${stats.species} - Level ${stats.level}\n`;
+            story += `🗓️  Year ${stats.year}, ${seasonName} (Turn ${stats.turn})\n`;
+            story += `❤️  Health: ${stats.health}/${stats.maxHealth} | ⚡ Energy: ${stats.energy}/${stats.maxEnergy}\n`;
+            story += `🍖 Hunger: ${stats.hunger}/100 | 👥 Social: ${stats.socialStanding}/100\n\n`;
+
+            // Achievements
+            story += `🏆 ACHIEVEMENTS:\n`;
+            story += `${stats.hasNest ? '✅' : '❌'} Built a nest\n`;
+            story += `${stats.hasBirdhouse ? '✅' : '❌'} Built a birdhouse\n`;
+            story += `${stats.hasMate ? '✅' : '❌'} Found a mate\n`;
+            if (stats.offspring > 0) {
+                story += `✅ Raised ${stats.offspring} offspring to independence\n`;
+            }
+            if (stats.babies.length > 0) {
+                story += `🐣 Currently raising ${stats.babies.length} ${stats.babies.length === 1 ? 'baby' : 'babies'}\n`;
+            }
+            if (stats.flockMembers.length > 0) {
+                story += `🦅 Leading a flock of ${stats.flockMembers.length} birds\n`;
+            }
+            story += `📜 Completed ${stats.completedQuests.length} quests\n`;
+            story += `🌍 Survived ${stats.year} ${stats.year === 1 ? 'year' : 'years'}\n\n`;
+
+            // Notable stats
+            story += `📈 SKILLS:\n`;
+            story += `🔍 Foraging: ${stats.skills.foraging} | 🏗️ Building: ${stats.skills.building}\n`;
+            story += `🦅 Flying: ${stats.skills.flying} | ⚔️ Combat: ${stats.skills.combat}\n`;
+            story += `👥 Flocking: ${stats.skills.flocking} | 👁️ Perception: ${stats.skills.perception}\n\n`;
+
+            // Recent diary entries (last 10)
+            const recentEntries = stats.diary.slice(-10).reverse();
+            if (recentEntries.length > 0) {
+                story += `📖 RECENT MEMORIES:\n\n`;
+                recentEntries.forEach(entry => {
+                    const icon = {
+                        event: '📅',
+                        milestone: '⭐',
+                        combat: '⚔️',
+                        social: '💬',
+                        family: '👨‍👩‍👧',
+                        achievement: '🏆',
+                        special: '✨',
+                        tragedy: '💔'
+                    }[entry.type] || '📅';
+
+                    story += `${icon} ${entry.season} Y${entry.year}, T${entry.turn}\n`;
+                    story += `   ${entry.text}\n\n`;
+                });
+            }
+
+            // Footer
+            story += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+            story += `🎮 Play Bird Window RPG!\n`;
+            story += `A bird life simulator where you nest, forage, raise young, and survive the seasons! 🌸☀️🍂❄️\n`;
+
+            return story;
         }
 
         // ===== WEATHER SYSTEM =====
