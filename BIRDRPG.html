@@ -1539,7 +1539,9 @@
             justify-content: center;
             font-size: 32px;
             cursor: pointer;
-            overflow: visible;
+            overflow: hidden;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a) !important;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5) !important;
         }
 
         .bird-rpg-float.minimized .bird-rpg-screen::before {
@@ -1592,6 +1594,11 @@
             .bird-rpg-float.minimized .bird-rpg-device {
                 width: 60px !important;
                 height: 60px !important;
+                padding: 3px !important;
+            }
+
+            .bird-rpg-float.minimized .bird-rpg-screen {
+                font-size: 28px !important;
             }
 
             .bird-rpg-float #game-container {
