@@ -1908,7 +1908,8 @@
 
             // Turn Management
             actionsTakenThisTurn: 0,
-            maxActionsPerTurn: 5
+            maxActionsPerTurn: 5,
+            turnEndPending: false
         };
 
         // Territory definitions (3x3 grid, 0-8)
@@ -1962,6 +1963,25 @@
                     const loaded = JSON.parse(saved);
                     // Merge with defaults in case of new properties
                     gameState = { ...gameState, ...loaded };
+
+                    // Deep merge nested objects to handle new properties
+                    if (loaded.skills) {
+                        gameState.skills = { ...gameState.skills, ...loaded.skills };
+                    }
+
+                    // Migrate old saves: ensure babies have species property
+                    if (gameState.babies && gameState.babies.length > 0) {
+                        gameState.babies = gameState.babies.map(baby => ({
+                            ...baby,
+                            species: baby.species || gameState.species
+                        }));
+                    }
+
+                    // Ensure new flags exist
+                    if (gameState.turnEndPending === undefined) {
+                        gameState.turnEndPending = false;
+                    }
+
                     return true;
                 }
             } catch(e) {
@@ -2401,17 +2421,30 @@
 
         // Check if turn should auto-end
         function checkAutoEndTurn() {
+            // Prevent multiple auto-end timers
+            if (gameState.turnEndPending) {
+                return;
+            }
+
             // Check energy threshold
             if (gameState.energy <= 20) {
                 addMessage('⚡ You\'re too exhausted to continue! Time to rest...', 'warning');
-                setTimeout(() => endTurn(), 2000);
+                gameState.turnEndPending = true;
+                setTimeout(() => {
+                    gameState.turnEndPending = false;
+                    endTurn();
+                }, 2000);
                 return;
             }
 
             // Check action limit
             if (gameState.actionsTakenThisTurn >= gameState.maxActionsPerTurn) {
                 addMessage(`📊 You've taken ${gameState.maxActionsPerTurn} actions! The day passes...`, 'info');
-                setTimeout(() => endTurn(), 2000);
+                gameState.turnEndPending = true;
+                setTimeout(() => {
+                    gameState.turnEndPending = false;
+                    endTurn();
+                }, 2000);
                 return;
             }
 
@@ -2495,7 +2528,7 @@
                 const eventRoll = Math.random();
                 if (eventRoll < 0.05) {
                     // Meet a friendly bird who teaches you something
-                    const skillToBoost = ['foraging', 'perception', 'social'][Math.floor(Math.random() * 3)];
+                    const skillToBoost = ['foraging', 'perception', 'flocking'][Math.floor(Math.random() * 3)];
                     gameState.skills[skillToBoost]++;
                     addMessage(`🐦 You meet a friendly ${gameState.species} who shares wisdom about ${skillToBoost}! +1 skill`, 'success');
                     gameState.socialStanding = Math.min(100, gameState.socialStanding + 5);
@@ -2686,6 +2719,7 @@
                     // Chance to find mate in spring
                     if (gameState.season === 0 && !gameState.hasMate && Math.random() < 0.3) {
                         gameState.hasMate = true;
+                        gameState.mateSpecies = territory.npcs[0].species;
                         addMessage('💕 You found a mate! After courting displays and singing, they accept you!', 'success');
                         addDiaryEntry('Found a mate! Love is in the air 💕', 'social');
                         gainXP(50);
@@ -2797,7 +2831,7 @@
                     gainXP(200);
                     completeQuest('firstHome');
                 } else {
-                    gameState.twigs -= 5; // Still lose some materials
+                    gameState.twigs = Math.max(0, gameState.twigs - 5); // Still lose some materials, but not go negative
                     addMessage('Struggled with birdhouse construction...', 'warning');
                     gainXP(20);
                 }
@@ -2845,7 +2879,7 @@
                     gainXP(50);
                 } else {
                     addMessage('Failed to convince the bird to join...', 'warning');
-                    gameState.socialStanding -= 5;
+                    gameState.socialStanding = Math.max(0, gameState.socialStanding - 5);
                     gainXP(10);
                 }
 
@@ -3035,7 +3069,7 @@
 
             for (let i = 0; i < numBabies; i++) {
                 const babyName = babyNames[Math.floor(Math.random() * babyNames.length)];
-                const babySpecies = Math.random() < 0.7 ? gameState.species : gameState.mateSpecies;
+                const babySpecies = Math.random() < 0.7 ? gameState.species : (gameState.mateSpecies || gameState.species);
                 gameState.babies.push({
                     name: babyName,
                     species: babySpecies,
@@ -3541,14 +3575,14 @@
             if (enemy.isRatKing) {
                 addMessage('👑 You defeated the RAT KING! Legendary status achieved!', 'success');
                 addDiaryEntry('DEFEATED THE LEGENDARY RAT KING! I am a true warrior! 👑', 'milestone');
-                gameState.maxHealth += 20;
+                gameState.maxHealth = Math.min(200, gameState.maxHealth + 20); // Cap at 200
                 gameState.health = gameState.maxHealth;
                 gameState.socialStanding = Math.min(100, gameState.socialStanding + 30);
                 gameState.food += 10; // Reward food
                 gameState.ratsDefeated = 0; // Reset counter
             } else if (enemy.type === 'boss') {
                 addMessage(`💎 Boss defeated! Major rewards earned!`, 'success');
-                gameState.maxHealth += 5;
+                gameState.maxHealth = Math.min(200, gameState.maxHealth + 5); // Cap at 200
                 gameState.health = Math.min(gameState.health + 20, gameState.maxHealth);
                 gameState.food += 5;
             }
@@ -3612,6 +3646,7 @@
                 cache.turnsLeft--;
                 if (cache.turnsLeft <= 0) {
                     addMessage(`⚠️ Your cache at ${TERRITORIES[cache.location].name} has spoiled!`, 'warning');
+                    gameState.cachedFood = Math.max(0, gameState.cachedFood - cache.amount);
                 }
             });
             gameState.foodCaches = gameState.foodCaches.filter(c => c.turnsLeft > 0);
@@ -3732,11 +3767,15 @@
                 addMessage(`🎊 Year ${gameState.year} begins! You made it through winter!`, 'success');
                 addDiaryEntry(`Survived another year! Now in year ${gameState.year} 🎊`, 'milestone');
 
+                // Reset breeding cycle for new year
+                gameState.eggsLaid = 0;
+
                 // Yearly bonuses
                 if (gameState.hasNest && gameState.hasMate) {
-                    gameState.eggs += Math.floor(Math.random() * 3) + 2;
-                    addMessage(`🥚 Your mate laid ${gameState.eggs} eggs for the new breeding season!`, 'success');
-                    addDiaryEntry(`My mate laid ${gameState.eggs} eggs! Starting a family 🥚`, 'social');
+                    const newEggs = Math.floor(Math.random() * 3) + 2;
+                    gameState.eggs = newEggs;
+                    addMessage(`🥚 Your mate laid ${newEggs} eggs for the new breeding season!`, 'success');
+                    addDiaryEntry(`My mate laid ${newEggs} eggs! Starting a family 🥚`, 'social');
                     gainXP(100);
                 }
             }
@@ -4428,7 +4467,7 @@
             const x = (event.clientX - rect.left) * scaleX;
             const y = (event.clientY - rect.top) * scaleY;
 
-            const cellSize = 150;
+            const cellSize = canvas.width / 3;
             const col = Math.floor(x / cellSize);
             const row = Math.floor(y / cellSize);
             const clickedLocation = row * 3 + col;
