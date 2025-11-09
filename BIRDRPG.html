@@ -691,7 +691,11 @@
             isInCombat: false,
             combatEnemy: null,
             gameOver: false,
-            hasSeenIntro: false
+            hasSeenIntro: false,
+
+            // Tutorial
+            tutorialStep: 0,
+            tutorialActive: false
         };
 
         // Territory definitions (3x3 grid, 0-8)
@@ -947,7 +951,7 @@
                     addMessage('Failed to fly efficiently, wasted some energy', 'warning');
                 }
                 updateUI();
-            });
+            }, { action: 'flying', destination: TERRITORIES[locationId].name });
         }
 
         function forage() {
@@ -987,7 +991,7 @@
                 gameState.hunger += 5;
                 updateQuestProgress('forage', 1);
                 updateUI();
-            });
+            }, { action: 'foraging' });
         }
 
         function gather() {
@@ -1018,7 +1022,7 @@
                 gameState.hunger += 5;
                 updateQuestProgress('gather', 1);
                 updateUI();
-            });
+            }, { action: 'gathering' });
         }
 
         function buildNest() {
@@ -1059,7 +1063,7 @@
 
                 gameState.hunger += 5;
                 updateUI();
-            });
+            }, { action: 'building' });
         }
 
         function rest() {
@@ -1127,23 +1131,195 @@
 
                 gameState.hunger += 5;
                 updateUI();
-            });
+            }, { action: 'flocking' });
         }
 
         // ===== DICE ROLLING =====
-        function rollSkillCheck(skillName, dc, callback) {
+        function rollSkillCheck(skillName, dc, callback, context = {}) {
             const skill = skillName.toLowerCase();
             const skillLevel = gameState.skills[skill] || 0;
             const roll = Math.floor(Math.random() * 20) + 1;
             const total = roll + skillLevel;
             const success = total >= dc;
 
-            showDiceRoll(roll, skillLevel, dc, success, skillName, () => {
+            showDiceRoll(roll, skillLevel, dc, success, skillName, context, () => {
                 callback(success, roll, total);
             });
         }
 
-        function showDiceRoll(roll, modifier, dc, success, skillName, callback) {
+        function getFlavorText(action, roll, success, context = {}) {
+            const isCrit = roll === 20;
+            const isFail = roll === 1;
+            const seasonName = SEASONS[gameState.season];
+            const location = TERRITORIES[gameState.currentLocation].name;
+
+            const flavors = {
+                foraging: {
+                    critSuccess: [
+                        `You spot a hidden cache of seeds beneath the ${location} foliage! 🌟`,
+                        `A gust of wind reveals a bounty of berries you hadn't noticed! 🌟`,
+                        `Your keen eyes spot a feast of insects swarming nearby! 🌟`,
+                        `You discover a mother lode of worms after the recent rain! 🌟`
+                    ],
+                    success: [
+                        `You peck around and find some tasty morsels.`,
+                        `Your search through the ${location} yields food.`,
+                        `You manage to snag a few seeds and berries.`,
+                        `Some insects cross your path - dinner time!`
+                    ],
+                    fail: [
+                        `You scratch around but find mostly dirt and disappointment.`,
+                        `The ${location} seems picked clean today.`,
+                        `Other birds must have gotten here first...`,
+                        `You find something, but it's not edible.`
+                    ],
+                    critFail: [
+                        `Your frantic searching attracts unwanted attention! 💥`,
+                        `You disturb something dangerous while foraging! 💥`,
+                        `A predator was watching you this whole time! 💥`
+                    ]
+                },
+                gathering: {
+                    critSuccess: [
+                        `You find the perfect twigs - sturdy and just the right size! 🌟`,
+                        `A dead branch falls nearby, providing excellent materials! 🌟`,
+                        `You discover a nest-builder's paradise! 🌟`
+                    ],
+                    success: [
+                        `You gather some decent building materials.`,
+                        `These twigs should work for your nest.`,
+                        `You collect what you can carry.`
+                    ],
+                    fail: [
+                        `The twigs here are too brittle and break easily.`,
+                        `You can't find quality materials in the ${location}.`,
+                        `Everything you find is the wrong size.`
+                    ],
+                    critFail: [
+                        `A twig snaps back and hits you in the beak! Ow! 💥`,
+                        `You get tangled in some brambles while gathering! 💥`
+                    ]
+                },
+                building: {
+                    critSuccess: [
+                        `Your nest-building skills shine! This section is perfect! 🌟`,
+                        `You weave the twigs with masterful precision! 🌟`,
+                        `This is coming together beautifully! 🌟`
+                    ],
+                    success: [
+                        `You carefully add to your nest structure.`,
+                        `Bit by bit, your home takes shape.`,
+                        `Steady progress on your nest.`
+                    ],
+                    fail: [
+                        `The twigs won't stay in place. Frustrating!`,
+                        `You struggle to get the structure right.`,
+                        `Some of your work comes loose.`
+                    ],
+                    critFail: [
+                        `A strong gust scatters your work! 💥`,
+                        `The section you just built collapses! 💥`
+                    ]
+                },
+                flying: {
+                    critSuccess: [
+                        `You soar gracefully through the air! What a flight! 🌟`,
+                        `The wind carries you effortlessly to your destination! 🌟`,
+                        `Perfect takeoff, perfect landing! 🌟`
+                    ],
+                    success: [
+                        `You wing your way to your destination.`,
+                        `A smooth flight brings you to ${context.destination || 'your destination'}.`,
+                        `You navigate the airways with ease.`
+                    ],
+                    fail: [
+                        `You struggle against the wind, wasting energy.`,
+                        `Your flight path is clumsy and inefficient.`,
+                        `Turbulence throws you off course.`
+                    ],
+                    critFail: [
+                        `You crash-land awkwardly! 💥`,
+                        `A sudden wind gust sends you tumbling! 💥`
+                    ]
+                },
+                combat: {
+                    critSuccess: [
+                        `Your attack is devastating! A perfect strike! 🌟`,
+                        `You catch ${context.enemy || 'the enemy'} completely off-guard! 🌟`,
+                        `A fierce and accurate blow lands true! 🌟`
+                    ],
+                    success: [
+                        `Your talons find their mark!`,
+                        `You land a solid hit on ${context.enemy || 'the enemy'}!`,
+                        `Your beak strikes with precision!`
+                    ],
+                    fail: [
+                        `${context.enemy || 'The enemy'} dodges your attack!`,
+                        `You miss completely!`,
+                        `Your strike goes wide!`
+                    ],
+                    critFail: [
+                        `You lose your balance and stumble! 💥`,
+                        `Your attack leaves you wide open! 💥`,
+                        `You accidentally hurt yourself! 💥`
+                    ]
+                },
+                flocking: {
+                    critSuccess: [
+                        `The other bird is charmed by your charisma! 🌟`,
+                        `You make an instant connection! 🌟`,
+                        `What a delightful conversation! 🌟`
+                    ],
+                    success: [
+                        `You share a pleasant exchange.`,
+                        `The other bird seems to enjoy your company.`,
+                        `You make a good impression.`
+                    ],
+                    fail: [
+                        `The conversation falls flat.`,
+                        `You seem to have said the wrong thing.`,
+                        `Awkward silence fills the air.`
+                    ],
+                    critFail: [
+                        `You've somehow offended the other bird! 💥`,
+                        `Your attempt at small talk goes terribly wrong! 💥`
+                    ]
+                },
+                perception: {
+                    critSuccess: [
+                        `Your sharp eyes catch every detail! 🌟`,
+                        `Nothing escapes your notice! 🌟`,
+                        `You spot something others would miss! 🌟`
+                    ],
+                    success: [
+                        `You observe your surroundings carefully.`,
+                        `Your senses pick up useful information.`,
+                        `You notice important details.`
+                    ],
+                    fail: [
+                        `Everything seems like a blur.`,
+                        `You fail to notice anything special.`,
+                        `Your attention wanders.`
+                    ],
+                    critFail: [
+                        `You were so focused on looking, you missed what was right in front of you! 💥`,
+                        `A distraction pulls your attention away! 💥`
+                    ]
+                }
+            };
+
+            const actionType = action.toLowerCase();
+            let category = 'success';
+
+            if (isCrit) category = 'critSuccess';
+            else if (isFail) category = 'critFail';
+            else if (!success) category = 'fail';
+
+            const pool = flavors[actionType]?.[category] || flavors.perception[category];
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function showDiceRoll(roll, modifier, dc, success, skillName, context, callback) {
             const modal = document.getElementById('dice-modal');
             const display = document.getElementById('dice-display');
             const result = document.getElementById('dice-result');
@@ -1164,20 +1340,32 @@
                     // Show result
                     display.textContent = roll;
 
+                    // Get flavor text
+                    const flavorText = getFlavorText(skillName, roll, success, context);
+
                     if (roll === 20) {
                         display.classList.add('crit-success');
                         result.innerHTML = `<div style="color: #2ecc71; font-size: 24px;">🌟 CRITICAL SUCCESS! 🌟</div>
+                            <div style="margin: 15px 0; padding: 10px; background: #f0f9f4; border-radius: 8px; font-style: italic; color: #333;">
+                                "${flavorText}"
+                            </div>
                             <div>Rolled: ${roll} + ${modifier} = ${roll + modifier}</div>
                             <div>DC: ${dc}</div>`;
                     } else if (roll === 1) {
                         display.classList.add('crit-fail');
                         result.innerHTML = `<div style="color: #e74c3c; font-size: 24px;">💥 CRITICAL FAILURE! 💥</div>
+                            <div style="margin: 15px 0; padding: 10px; background: #ffe6e6; border-radius: 8px; font-style: italic; color: #333;">
+                                "${flavorText}"
+                            </div>
                             <div>Rolled: ${roll} + ${modifier} = ${roll + modifier}</div>
                             <div>DC: ${dc}</div>`;
                     } else {
                         result.innerHTML = `
                             <div style="color: ${success ? '#2ecc71' : '#e67e22'}; font-size: 20px;">
                                 ${success ? '✅ SUCCESS' : '❌ FAILURE'}
+                            </div>
+                            <div style="margin: 15px 0; padding: 10px; background: ${success ? '#f0f9f4' : '#fff4e6'}; border-radius: 8px; font-style: italic; color: #333;">
+                                "${flavorText}"
                             </div>
                             <div>Rolled: ${roll} + ${modifier} (skill) = ${roll + modifier}</div>
                             <div>DC: ${dc}</div>
@@ -1255,9 +1443,8 @@
         }
 
         function combatAttack() {
+            const enemy = gameState.combatEnemy;
             rollSkillCheck('Combat', 15, (success, roll) => {
-                const enemy = gameState.combatEnemy;
-
                 if (success) {
                     const damage = Math.floor(Math.random() * 15) + 10 + gameState.skills.combat * 2;
                     enemy.health -= damage;
@@ -1273,10 +1460,11 @@
 
                 // Enemy attacks back
                 enemyAttack();
-            });
+            }, { action: 'combat', enemy: enemy.name });
         }
 
         function combatDefend() {
+            const enemy = gameState.combatEnemy;
             rollSkillCheck('Combat', 12, (success) => {
                 if (success) {
                     addMessage('You brace for the attack! 🛡️', 'success');
@@ -1288,10 +1476,11 @@
                     addMessage('Failed to defend properly!', 'warning');
                     enemyAttack();
                 }
-            });
+            }, { action: 'combat', enemy: enemy.name });
         }
 
         function combatFlee() {
+            const enemy = gameState.combatEnemy;
             rollSkillCheck('Flying', 18, (success) => {
                 if (success) {
                     addMessage('Successfully fled from combat! 🏃', 'success');
@@ -1303,7 +1492,7 @@
                     addMessage('Failed to escape!', 'danger');
                     enemyAttack();
                 }
-            });
+            }, { action: 'flying', enemy: enemy.name });
         }
 
         function enemyAttack(damageMultiplier = 1) {
@@ -1581,48 +1770,308 @@
             modal.classList.add('active');
         }
 
-        // ===== INTRO =====
-        function showIntro() {
+        // ===== TUTORIAL =====
+        const TUTORIAL_STEPS = [
+            {
+                title: '🐦 Welcome to Seasons of the Flock!',
+                content: `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 72px; margin-bottom: 10px;">🐦</div>
+                        <p style="font-size: 18px; font-weight: bold; color: #667eea;">You are a young Bluebird</p>
+                    </div>
+
+                    <p style="margin-bottom: 15px; line-height: 1.6;">
+                        Welcome to the wild! You've just left the nest and must now survive on your own.
+                        The seasons will test you, but with wit and determination, you can thrive.
+                    </p>
+
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p style="font-weight: bold; margin-bottom: 10px;">🎯 Your Goals:</p>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                            <li>🏠 Build a nest (10 twigs required)</li>
+                            <li>💕 Find a mate through socializing</li>
+                            <li>🌍 Survive all 4 seasons</li>
+                            <li>🐣 Raise offspring</li>
+                            <li>⭐ Become a legendary bird</li>
+                        </ul>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '📊 Understanding Your Stats',
+                content: `
+                    <p style="margin-bottom: 15px;">Four vital stats determine your survival:</p>
+
+                    <div style="display: grid; gap: 12px;">
+                        <div style="background: #ffe6e6; padding: 12px; border-radius: 8px; border-left: 4px solid #ff6b6b;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">❤️ Health (100 max)</div>
+                            <div style="font-size: 13px;">Your life force. If it reaches 0, game over! Restore by completing seasons and leveling up.</div>
+                        </div>
+
+                        <div style="background: #fff4e6; padding: 12px; border-radius: 8px; border-left: 4px solid #f9ca24;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🍖 Hunger (0-100)</div>
+                            <div style="font-size: 13px;">Increases each turn. If it hits 100, you start losing health! Eat food to reduce it.</div>
+                        </div>
+
+                        <div style="background: #f0f0ff; padding: 12px; border-radius: 8px; border-left: 4px solid #6c5ce7;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">⚡ Energy (100 max)</div>
+                            <div style="font-size: 13px;">Used for actions. Rest to restore it. Running out of energy limits what you can do!</div>
+                        </div>
+
+                        <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; border-left: 4px solid #6c5ce7;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">⭐ Social Standing (0-100)</div>
+                            <div style="font-size: 13px;">Your reputation. Higher standing helps you find mates and allies!</div>
+                        </div>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🎲 Skill Checks & Dice Rolling',
+                content: `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 48px;">🎲</div>
+                    </div>
+
+                    <p style="margin-bottom: 15px;">Most actions require a <strong>skill check</strong> - you roll a 20-sided die (d20) and add your skill level!</p>
+
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; font-family: monospace;">
+                        <div style="text-align: center; font-size: 16px;">
+                            <strong>Roll + Skill Level ≥ Difficulty</strong>
+                        </div>
+                        <div style="text-align: center; font-size: 13px; margin-top: 5px; color: #666;">
+                            Example: Roll 14 + Foraging 2 = 16 (beats DC 10!)
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                        <div style="background: #d4edda; padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 5px;">🌟</div>
+                            <div style="font-weight: bold; margin-bottom: 3px;">Natural 20</div>
+                            <div style="font-size: 12px;">Critical Success!<br/>Amazing results!</div>
+                        </div>
+
+                        <div style="background: #f8d7da; padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 5px;">💥</div>
+                            <div style="font-weight: bold; margin-bottom: 3px;">Natural 1</div>
+                            <div style="font-size: 12px;">Critical Failure!<br/>Things go wrong!</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <p style="font-size: 13px; margin: 0;">
+                            💡 <strong>Tip:</strong> Level up to increase your skills and succeed more often!
+                        </p>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🗺️ Exploring the World',
+                content: `
+                    <p style="margin-bottom: 15px;">The world is divided into a <strong>3×3 grid of territories</strong>. Each location offers different resources and dangers.</p>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 20px 0; max-width: 300px; margin-left: auto; margin-right: auto;">
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌲</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">⛰️</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🫐</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌳</div>
+                        <div style="background: #fff9e6; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 3px solid #f39c12; font-weight: bold;">🐦</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">💧</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌻</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🌳</div>
+                        <div style="background: #e0f7fa; padding: 15px; border-radius: 8px; text-align: center; font-size: 24px; border: 2px solid #4dd0e1;">🪨</div>
+                    </div>
+
+                    <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin: 15px 0;">
+                        <p style="margin: 0; font-size: 13px; line-height: 1.6;">
+                            🧭 <strong>Your current location</strong> is highlighted in gold.<br/>
+                            ✈️ <strong>Click adjacent territories</strong> to fly there (costs 15 energy).<br/>
+                            👀 You can see NPCs 🐦 and dangers ⚠️ in other territories.
+                        </p>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🎬 Key Actions',
+                content: `
+                    <p style="margin-bottom: 15px;">Here are the essential actions you'll use:</p>
+
+                    <div style="display: grid; gap: 10px;">
+                        <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🔍 Forage</div>
+                            <div style="font-size: 12px;">Search for food (seeds, berries, worms). Essential for survival!</div>
+                        </div>
+
+                        <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🌿 Gather</div>
+                            <div style="font-size: 12px;">Collect twigs for nest building. You need 10 total!</div>
+                        </div>
+
+                        <div style="background: #fff3e0; padding: 10px; border-radius: 8px; border-left: 4px solid #ff9800;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🏗️ Build Nest</div>
+                            <div style="font-size: 12px;">Use twigs to build your home. A completed nest is crucial!</div>
+                        </div>
+
+                        <div style="background: #f3e5f5; padding: 10px; border-radius: 8px; border-left: 4px solid #9c27b0;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">👥 Socialize</div>
+                            <div style="font-size: 12px;">Chat with other birds. Increases standing and may lead to finding a mate!</div>
+                        </div>
+
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">😴 Rest</div>
+                            <div style="font-size: 12px;">Restore energy. Rest at night for bonus recovery!</div>
+                        </div>
+
+                        <div style="background: #ffe0b2; padding: 10px; border-radius: 8px; border-left: 4px solid #ff6f00;">
+                            <div style="font-weight: bold; margin-bottom: 3px;">🍖 Eat</div>
+                            <div style="font-size: 12px;">Consume food to reduce hunger. Don't let hunger reach 100!</div>
+                        </div>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🌸 Seasons & Time',
+                content: `
+                    <p style="margin-bottom: 15px;">Time passes through <strong>four seasons</strong>, each lasting <strong>10 turns</strong>:</p>
+
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        <div style="background: linear-gradient(135deg, #ffeef8, #ffe6f0); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🌸 Spring</div>
+                            <div style="font-size: 13px;">Time to build your nest and find a mate!</div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #fff8e1, #ffecb3); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">☀️ Summer</div>
+                            <div style="font-size: 13px;">Raise babies, defend your nest from predators.</div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🍂 Fall</div>
+                            <div style="font-size: 13px;">Prepare for winter! Gather resources.</div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #e1f5fe, #b3e5fc); padding: 12px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">❄️ Winter</div>
+                            <div style="font-size: 13px;">Survive! Food is scarce, energy drains faster.</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <p style="font-size: 13px; margin: 0;">
+                            ⏰ Each turn alternates between ☀️ <strong>Day</strong> and 🌙 <strong>Night</strong><br/>
+                            🎯 Complete seasonal quests for bonus XP!
+                        </p>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '⚔️ Combat & Dangers',
+                content: `
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="font-size: 48px;">🐀 🐿️ 🦉</div>
+                    </div>
+
+                    <p style="margin-bottom: 15px;">The wild is dangerous! You may encounter <strong>predators</strong> that want to eat you or raid your nest:</p>
+
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        <div style="background: #ffebee; padding: 10px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🐀 Rat (HP: 30)</div>
+                            <div style="font-size: 12px;">Common threat. Steals eggs and food.</div>
+                        </div>
+
+                        <div style="background: #ffebee; padding: 10px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🐿️ Squirrel (HP: 40)</div>
+                            <div style="font-size: 12px;">Opportunistic. Raids nests for materials.</div>
+                        </div>
+
+                        <div style="background: #ffebee; padding: 10px; border-radius: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">🦉 Owl (HP: 60)</div>
+                            <div style="font-size: 12px;">Deadly night hunter. Very dangerous!</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <p style="font-weight: bold; margin-bottom: 8px;">Combat Options:</p>
+                        <ul style="margin-left: 20px; font-size: 13px; line-height: 1.6;">
+                            <li>⚔️ <strong>Attack:</strong> Deal damage (requires Combat check)</li>
+                            <li>🛡️ <strong>Defend:</strong> Reduce incoming damage</li>
+                            <li>🏃 <strong>Flee:</strong> Escape combat (requires Flying check)</li>
+                        </ul>
+                    </div>
+                `,
+                button: 'Next'
+            },
+            {
+                title: '🚀 Ready to Begin!',
+                content: `
+                    <div style="text-align: center; margin: 20px 0;">
+                        <div style="font-size: 64px; margin-bottom: 15px;">🐦✨</div>
+                        <p style="font-size: 18px; font-weight: bold; color: #667eea; margin-bottom: 10px;">
+                            Your adventure awaits!
+                        </p>
+                    </div>
+
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p style="font-weight: bold; margin-bottom: 10px;">📋 Quick Start Tips:</p>
+                        <ol style="margin-left: 20px; font-size: 13px; line-height: 1.8;">
+                            <li>Start by <strong>foraging</strong> and <strong>gathering</strong> to build up resources</li>
+                            <li>Build your <strong>nest</strong> as soon as you have 10 twigs</li>
+                            <li>Keep hunger below 100 by eating regularly</li>
+                            <li>Socialize with other birds to find a mate</li>
+                            <li>Rest when energy is low (especially at night!)</li>
+                            <li>Watch the dice rolls and learn the patterns</li>
+                        </ol>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 12px; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; font-size: 14px;">
+                            💾 <strong>Game auto-saves after every action!</strong><br/>
+                            <span style="font-size: 12px;">You can close the browser and return anytime.</span>
+                        </p>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px; font-size: 24px;">
+                        🌸 Good luck, young bird! 🌸
+                    </div>
+                `,
+                button: 'Start My Journey! 🐦'
+            }
+        ];
+
+        function showTutorial(step = 0) {
             const modal = document.getElementById('generic-modal');
             const title = document.getElementById('modal-title');
             const body = document.getElementById('modal-body');
             const buttons = document.getElementById('modal-buttons');
 
-            title.textContent = '🐦 Welcome to Seasons of the Flock';
-            body.innerHTML = `
-                <div style="padding: 15px; line-height: 1.6;">
-                    <p style="margin-bottom: 15px;">You are a young Bluebird starting your life in the wild.</p>
+            if (step >= TUTORIAL_STEPS.length) {
+                startGame();
+                return;
+            }
 
-                    <p style="margin-bottom: 15px;"><strong>Your Goal:</strong> Survive the seasons, build a nest, find a mate, and raise offspring.</p>
+            const tutorialData = TUTORIAL_STEPS[step];
+            title.textContent = tutorialData.title;
+            body.innerHTML = tutorialData.content;
 
-                    <p style="margin-bottom: 15px;"><strong>Each turn:</strong></p>
-                    <ul style="margin-left: 20px; margin-bottom: 15px;">
-                        <li>🔍 Forage for food</li>
-                        <li>🌿 Gather materials</li>
-                        <li>🏗️ Build your nest (need 10 twigs)</li>
-                        <li>👥 Socialize to find a mate</li>
-                        <li>⚔️ Defend against predators</li>
-                    </ul>
-
-                    <p style="margin-bottom: 15px;"><strong>Watch your stats:</strong></p>
-                    <ul style="margin-left: 20px; margin-bottom: 15px;">
-                        <li>❤️ Health: Don't let it reach 0!</li>
-                        <li>🍖 Hunger: Eat food to keep it low</li>
-                        <li>⚡ Energy: Rest to restore</li>
-                    </ul>
-
-                    <p><strong>Survive 4 seasons to complete Year 1!</strong></p>
-                </div>
+            buttons.innerHTML = `
+                ${step > 0 ? '<button class="modal-btn secondary" onclick="showTutorial(' + (step - 1) + ')">Back</button>' : ''}
+                <button class="modal-btn primary" onclick="showTutorial(${step + 1})">${tutorialData.button}</button>
             `;
 
-            buttons.innerHTML = '<button class="modal-btn primary" onclick="startGame()">Begin Your Journey</button>';
             modal.classList.add('active');
         }
 
         function startGame() {
             gameState.hasSeenIntro = true;
+            gameState.tutorialActive = true;
             closeModal();
-            addMessage('🌸 Spring has arrived! Your journey begins...', 'success');
+            addMessage('🌸 Spring has arrived! Your journey begins in Oak Meadow...', 'success');
+            addMessage('💡 Tip: Start by foraging for food or gathering twigs!', 'info');
             addSeasonalQuest();
             updateUI();
         }
@@ -1641,7 +2090,7 @@
             updateUI();
 
             if (!gameState.hasSeenIntro) {
-                showIntro();
+                showTutorial(0);
             } else {
                 addMessage('Game loaded. Welcome back!', 'info');
             }
