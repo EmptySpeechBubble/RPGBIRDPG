@@ -36,7 +36,58 @@
             color: #2d3436;
             overflow-x: hidden;
             position: relative;
-            transition: background 0.5s ease, color 0.5s ease;
+            transition: background 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        /* Day/Night indicator in corner - positioned relative to widget */
+        #day-night-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 32px;
+            z-index: 100;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: float 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Stars for night mode - positioned relative to widget */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            overflow: hidden;
+        }
+
+        .stars.active {
+            opacity: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
         }
 
         /* Game container - responsive and fullscreen compatible */
@@ -1010,21 +1061,28 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+            position: relative;
+            transition: background 0.5s ease, box-shadow 0.5s ease;
+            width: 100%;
+            height: 100%;
         }
 
         /* ===== FRESH CLEAN DESIGN FOR FLOATING WINDOW ===== */
 
         /* Game container */
         .bird-rpg-float #game-container {
+            width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
             padding: 12px !important;
             max-height: 680px !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            background: linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 100%) !important;
+            background: transparent !important;
             display: block !important;
             flex-direction: initial !important;
+            position: relative;
+            z-index: 10;
         }
 
         /* Custom scrollbar */
@@ -1464,8 +1522,8 @@
 
         /* Minimized State */
         .bird-rpg-float.minimized .bird-rpg-device {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             padding: 4px;
         }
 
@@ -1479,13 +1537,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 32px;
             cursor: pointer;
+            overflow: hidden;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a) !important;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5) !important;
         }
 
         .bird-rpg-float.minimized .bird-rpg-screen::before {
             content: '🐦';
             animation: birdBob 2s ease-in-out infinite;
+            line-height: 1;
         }
 
         @keyframes birdBob {
@@ -1494,6 +1556,11 @@
         }
 
         .bird-rpg-float.minimized #game-container {
+            display: none;
+        }
+
+        .bird-rpg-float.minimized #day-night-indicator,
+        .bird-rpg-float.minimized #stars-container {
             display: none;
         }
 
@@ -1517,8 +1584,21 @@
             }
 
             .bird-rpg-float.minimized {
+                top: auto !important;
+                left: auto !important;
                 right: 10px !important;
                 bottom: 10px !important;
+                transform: none !important;
+            }
+
+            .bird-rpg-float.minimized .bird-rpg-device {
+                width: 60px !important;
+                height: 60px !important;
+                padding: 3px !important;
+            }
+
+            .bird-rpg-float.minimized .bird-rpg-screen {
+                font-size: 28px !important;
             }
 
             .bird-rpg-float #game-container {
@@ -1557,6 +1637,12 @@
 
             <!-- Device Screen -->
             <div class="bird-rpg-screen">
+                <!-- Day/Night Indicator (inside widget) -->
+                <div id="day-night-indicator">☀️</div>
+
+                <!-- Stars for Night Mode (inside widget) -->
+                <div id="stars-container" class="stars"></div>
+
                 <div id="game-container">
         <!-- Header -->
         <div id="game-header">
@@ -2002,7 +2088,7 @@
         // ===== UI UPDATES =====
         function updateUI() {
             // Update day/night background colors
-            const body = document.body;
+            const screen = document.querySelector('.bird-rpg-screen');
             const header = document.getElementById('game-header');
             const mainContent = document.getElementById('main-content');
             const messageLog = document.getElementById('message-log');
@@ -2013,23 +2099,37 @@
             const levelInfo = document.getElementById('level-info');
             const questPanel = document.getElementById('quest-panel');
             const familySection = document.getElementById('family-section');
+            const dayNightIndicator = document.getElementById('day-night-indicator');
+            const starsContainer = document.getElementById('stars-container');
 
             if (gameState.timeOfDay === 'day') {
-                // Day: bright sky blue gradient
-                if (isMobile) {
-                    body.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #D4E8F5 100%)';
-                    header.style.background = 'rgba(250, 250, 250, 0.9)';
-                    header.style.color = '#2d3436';
-                } else {
-                    body.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 100%)';
-                    body.style.color = '#2d3436';
-                    header.style.background = 'rgba(250, 250, 250, 0.95)';
-                    header.style.color = '#2d3436';
-                    mainContent.style.background = 'rgba(250, 247, 240, 0.95)';
-                    mainContent.style.color = '#2d3436';
-                    messageLog.style.background = 'rgba(44, 62, 80, 0.9)';
-                    messageLog.style.color = '#ecf0f1';
+                // Show sun indicator
+                if (dayNightIndicator) {
+                    dayNightIndicator.textContent = '☀️';
+                    dayNightIndicator.style.textShadow = '0 0 20px rgba(255, 200, 0, 0.8), 0 0 30px rgba(255, 200, 0, 0.5)';
                 }
+                // Hide stars
+                if (starsContainer) {
+                    starsContainer.classList.remove('active');
+                }
+                // Day: bright sky blue gradient with warm glow (applied to widget screen)
+                if (screen) {
+                    if (isMobile) {
+                        screen.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        screen.style.boxShadow = 'inset 0 0 100px rgba(255, 230, 100, 0.3)';
+                    } else {
+                        screen.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        screen.style.boxShadow = 'inset 0 0 150px rgba(255, 230, 100, 0.2)';
+                    }
+                }
+                header.style.background = 'rgba(250, 250, 250, 0.95)';
+                header.style.color = '#2d3436';
+                header.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)';
+                mainContent.style.background = 'rgba(250, 247, 240, 0.95)';
+                mainContent.style.color = '#2d3436';
+                mainContent.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)';
+                messageLog.style.background = 'rgba(44, 62, 80, 0.9)';
+                messageLog.style.color = '#ecf0f1';
 
                 // Day mode for season/level info
                 seasonInfo.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
@@ -2050,21 +2150,34 @@
                     familySection.style.color = '#2d3436';
                 }
             } else {
-                // Night: dark blue/purple gradient with stars
-                if (isMobile) {
-                    body.style.background = 'linear-gradient(180deg, #0c1445 0%, #1a1a2e 50%, #16213e 100%)';
-                    header.style.background = 'rgba(20, 20, 40, 0.95)';
-                    header.style.color = '#e0e0e0';
-                } else {
-                    body.style.background = 'linear-gradient(135deg, #0c1445 0%, #1a1a2e 100%)';
-                    body.style.color = '#e0e0e0';
-                    header.style.background = 'rgba(20, 25, 45, 0.95)';
-                    header.style.color = '#e0e0e0';
-                    mainContent.style.background = 'rgba(25, 30, 50, 0.95)';
-                    mainContent.style.color = '#e0e0e0';
-                    messageLog.style.background = 'rgba(10, 15, 30, 0.9)';
-                    messageLog.style.color = '#d0d0d0';
+                // Show moon indicator
+                if (dayNightIndicator) {
+                    dayNightIndicator.textContent = '🌙';
+                    dayNightIndicator.style.textShadow = '0 0 20px rgba(200, 200, 255, 0.8), 0 0 30px rgba(200, 200, 255, 0.5)';
                 }
+                // Show stars
+                if (starsContainer) {
+                    starsContainer.classList.add('active');
+                }
+
+                // Night: dark blue/purple gradient with stars and moonlit glow (applied to widget screen)
+                if (screen) {
+                    if (isMobile) {
+                        screen.style.background = 'linear-gradient(180deg, #05061a 0%, #0c1445 30%, #1a1a2e 70%, #0a0a1a 100%)';
+                        screen.style.boxShadow = 'inset 0 0 150px rgba(100, 100, 200, 0.4)';
+                    } else {
+                        screen.style.background = 'radial-gradient(ellipse at top, #1a1a3e 0%, #0c1445 30%, #050515 100%)';
+                        screen.style.boxShadow = 'inset 0 0 200px rgba(100, 100, 200, 0.3)';
+                    }
+                }
+                header.style.background = 'rgba(15, 20, 35, 0.95)';
+                header.style.color = '#e0e0e0';
+                header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,100,200,0.3), 0 0 30px rgba(100,100,200,0.1)';
+                mainContent.style.background = 'rgba(20, 25, 40, 0.95)';
+                mainContent.style.color = '#e0e0e0';
+                mainContent.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,100,200,0.3), 0 0 30px rgba(100,100,200,0.1)';
+                messageLog.style.background = 'rgba(10, 15, 25, 0.9)';
+                messageLog.style.color = '#d0d0d0';
 
                 // Night mode for season/level info - darker with good contrast
                 seasonInfo.style.background = 'linear-gradient(135deg, #6a4c93 0%, #4a3870 100%)';
@@ -5031,6 +5144,26 @@
         }
 
         // ===== INIT =====
+        // Create starfield for night mode
+        function createStars() {
+            const starsContainer = document.getElementById('stars-container');
+            if (!starsContainer) return;
+
+            // Create 100 stars with random positions
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                // Vary star sizes slightly
+                const size = Math.random() * 2 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                starsContainer.appendChild(star);
+            }
+        }
+
         function init() {
             // Try to load save
             const loaded = loadGame();
@@ -5044,6 +5177,9 @@
             // Initialize weather and canvas map
             updateWeather();
             animateMap();
+
+            // Create stars for night mode
+            createStars();
 
             // Add canvas click handler for territory navigation
             const canvas = document.getElementById('map-canvas');
