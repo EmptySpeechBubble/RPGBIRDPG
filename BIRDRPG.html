@@ -583,6 +583,7 @@
             <!-- Season & Turn Info -->
             <div id="season-info">🌸 Spring - Turn 1/10</div>
             <div id="level-info">Level 1 Bluebird | XP: 0/100</div>
+            <div id="action-info" style="text-align: center; font-size: 11px; font-weight: bold; color: #2980b9; margin: 4px 0;">⚡ Actions: 0/5</div>
 
             <!-- Inventory -->
             <div id="inventory">
@@ -797,7 +798,11 @@
             hasWindChimes: false,
             windChimesInstalled: false,
             visitedPondThisTurn: false,
-            frogFriendship: 0 // 0-100
+            frogFriendship: 0, // 0-100
+
+            // Turn Management
+            actionsTakenThisTurn: 0,
+            maxActionsPerTurn: 5
         };
 
         // Territory definitions (3x3 grid, 0-8)
@@ -898,6 +903,11 @@
             document.getElementById('level-info').textContent =
                 `Level ${gameState.level} ${gameState.species} | XP: ${gameState.xp}/${gameState.xpNeeded}`;
 
+            // Action counter
+            const actionsRemaining = gameState.maxActionsPerTurn - gameState.actionsTakenThisTurn;
+            document.getElementById('action-info').textContent =
+                `⚡ Actions: ${actionsRemaining}/${gameState.maxActionsPerTurn}`;
+
             // Inventory
             document.getElementById('food-count').textContent = gameState.food;
             document.getElementById('twig-count').textContent = gameState.twigs;
@@ -978,6 +988,11 @@
                 }
             }
 
+            // Rest at nest (recover energy when you have a home)
+            if ((gameState.hasNest || gameState.hasBirdhouse) && gameState.energy < gameState.maxEnergy * 0.6) {
+                actions.push({ emoji: '😴', text: 'Rest at Nest', action: 'restAtNest', energyCost: 0, class: 'success' });
+            }
+
             // Food caching (unlock after level 3 or in Fall)
             if (gameState.level >= 3 || gameState.season === 2) {
                 actions.push({ emoji: '🌰', text: 'Cache Food', action: 'cacheFood', energyCost: 5, disabled: gameState.food < 1 });
@@ -1035,7 +1050,6 @@
             // Standard UI actions
             actions.push({ emoji: '📊', text: 'Character', action: 'character', energyCost: 0 });
             actions.push({ emoji: '📖', text: 'Diary', action: 'diary', energyCost: 0 });
-            actions.push({ emoji: '⏭️', text: 'End Turn', action: 'endTurn', energyCost: 0, class: 'warning' });
 
             actions.forEach(a => {
                 const btn = document.createElement('button');
@@ -1081,6 +1095,11 @@
 
         // ===== ACTIONS =====
         function performAction(action) {
+            // Check if this is an action that counts toward the turn limit
+            const nonCountingActions = ['character', 'diary', 'endTurn'];
+            const countsAsAction = !nonCountingActions.includes(action);
+
+            // Perform the action
             switch(action) {
                 case 'forage':
                     forage();
@@ -1090,6 +1109,9 @@
                     break;
                 case 'buildNest':
                     buildNest();
+                    break;
+                case 'restAtNest':
+                    restAtNest();
                     break;
                 case 'buildBirdhouse':
                     buildBirdhouse();
@@ -1143,6 +1165,32 @@
                     endTurn();
                     break;
             }
+
+            // Track action and check for auto-end conditions
+            if (countsAsAction) {
+                gameState.actionsTakenThisTurn++;
+                checkAutoEndTurn();
+            }
+        }
+
+        // Check if turn should auto-end
+        function checkAutoEndTurn() {
+            // Check energy threshold
+            if (gameState.energy <= 20) {
+                addMessage('⚡ You\'re too exhausted to continue! Time to rest...', 'warning');
+                setTimeout(() => endTurn(), 2000);
+                return;
+            }
+
+            // Check action limit
+            if (gameState.actionsTakenThisTurn >= gameState.maxActionsPerTurn) {
+                addMessage(`📊 You've taken ${gameState.maxActionsPerTurn} actions! The day passes...`, 'info');
+                setTimeout(() => endTurn(), 2000);
+                return;
+            }
+
+            // Update UI to show remaining actions
+            updateUI();
         }
 
         function moveToTerritory(locationId) {
@@ -1180,7 +1228,10 @@
 
             const territory = gameState.territories[gameState.currentLocation];
             const baseDC = gameState.season === 3 ? 20 : 10; // Winter is harder
-            const dc = baseDC + Math.abs(weatherMods.forageDC);
+
+            // Time of day bonus - foraging is easier during the day
+            const timeBonus = gameState.timeOfDay === 'day' ? -2 : 0;
+            const dc = baseDC + Math.abs(weatherMods.forageDC) + timeBonus;
 
             rollSkillCheck('Foraging', dc, (success, roll) => {
                 gameState.energy -= energyCost;
@@ -1212,6 +1263,27 @@
                     addMessage('🍄✨ You found a MAGIC MUSHROOM! Something strange glows about it...', 'success');
                     addDiaryEntry('Discovered a mysterious glowing mushroom 🍄', 'special');
                     gainXP(50);
+                }
+
+                // Random beneficial events (15% chance)
+                const eventRoll = Math.random();
+                if (eventRoll < 0.05) {
+                    // Meet a friendly bird who teaches you something
+                    const skillToBoost = ['foraging', 'perception', 'social'][Math.floor(Math.random() * 3)];
+                    gameState.skills[skillToBoost]++;
+                    addMessage(`🐦 You meet a friendly ${gameState.species} who shares wisdom about ${skillToBoost}! +1 skill`, 'success');
+                    gameState.socialStanding = Math.min(100, gameState.socialStanding + 5);
+                    gainXP(25);
+                } else if (eventRoll < 0.10) {
+                    // Find extra twigs
+                    const twigs = Math.floor(Math.random() * 2) + 1;
+                    gameState.twigs += twigs;
+                    addMessage(`🌿 Lucky find! You discovered ${twigs} perfect ${twigs === 1 ? 'twig' : 'twigs'} while foraging!`, 'success');
+                } else if (eventRoll < 0.15 && gameState.level >= 3) {
+                    // Find a shiny object
+                    gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
+                    addMessage('✨ You found a shiny object! Other birds are impressed by your treasure', 'success');
+                    gainXP(15);
                 }
 
                 gameState.hunger += 5;
@@ -1304,6 +1376,33 @@
             } else {
                 addMessage(`Rested and regained ${energyGain} energy ⚡`, 'success');
             }
+
+            updateUI();
+        }
+
+        function restAtNest() {
+            // Better recovery when resting at your cozy home
+            const baseRecovery = 35;
+            const bonusFromMate = gameState.hasMate ? 10 : 0;
+            const energyGain = baseRecovery + bonusFromMate;
+
+            gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + energyGain);
+            gameState.health = Math.min(gameState.maxHealth, gameState.health + 5);
+            gameState.hunger += 3; // Less hunger than regular rest since you're safe
+
+            const messages = [
+                '😴 You nestle into your cozy home and feel refreshed',
+                '🏠 Safe in your nest, you recover your strength',
+                '💤 A peaceful rest in your sanctuary restores you'
+            ];
+
+            if (gameState.hasMate) {
+                messages.push('💕 Your mate keeps you warm and safe while you rest');
+            }
+
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            addMessage(`${message} (+${energyGain} energy, +5 health)`, 'success');
+            gainXP(5);
 
             updateUI();
         }
@@ -2213,8 +2312,24 @@
 
         // ===== TURN & SEASON MANAGEMENT =====
         function endTurn() {
+            // Reset action counter for new turn
+            gameState.actionsTakenThisTurn = 0;
+
             // Passive effects
             gameState.hunger += 5;
+
+            // Daily recovery bonuses from home comforts
+            if (gameState.hasNest || gameState.hasBirdhouse) {
+                gameState.health = Math.min(gameState.maxHealth, gameState.health + 3);
+                addMessage('🏠 Your cozy nest helps you recover health', 'success');
+            }
+            if (gameState.hasMate) {
+                gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + 5);
+                addMessage('💕 Your mate\'s companionship restores energy', 'success');
+            }
+            if ((gameState.hasNest || gameState.hasBirdhouse) && gameState.hasMate) {
+                gameState.socialStanding = Math.min(100, gameState.socialStanding + 1);
+            }
 
             // Mushroom Mode effects
             if (gameState.mushroomModeActive) {
