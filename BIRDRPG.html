@@ -112,7 +112,8 @@
             }
 
             /* Just numbers, no labels */
-            .stat-compact-label {
+            .stat-compact-label,
+            .inventory-item-label {
                 display: none;
             }
 
@@ -864,9 +865,13 @@
 
         .stat-compact-label {
             font-weight: bold;
-            display: flex;
+            display: none; /* Hidden by default, shown only in floating window */
             align-items: center;
             gap: 2px;
+        }
+
+        .inventory-item-label {
+            display: none; /* Hidden by default, shown only in floating window */
         }
 
         .stat-compact-value {
@@ -1037,7 +1042,7 @@
         .bird-rpg-float #game-header {
             background: white !important;
             border-radius: 8px !important;
-            padding: 12px !important;
+            padding: 14px !important;
             margin-bottom: 10px !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
             flex-shrink: initial !important;
@@ -1054,11 +1059,15 @@
             display: inline-block !important;
         }
 
-        /* Info line */
+        /* Info line - uniform style */
         .bird-rpg-float #game-header > div:nth-child(3) {
-            font-size: 11px !important;
-            margin-bottom: 8px !important;
-            line-height: 1.5 !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 10px !important;
+            padding: 8px 10px !important;
+            background: rgba(102, 126, 234, 0.06) !important;
+            border-radius: 6px !important;
         }
 
         .bird-rpg-float #season-info,
@@ -1066,59 +1075,78 @@
         .bird-rpg-float #action-info {
             display: inline-block !important;
             font-size: 11px !important;
-            padding: 3px 6px !important;
-            margin: 0 3px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-weight: 500 !important;
+            background: transparent !important;
         }
 
-        /* Stats - clean and readable */
+        /* Stats - uniform grid */
         .bird-rpg-float #game-header > div:nth-child(4) {
-            display: flex !important;
-            justify-content: space-around !important;
-            margin: 8px 0 !important;
-            gap: 6px !important;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+            margin: 10px 0 !important;
         }
 
         .bird-rpg-float #stats-grid {
-            display: flex !important;
-            justify-content: space-around !important;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
         }
 
         .bird-rpg-float .stat-compact {
-            font-size: 12px !important;
-            padding: 6px 8px !important;
-            background: rgba(102, 126, 234, 0.08) !important;
-            border-radius: 5px !important;
+            font-size: 11px !important;
+            padding: 8px 10px !important;
+            background: rgba(102, 126, 234, 0.06) !important;
+            border-radius: 6px !important;
+            font-weight: 500 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
         }
 
         .bird-rpg-float .stat-compact-label {
             display: inline !important;
+            opacity: 0.8 !important;
         }
 
         .bird-rpg-float .stat-compact-value {
-            font-size: 14px !important;
-            font-weight: bold !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            margin-left: auto !important;
         }
 
-        /* Inventory - simple */
+        /* Inventory - uniform style */
         .bird-rpg-float #inventory {
-            text-align: center !important;
-            font-size: 11px !important;
-            margin-top: 8px !important;
-            padding: 0 3px !important;
-            background: transparent !important;
+            display: flex !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            margin-top: 10px !important;
+            padding: 8px 10px !important;
+            background: rgba(76, 175, 80, 0.06) !important;
+            border-radius: 6px !important;
         }
 
         .bird-rpg-float .inventory-title {
-            display: inline !important;
+            display: none !important;
         }
 
         .bird-rpg-float .inventory-item {
-            display: inline-block !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px !important;
             font-size: 11px !important;
-            margin: 0 5px !important;
-            padding: 3px 6px !important;
-            background: rgba(76, 175, 80, 0.1) !important;
-            border-radius: 4px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            font-weight: 500 !important;
+        }
+
+        .bird-rpg-float .inventory-item-label {
+            opacity: 0.8 !important;
+            margin-right: 3px !important;
         }
 
         /* === MAIN CONTENT === */
@@ -1139,6 +1167,11 @@
             align-items: initial !important;
             justify-content: initial !important;
             margin: 0 !important;
+        }
+
+        /* Hide quest panel from main screen - only in character sheet */
+        .bird-rpg-float #quest-panel {
+            display: none !important;
         }
 
         /* Weather */
@@ -1390,20 +1423,20 @@
 
             <!-- Compact Stats & Inventory Combined -->
             <div style="display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin: 2px 0; font-size: 9px;">
-                <span class="stat-compact">❤️<span class="stat-compact-value" id="header-health">100/100</span></span>
-                <span class="stat-compact">⚡<span class="stat-compact-value" id="header-energy">100/100</span></span>
-                <span class="stat-compact">🍖<span class="stat-compact-value" id="header-hunger">0/100</span></span>
-                <span class="stat-compact">⭐<span class="stat-compact-value" id="header-social">50/100</span></span>
+                <span class="stat-compact">❤️ <span class="stat-compact-label">Health:</span><span class="stat-compact-value" id="header-health">100/100</span></span>
+                <span class="stat-compact">⚡ <span class="stat-compact-label">Energy:</span><span class="stat-compact-value" id="header-energy">100/100</span></span>
+                <span class="stat-compact">🍖 <span class="stat-compact-label">Hunger:</span><span class="stat-compact-value" id="header-hunger">0/100</span></span>
+                <span class="stat-compact">⭐ <span class="stat-compact-label">Social:</span><span class="stat-compact-value" id="header-social">50/100</span></span>
             </div>
 
             <div id="stats-grid" style="display: none;"></div>
 
             <!-- Inventory (Inline) -->
             <div id="inventory" style="text-align: center;">
-                <span class="inventory-item">🌰<span id="food-count">0</span></span>
-                <span class="inventory-item">🌿<span id="twig-count">0</span></span>
-                <span class="inventory-item">🥚<span id="egg-count">0</span></span>
-                <span class="inventory-item">📦<span id="cached-count">0</span></span>
+                <span class="inventory-item">🌰 <span class="inventory-item-label">Food:</span><span id="food-count">0</span></span>
+                <span class="inventory-item">🌿 <span class="inventory-item-label">Twigs:</span><span id="twig-count">0</span></span>
+                <span class="inventory-item">🥚 <span class="inventory-item-label">Eggs:</span><span id="egg-count">0</span></span>
+                <span class="inventory-item">📦 <span class="inventory-item-label">Cached:</span><span id="cached-count">0</span></span>
             </div>
 
             <!-- Family Section -->
