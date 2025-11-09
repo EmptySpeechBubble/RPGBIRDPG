@@ -146,6 +146,21 @@
             display: block;
             cursor: pointer;
             touch-action: manipulation;
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+        }
+
+        /* Map and Actions Container - side by side on desktop */
+        #map-actions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        #map-wrapper {
+            flex-shrink: 0;
         }
 
         /* Message Log */
@@ -468,6 +483,21 @@
             #action-panel {
                 grid-template-columns: repeat(3, 1fr);
             }
+
+            /* Side-by-side layout on desktop */
+            #map-actions-container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+
+            #map-wrapper {
+                width: 400px;
+            }
+
+            #action-panel {
+                flex: 1;
+                min-width: 0; /* Prevent overflow */
+            }
         }
 
         /* Inventory */
@@ -631,16 +661,19 @@
                 <span id="weather-text">Clear skies</span>
             </div>
 
-            <!-- Canvas Map (Visual) -->
-            <div style="margin-bottom: 8px; display: flex; justify-content: center;">
-                <canvas id="map-canvas" width="400" height="400" style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></canvas>
-            </div>
-
             <!-- Message Log -->
             <div id="message-log"></div>
 
-            <!-- Action Panel -->
-            <div id="action-panel"></div>
+            <!-- Map and Actions Container -->
+            <div id="map-actions-container">
+                <!-- Canvas Map (Visual) -->
+                <div id="map-wrapper">
+                    <canvas id="map-canvas" width="400" height="400" style="border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></canvas>
+                </div>
+
+                <!-- Action Panel -->
+                <div id="action-panel"></div>
+            </div>
         </div>
     </div>
 
