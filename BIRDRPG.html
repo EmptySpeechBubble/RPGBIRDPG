@@ -65,54 +65,60 @@
             }
 
             #game-header {
-                padding: 4px;
-                margin-bottom: 2px;
+                padding: 2px;
+                margin-bottom: 1px;
                 flex-shrink: 0;
+                border-radius: 6px;
             }
 
             #game-title {
-                font-size: 13px;
-                margin-bottom: 2px;
-                padding: 2px 0;
+                font-size: 10px;
+                margin-bottom: 1px;
+                padding: 1px 0;
+            }
+
+            /* Hide New Game / Help buttons on mobile */
+            #game-header > div:first-of-type {
+                display: none;
             }
 
             /* Combine season/level/action into one compact line */
             #season-info, #level-info {
                 display: inline-block;
-                font-size: 8px;
-                margin: 1px 2px;
-                padding: 2px 4px;
+                font-size: 7px;
+                margin: 0 1px;
+                padding: 1px 2px;
             }
 
             #action-info {
                 display: inline-block;
-                font-size: 8px;
-                margin: 1px 2px;
-                padding: 2px 4px;
+                font-size: 7px;
+                margin: 0 1px;
+                padding: 1px 2px;
             }
 
             /* Hide stats grid, show minimal inline version */
             #stats-grid {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 2px;
-                margin: 2px 0;
+                gap: 1px;
+                margin: 1px 0;
             }
 
             .stat-compact {
-                padding: 1px 3px;
-                font-size: 8px;
+                padding: 1px 2px;
+                font-size: 7px;
                 flex: 0 0 auto;
             }
 
             .stat-compact-label {
-                font-size: 8px;
+                font-size: 7px;
             }
 
             #inventory {
-                padding: 2px 4px;
-                margin-bottom: 2px;
-                font-size: 8px;
+                padding: 1px 2px;
+                margin-bottom: 1px;
+                font-size: 7px;
             }
 
             .inventory-title {
@@ -121,31 +127,31 @@
             }
 
             .inventory-item {
-                font-size: 7px;
-                margin: 0 2px;
+                font-size: 6px;
+                margin: 0 1px;
             }
 
             /* Make weather inline and tiny */
             #weather-display {
-                padding: 2px 4px;
-                margin-bottom: 2px;
-                font-size: 8px;
+                padding: 1px 2px;
+                margin-bottom: 1px;
+                font-size: 7px;
                 display: inline-flex;
                 width: auto;
             }
 
             #message-log {
-                max-height: 25px;
-                margin-bottom: 2px;
-                padding: 2px;
-                font-size: 8px;
-                line-height: 1.2;
+                max-height: 20px;
+                margin-bottom: 1px;
+                padding: 1px;
+                font-size: 7px;
+                line-height: 1.1;
             }
 
             .message {
-                margin-bottom: 2px;
-                padding: 2px;
-                font-size: 8px;
+                margin-bottom: 1px;
+                padding: 1px;
+                font-size: 7px;
             }
 
             /* Smaller map */
@@ -178,7 +184,7 @@
                 min-height: 0;
                 display: flex;
                 flex-direction: column;
-                padding: 4px;
+                padding: 2px;
                 margin-bottom: 0;
             }
 
@@ -196,22 +202,42 @@
             }
 
             #quest-panel {
-                font-size: 8px;
-                padding: 2px 4px;
-                margin-bottom: 2px;
+                font-size: 7px;
+                padding: 1px 2px;
+                margin-bottom: 1px;
+            }
+
+            /* Hide quest title on mobile to save space */
+            .quest-title {
+                display: none;
             }
 
             #family-section {
-                padding: 2px 4px;
-                margin-bottom: 2px;
-                font-size: 8px;
+                padding: 1px 2px;
+                margin-bottom: 1px;
+                font-size: 7px;
             }
 
             /* Hide quick action buttons on mobile to save space */
             #game-header button {
-                padding: 3px 4px;
-                font-size: 8px;
+                padding: 2px 3px;
+                font-size: 7px;
             }
+        }
+
+        /* Default weather display */
+        #weather-display {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         /* Header */
@@ -830,7 +856,7 @@
             </div>
 
             <!-- Weather Display -->
-            <div id="weather-display" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <div id="weather-display">
                 <span id="weather-icon">☀️</span>
                 <span id="weather-text">Clear skies</span>
             </div>
@@ -1252,7 +1278,7 @@
                 btn.innerHTML = `
                     <div class="btn-emoji">${a.emoji}</div>
                     <div class="btn-text">${a.text}</div>
-                    ${a.energyCost ? `<div class="btn-text" style="font-size: 10px;">-${a.energyCost} ⚡</div>` : ''}
+                    ${a.energyCost ? `<div class="btn-text" style="font-size: 6px;">-${a.energyCost} ⚡</div>` : ''}
                 `;
                 btn.onclick = () => performAction(a.action);
                 actionPanel.appendChild(btn);
@@ -1269,16 +1295,16 @@
                     const progressPercent = Math.min(100, (q.progress / q.goal) * 100);
                     const progressColor = progressPercent >= 100 ? '#27ae60' : progressPercent >= 50 ? '#f39c12' : '#3498db';
                     return `
-                        <div class="quest-item" style="margin-bottom: 2px; padding: 2px 3px;">
-                            <div style="font-weight: bold; margin-bottom: 1px; font-size: 8px;">${q.emoji} ${q.name}</div>
-                            <div style="font-size: 7px; color: #666; margin-bottom: 1px; line-height: 1.1;">${q.desc}</div>
-                            <div style="display: flex; align-items: center; gap: 3px;">
-                                <div style="flex: 1; background: #ddd; border-radius: 3px; height: 6px; overflow: hidden;">
+                        <div class="quest-item" style="margin-bottom: 1px; padding: 1px 2px;">
+                            <div style="font-weight: bold; margin-bottom: 0; font-size: 6px;">${q.emoji} ${q.name}</div>
+                            <div style="font-size: 6px; color: #666; margin-bottom: 0; line-height: 1.1;">${q.desc}</div>
+                            <div style="display: flex; align-items: center; gap: 2px;">
+                                <div style="flex: 1; background: #ddd; border-radius: 2px; height: 4px; overflow: hidden;">
                                     <div style="width: ${progressPercent}%; background: ${progressColor}; height: 100%; transition: width 0.3s;"></div>
                                 </div>
-                                <div style="font-size: 7px; font-weight: bold;">${q.progress}/${q.goal}</div>
+                                <div style="font-size: 6px; font-weight: bold;">${q.progress}/${q.goal}</div>
                             </div>
-                            <div style="font-size: 7px; color: #27ae60; margin-top: 1px;">+${q.reward}XP</div>
+                            <div style="font-size: 6px; color: #27ae60; margin-top: 0;">+${q.reward}XP</div>
                         </div>
                     `;
                 }).join('');
