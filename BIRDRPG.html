@@ -931,7 +931,7 @@
                 0 0 0 2px #333,
                 inset 0 2px 5px rgba(255, 255, 255, 0.1),
                 inset 0 -2px 5px rgba(0, 0, 0, 0.5);
-            width: 360px;
+            width: 460px;
         }
 
         /* Title Bar */
@@ -1009,8 +1009,8 @@
         .bird-rpg-float #game-container {
             max-width: 100%;
             margin: 0;
-            padding: 8px;
-            max-height: 620px;
+            padding: 12px;
+            max-height: 680px;
             overflow-y: auto;
             overflow-x: hidden;
             background: linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 100%);
@@ -1035,8 +1035,8 @@
         .bird-rpg-float #game-header {
             background: white;
             border-radius: 8px;
-            padding: 8px;
-            margin-bottom: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
@@ -1048,71 +1048,72 @@
 
         /* Info line */
         .bird-rpg-float #game-header > div:nth-child(3) {
-            font-size: 10px;
-            margin-bottom: 6px;
-            line-height: 1.4;
+            font-size: 11px;
+            margin-bottom: 8px;
+            line-height: 1.5;
         }
 
         .bird-rpg-float #season-info,
         .bird-rpg-float #level-info,
         .bird-rpg-float #action-info {
             display: inline-block;
-            font-size: 10px;
-            padding: 2px 4px;
-            margin: 0 2px;
+            font-size: 11px;
+            padding: 3px 6px;
+            margin: 0 3px;
         }
 
         /* Stats - clean and readable */
         .bird-rpg-float #game-header > div:nth-child(4) {
             display: flex;
             justify-content: space-around;
-            margin: 6px 0;
+            margin: 8px 0;
+            gap: 6px;
         }
 
         .bird-rpg-float .stat-compact {
-            font-size: 11px;
-            padding: 4px 6px;
+            font-size: 12px;
+            padding: 6px 8px;
             background: rgba(102, 126, 234, 0.08);
-            border-radius: 4px;
+            border-radius: 5px;
         }
 
         .bird-rpg-float .stat-compact-value {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
         }
 
         /* Inventory - simple */
         .bird-rpg-float #inventory {
             text-align: center;
-            font-size: 10px;
-            margin-top: 6px;
+            font-size: 11px;
+            margin-top: 8px;
         }
 
         .bird-rpg-float .inventory-item {
             display: inline-block;
-            font-size: 10px;
-            margin: 0 4px;
-            padding: 2px 4px;
+            font-size: 11px;
+            margin: 0 5px;
+            padding: 3px 6px;
             background: rgba(76, 175, 80, 0.1);
-            border-radius: 3px;
+            border-radius: 4px;
         }
 
         /* === MAIN CONTENT === */
         .bird-rpg-float #main-content {
             background: white;
             border-radius: 8px;
-            padding: 8px;
+            padding: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         /* Weather */
         .bird-rpg-float #weather-display {
             text-align: center;
-            font-size: 10px;
-            padding: 4px;
+            font-size: 11px;
+            padding: 6px;
             background: rgba(102, 126, 234, 0.08);
-            border-radius: 4px;
-            margin-bottom: 6px;
+            border-radius: 5px;
+            margin-bottom: 8px;
         }
 
         /* Message log */
@@ -1120,28 +1121,28 @@
             background: #2c3e50;
             color: #ecf0f1;
             border-radius: 6px;
-            padding: 6px;
-            max-height: 40px;
+            padding: 8px;
+            max-height: 50px;
             overflow-y: auto;
-            margin-bottom: 8px;
-            font-size: 9px;
-            line-height: 1.3;
+            margin-bottom: 10px;
+            font-size: 10px;
+            line-height: 1.4;
         }
 
         .bird-rpg-float .message {
-            font-size: 9px;
-            margin-bottom: 3px;
+            font-size: 10px;
+            margin-bottom: 4px;
         }
 
         /* === MAP === */
         .bird-rpg-float #map-wrapper {
-            width: 260px;
+            width: 340px;
             margin: 0 auto 8px auto;
         }
 
         .bird-rpg-float #map-canvas {
-            width: 260px !important;
-            height: 260px !important;
+            width: 340px !important;
+            height: 340px !important;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
@@ -1150,88 +1151,88 @@
         .bird-rpg-float #action-panel {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-top: 8px;
+            gap: 8px;
+            margin-top: 10px;
         }
 
         .bird-rpg-float .action-btn {
-            padding: 8px 4px;
-            min-height: 55px;
-            border-radius: 6px;
-            font-size: 9px;
+            padding: 10px 6px;
+            min-height: 60px;
+            border-radius: 7px;
+            font-size: 10px;
         }
 
         .bird-rpg-float .btn-emoji {
-            font-size: 20px;
-            margin-bottom: 2px;
+            font-size: 22px;
+            margin-bottom: 3px;
         }
 
         .bird-rpg-float .btn-text {
-            font-size: 10px;
-            line-height: 1.2;
+            font-size: 11px;
+            line-height: 1.3;
         }
 
         /* Family section */
         .bird-rpg-float #family-section {
-            font-size: 10px;
-            padding: 8px;
-            margin-bottom: 8px;
+            font-size: 11px;
+            padding: 10px;
+            margin-bottom: 10px;
             border-radius: 6px;
         }
 
         /* === MODALS & MENUS === */
         .bird-rpg-float .modal-content {
-            max-width: 320px;
-            max-height: 500px;
-            padding: 16px;
-            font-size: 10px;
+            max-width: 400px;
+            max-height: 540px;
+            padding: 18px;
+            font-size: 11px;
         }
 
         .bird-rpg-float .modal-content h2 {
-            font-size: 14px;
-            margin-bottom: 10px;
+            font-size: 16px;
+            margin-bottom: 12px;
         }
 
         .bird-rpg-float .modal-content h3 {
-            font-size: 12px;
-            margin-top: 8px;
-            margin-bottom: 6px;
+            font-size: 13px;
+            margin-top: 10px;
+            margin-bottom: 8px;
         }
 
         .bird-rpg-float .modal-content p,
         .bird-rpg-float .modal-content div {
-            font-size: 10px;
-            line-height: 1.4;
+            font-size: 11px;
+            line-height: 1.5;
         }
 
         .bird-rpg-float .modal-content button {
-            font-size: 10px;
-            padding: 6px 12px;
-            margin: 4px;
+            font-size: 11px;
+            padding: 8px 14px;
+            margin: 5px;
         }
 
         /* Dice roll modal */
         .bird-rpg-float #dice-emoji {
-            font-size: 60px;
+            font-size: 70px;
         }
 
         .bird-rpg-float .dice-roll-title {
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .bird-rpg-float .dice-roll-result {
-            font-size: 12px;
+            font-size: 14px;
         }
 
         /* Quest items */
         .bird-rpg-float .quest-item {
-            font-size: 9px;
-            padding: 6px;
-            margin: 4px 0;
+            font-size: 10px;
+            padding: 8px;
+            margin: 5px 0;
         }
 
         .bird-rpg-float .progress-bar {
-            height: 6px;
+            height: 7px;
         }
 
         /* Minimized State */
@@ -1279,7 +1280,7 @@
             }
 
             .bird-rpg-device {
-                width: 320px;
+                width: 400px;
             }
 
             .bird-rpg-float {
@@ -1294,7 +1295,7 @@
             }
 
             .bird-rpg-float #game-container {
-                max-height: 520px;
+                max-height: 560px;
             }
         }
     </style>
