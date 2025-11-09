@@ -166,6 +166,7 @@
             padding: 5px;
             border-left: 3px solid #3498db;
             padding-left: 8px;
+            animation: fadeInUp 0.4s ease-out;
         }
 
         .message.success { border-left-color: #2ecc71; }
@@ -189,15 +190,37 @@
             font-size: 13px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .action-btn:active {
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .action-btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .action-btn:active:not(:disabled) {
             transform: scale(0.95);
             box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
@@ -205,6 +228,7 @@
         .action-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            filter: grayscale(50%);
         }
 
         .action-btn.danger {
@@ -277,6 +301,33 @@
             75% { transform: rotate(15deg); }
         }
 
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
         .crit-success {
             animation: critSuccess 0.6s ease;
             color: #2ecc71;
@@ -346,6 +397,7 @@
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .modal-title {
