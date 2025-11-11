@@ -36,12 +36,12 @@
             color: #2d3436;
             overflow-x: hidden;
             position: relative;
-            transition: background 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+            transition: background 1s ease, color 0.5s ease, box-shadow 0.5s ease;
         }
 
-        /* Day/Night indicator in corner - positioned relative to widget */
+        /* Day/Night indicator in corner - fixed position */
         #day-night-indicator {
-            position: absolute;
+            position: fixed;
             top: 10px;
             right: 10px;
             font-size: 32px;
@@ -56,9 +56,9 @@
             50% { transform: translateY(-10px); }
         }
 
-        /* Stars for night mode - positioned relative to widget */
+        /* Stars for night mode - full viewport coverage */
         .stars {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
@@ -68,7 +68,7 @@
             pointer-events: none;
             z-index: 1;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 1s ease;
             overflow: hidden;
         }
 
@@ -145,7 +145,7 @@
 
             /* Hide New Game / Help buttons on mobile */
             #game-header > div:first-of-type {
-                display: none;
+                display: none !important;
             }
 
             /* Single line info - readable */
@@ -267,15 +267,15 @@
 
             /* READABLE action buttons - compact 2 columns */
             .action-btn {
-                padding: 3px 2px;
+                padding: 4px 2px;
                 font-size: 6px;
                 border-radius: 3px;
                 gap: 1px;
-                min-height: 0;
+                min-height: 44px; /* Minimum touch target size for accessibility */
             }
 
             .btn-emoji {
-                font-size: 12px;
+                font-size: 14px;
                 margin-bottom: 1px;
             }
 
@@ -331,9 +331,9 @@
                 font-size: 5px;
             }
 
-            /* Hide button text on mobile */
+            /* Hide buttons on mobile */
             #game-header button {
-                display: none;
+                display: none !important;
             }
         }
 
@@ -838,8 +838,10 @@
             }
 
             #action-panel {
-                grid-template-columns: 1fr; /* Changed from 2 to 1 column */
-                max-width: 200px; /* Limit width */
+                grid-template-columns: 1fr; /* Single column for desktop side layout */
+                max-width: 200px;
+                flex: 0 0 auto; /* Don't grow or shrink */
+                width: 200px;
             }
 
             /* Side-by-side layout on desktop */
@@ -856,11 +858,6 @@
             #map-canvas {
                 width: 400px;
                 height: 400px;
-            }
-
-            #action-panel {
-                flex: 0 0 auto; /* Don't grow or shrink */
-                width: 200px; /* Fixed narrow width */
             }
         }
 
@@ -936,18 +933,72 @@
 
         .stat-compact-label {
             font-weight: bold;
-            display: none; /* Hidden by default, shown only in floating window */
+            display: none; /* Hidden by default on mobile */
             align-items: center;
             gap: 2px;
         }
 
         .inventory-item-label {
-            display: none; /* Hidden by default, shown only in floating window */
+            display: none; /* Hidden by default on mobile */
         }
 
         .stat-compact-value {
             font-weight: bold;
             color: #667eea;
+        }
+
+        /* Desktop styles (600px and above) */
+        @media (min-width: 600px) {
+            /* Show labels on desktop for better clarity */
+            .stat-compact-label,
+            .inventory-item-label {
+                display: inline !important;
+            }
+
+            /* Better desktop layout */
+            body {
+                padding: 0;
+                overflow-y: auto;
+            }
+
+            #game-container {
+                padding: 12px;
+                min-height: 100vh;
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            #game-header {
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+
+            #main-content {
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+
+            /* Larger fonts for desktop */
+            .stat-compact {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+
+            #inventory {
+                font-size: 11px;
+                padding: 8px;
+            }
+
+            .inventory-item {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+
+            /* Better weather display on desktop */
+            #weather-display {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
         }
 
     </style>
