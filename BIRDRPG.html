@@ -143,10 +143,8 @@
                 font-weight: bold;
             }
 
-            /* Hide New Game / Help buttons on mobile */
-            #game-header > div:first-of-type {
-                display: none !important;
-            }
+            /* Show New Game / Help buttons on mobile - removed hiding */
+            /* Buttons are now always visible for easy game reset */
 
             /* Single line info - readable */
             #season-info, #level-info {
@@ -338,9 +336,10 @@
                 font-size: 5px;
             }
 
-            /* Hide buttons on mobile */
+            /* Show New Game and Help buttons on mobile - users need access to restart */
             #game-header button {
-                display: none !important;
+                font-size: 8px;
+                padding: 3px 4px;
             }
         }
 
