@@ -1256,6 +1256,7 @@
             // Flags
             isInCombat: false,
             combatEnemy: null,
+            combatEnemies: [], // Array of enemies in current combat
             gameOver: false,
             hasSeenIntro: false,
 
@@ -3163,6 +3164,147 @@
         }
 
         // ===== COMBAT =====
+
+        // Combat flavor text for variety
+        const combatEntranceText = [
+            "A {enemy} spots you and looks hungry!",
+            "{enemy} emerges from the shadows!",
+            "You've been ambushed by {enemy}!",
+            "{enemy} blocks your path menacingly!",
+            "Watch out! {enemy} lunges at you!",
+            "{enemy} appears with a screech!",
+            "Danger! {enemy} has you in its sights!",
+            "{enemy} swoops down aggressively!",
+            "A wild {enemy} appeared! (This isn't Pokémon but same energy)",
+            "{enemy} challenges you to combat!",
+            "Uh oh... {enemy} doesn't look friendly!",
+            "Your path is blocked by {enemy}!",
+            "Battle time! {enemy} is ready to fight!",
+            "{enemy} emerges, looking for trouble!",
+            "Red alert! {enemy} is attacking!"
+        ];
+
+        const multipleEnemyText = [
+            "{count} {enemy} surround you!",
+            "A pack of {count} {enemy} attack!",
+            "Multiple threats! {count} {enemy} close in!",
+            "You're outnumbered! {count} {enemy} vs you!",
+            "{count} {enemy} coordinate their attack!",
+            "Gang warfare! {count} {enemy} team up!",
+            "It's a squad! {count} {enemy} strike together!",
+            "Double trouble! {count} {enemy} appear!",
+            "A whole crew of {count} {enemy} show up!",
+            "The odds aren't good - {count} {enemy} vs one bird!"
+        ];
+
+        const attackFlavorText = [
+            "You strike with precision!",
+            "Your talon connects!",
+            "A fierce peck lands!",
+            "You unleash your fury!",
+            "Direct hit!",
+            "Your combat training pays off!",
+            "Critical strike!",
+            "You channel your inner warrior!",
+            "Savage attack!",
+            "Your beak finds its mark!",
+            "A flurry of feathers and fury!",
+            "You fight like your life depends on it (because it does)!",
+            "Aggressive chirping intensifies!",
+            "You remember your ancestors' fighting spirit!",
+            "Your battle cry echoes!"
+        ];
+
+        const attackMissText = [
+            "Your attack whiffs through the air!",
+            "You miss completely!",
+            "The enemy dodges effortlessly!",
+            "Your aim was off!",
+            "You stumble mid-attack!",
+            "A clumsy swing!",
+            "The enemy sees it coming!",
+            "Your attack fails to connect!",
+            "You overextended yourself!",
+            "That was embarrassing...",
+            "The wind throws off your strike!",
+            "Your timing was all wrong!",
+            "They're faster than you thought!",
+            "You flail uselessly!",
+            "Nature 1, You 0 on that one..."
+        ];
+
+        const enemyAttackText = [
+            "strikes back viciously!",
+            "retaliates with fury!",
+            "counterattacks!",
+            "fights back!",
+            "launches a fierce assault!",
+            "doesn't go down easy!",
+            "shows its teeth!",
+            "claps back hard!",
+            "returns the favor!",
+            "ain't having it!",
+            "fights for survival!",
+            "goes absolutely feral!",
+            "refuses to be beaten!",
+            "hits you where it hurts!",
+            "teaches you a lesson!"
+        ];
+
+        const defendSuccessText = [
+            "You brace for impact!",
+            "Your defensive stance holds!",
+            "You weather the storm!",
+            "Feathers ruffled but unbroken!",
+            "You stand your ground!",
+            "Tank mode activated!",
+            "You shield yourself effectively!",
+            "Taking it like a champ!",
+            "Defense successful!",
+            "You absorb the blow!",
+            "Your guard is up!",
+            "You hunker down!",
+            "Defensive posture: engaged!",
+            "You're tough as nails!",
+            "Not today, danger!"
+        ];
+
+        const fleeSuccessText = [
+            "You fly away at maximum velocity!",
+            "Tactical retreat successful!",
+            "You escape to fight another day!",
+            "Nope nope nope - you're outta there!",
+            "Your wings carry you to safety!",
+            "Running away is a valid strategy!",
+            "You vanish into the sky!",
+            "Live to tell the tale!",
+            "Survival > pride. Good choice!",
+            "You book it!",
+            "Your flight instincts kick in!",
+            "You bail faster than your tax accountant!",
+            "Discretion is the better part of valor!",
+            "You achieve escape velocity!",
+            "See ya later, alligator!"
+        ];
+
+        const fleeFailText = [
+            "Your wings betray you!",
+            "Can't escape!",
+            "They're too fast!",
+            "You're trapped!",
+            "No escape!",
+            "The enemy blocks your path!",
+            "You stumble trying to flee!",
+            "Your exit is cut off!",
+            "Nowhere to run!",
+            "They've got you cornered!",
+            "Your flight fails!",
+            "You can't get away!",
+            "Retreat impossible!",
+            "They're on you like glue!",
+            "This is your stand, like it or not!"
+        ];
+
         function spawnPredator(forceBoss = false) {
             // Check for Rat King trigger
             if (gameState.ratsDefeated >= 5 && !forceBoss) {
@@ -3178,41 +3320,101 @@
                 { name: 'Hawk', emoji: '🦅', health: 70, attack: [20, 30], xp: 120, type: 'boss' }
             ];
 
+            // Level scaling factor (enemies get stronger as player levels up)
+            const levelScaling = 1 + (gameState.level - 1) * 0.15; // 15% increase per level
+
             // Weight by danger and level
-            let predator;
+            let selectedPredatorType;
             if (gameState.level <= 2) {
-                predator = { ...predators[0] }; // Rat for low levels
+                selectedPredatorType = 0; // Rat for low levels
             } else if (gameState.level >= 7 && Math.random() < 0.15) {
-                predator = { ...predators[4] }; // Hawk for high levels (rare)
+                selectedPredatorType = 4; // Hawk for high levels (rare)
             } else if (gameState.level >= 5 && Math.random() < 0.25) {
-                predator = { ...predators[3] }; // Crow
+                selectedPredatorType = 3; // Crow
             } else if (Math.random() < 0.6) {
-                predator = { ...predators[Math.floor(Math.random() * 2)] }; // Rat or Squirrel
+                selectedPredatorType = Math.floor(Math.random() * 2); // Rat or Squirrel
             } else {
-                predator = { ...predators[2] }; // Owl
+                selectedPredatorType = 2; // Owl
+            }
+
+            // Determine if multiple enemies spawn (higher chance at lower levels for rats/squirrels)
+            let enemyCount = 1;
+            const isBoss = predators[selectedPredatorType].type === 'boss';
+
+            if (!isBoss && !forceBoss) {
+                // Rats and squirrels can appear in groups
+                if (selectedPredatorType <= 1) { // Rat or Squirrel
+                    const multiChance = Math.random();
+                    if (gameState.level >= 4 && multiChance < 0.35) {
+                        enemyCount = Math.random() < 0.5 ? 2 : 3;
+                    } else if (gameState.level >= 2 && multiChance < 0.25) {
+                        enemyCount = 2;
+                    }
+                }
+                // Other enemies can occasionally appear in pairs at higher levels
+                else if (gameState.level >= 6 && Math.random() < 0.15) {
+                    enemyCount = 2;
+                }
+            }
+
+            // Create enemy array with scaled stats
+            gameState.combatEnemies = [];
+            const basePredator = predators[selectedPredatorType];
+
+            for (let i = 0; i < enemyCount; i++) {
+                const predator = {
+                    ...basePredator,
+                    health: Math.floor(basePredator.health * levelScaling),
+                    maxHealth: Math.floor(basePredator.health * levelScaling),
+                    attack: [
+                        Math.floor(basePredator.attack[0] * levelScaling),
+                        Math.floor(basePredator.attack[1] * levelScaling)
+                    ],
+                    xp: Math.floor(basePredator.xp * levelScaling),
+                    id: i
+                };
+                gameState.combatEnemies.push(predator);
             }
 
             gameState.isInCombat = true;
-            gameState.combatEnemy = predator;
+            gameState.combatEnemy = gameState.combatEnemies[0]; // Backwards compatibility
 
-            const bossWarning = predator.type === 'boss' ? ' ⚠️ BOSS ENCOUNTER!' : '';
-            addMessage(`⚠️ A ${predator.emoji} ${predator.name} appeared!${bossWarning}`, 'danger');
+            // Entrance message with flavor
+            const enemyName = basePredator.emoji + ' ' + basePredator.name;
+            let entranceMsg;
+
+            if (enemyCount > 1) {
+                const pluralName = basePredator.name + 's';
+                const template = multipleEnemyText[Math.floor(Math.random() * multipleEnemyText.length)];
+                entranceMsg = template.replace('{count}', enemyCount).replace('{enemy}', pluralName);
+            } else {
+                const template = combatEntranceText[Math.floor(Math.random() * combatEntranceText.length)];
+                entranceMsg = template.replace('{enemy}', enemyName);
+            }
+
+            const bossWarning = isBoss ? ' ⚠️ BOSS ENCOUNTER!' : '';
+            addMessage(`⚠️ ${entranceMsg}${bossWarning}`, 'danger');
             updateUI();
         }
 
         function spawnRatKing() {
+            const levelScaling = 1 + (gameState.level - 1) * 0.15;
+
             const ratKing = {
                 name: 'RAT KING',
                 emoji: '👑🐀',
-                health: 100,
-                attack: [20, 30],
-                xp: 250,
+                health: Math.floor(100 * levelScaling),
+                maxHealth: Math.floor(100 * levelScaling),
+                attack: [Math.floor(20 * levelScaling), Math.floor(30 * levelScaling)],
+                xp: Math.floor(250 * levelScaling),
                 type: 'boss',
-                isRatKing: true
+                isRatKing: true,
+                id: 0
             };
 
             gameState.isInCombat = true;
-            gameState.combatEnemy = ratKing;
+            gameState.combatEnemies = [ratKing];
+            gameState.combatEnemy = ratKing; // Backwards compatibility
 
             addMessage('👑🐀 THE RAT KING HAS ARRIVED! The ruler of all rats challenges you!', 'danger');
             addDiaryEntry('Faced the legendary RAT KING in battle! 👑🐀', 'combat');
@@ -3221,16 +3423,38 @@
 
         function renderCombatActions() {
             const actionPanel = document.getElementById('action-panel');
-            const enemy = gameState.combatEnemy;
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
 
-            actionPanel.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; font-size: 48px; margin: 20px 0;">
-                    ${enemy.emoji}
-                </div>
-                <div style="grid-column: 1 / -1; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 10px;">
-                    ${enemy.name} - HP: ${enemy.health}
-                </div>
-            `;
+            // Display all enemies
+            let enemyDisplay = '';
+            if (enemies.length > 1) {
+                // Multiple enemies - show them all in a row
+                enemyDisplay = `
+                    <div style="grid-column: 1 / -1; text-align: center; margin: 20px 0;">
+                        <div style="font-size: 36px; margin-bottom: 10px;">
+                            ${enemies.map(e => e.emoji).join(' ')}
+                        </div>
+                        ${enemies.map(e => `
+                            <div style="font-size: 14px; font-weight: bold; display: inline-block; margin: 0 10px;">
+                                ${e.emoji} ${e.name}: ${e.health}/${e.maxHealth} HP
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                // Single enemy - big display
+                const enemy = enemies[0];
+                enemyDisplay = `
+                    <div style="grid-column: 1 / -1; text-align: center; font-size: 48px; margin: 20px 0;">
+                        ${enemy.emoji}
+                    </div>
+                    <div style="grid-column: 1 / -1; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+                        ${enemy.name} - HP: ${enemy.health}/${enemy.maxHealth}
+                    </div>
+                `;
+            }
+
+            actionPanel.innerHTML = enemyDisplay;
 
             const combatActions = [
                 { emoji: '⚔️', text: 'Attack', action: () => combatAttack() },
@@ -3251,31 +3475,56 @@
         }
 
         function combatAttack() {
-            const enemy = gameState.combatEnemy;
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
+
+            if (aliveEnemies.length === 0) {
+                winCombat();
+                return;
+            }
+
+            // Target a random alive enemy
+            const targetEnemy = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+
             rollSkillCheck('Combat', 15, (success, roll) => {
                 if (success) {
                     const damage = Math.floor(Math.random() * 15) + 10 + gameState.skills.combat * 2;
-                    enemy.health -= damage;
-                    addMessage(`You dealt ${damage} damage to the ${enemy.name}! ⚔️`, 'success');
+                    targetEnemy.health -= damage;
 
-                    if (enemy.health <= 0) {
-                        winCombat();
-                        return;
+                    const flavorMsg = attackFlavorText[Math.floor(Math.random() * attackFlavorText.length)];
+                    const targetName = aliveEnemies.length > 1 ? `the ${targetEnemy.emoji} ${targetEnemy.name}` : `the ${targetEnemy.name}`;
+                    addMessage(`${flavorMsg} Dealt ${damage} damage to ${targetName}! ⚔️`, 'success');
+
+                    if (targetEnemy.health <= 0) {
+                        addMessage(`💀 ${targetEnemy.emoji} ${targetEnemy.name} defeated!`, 'success');
+
+                        // Check if all enemies dead
+                        const stillAlive = enemies.filter(e => e.health > 0);
+                        if (stillAlive.length === 0) {
+                            winCombat();
+                            return;
+                        } else {
+                            addMessage(`${stillAlive.length} ${stillAlive.length > 1 ? 'enemies' : 'enemy'} remaining!`, 'warning');
+                        }
                     }
                 } else {
-                    addMessage('Your attack missed!', 'warning');
+                    const missMsg = attackMissText[Math.floor(Math.random() * attackMissText.length)];
+                    addMessage(missMsg, 'warning');
                 }
 
-                // Enemy attacks back
+                // Enemies attack back
                 enemyAttack();
-            }, { action: 'combat', enemy: enemy.name });
+            }, { action: 'combat', enemy: targetEnemy.name });
         }
 
         function combatDefend() {
-            const enemy = gameState.combatEnemy;
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
+
             rollSkillCheck('Combat', 12, (success) => {
                 if (success) {
-                    addMessage('You brace for the attack! 🛡️', 'success');
+                    const flavorMsg = defendSuccessText[Math.floor(Math.random() * defendSuccessText.length)];
+                    addMessage(`${flavorMsg} 🛡️`, 'success');
                     gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + 10);
 
                     // Enemy attack with reduced damage
@@ -3284,31 +3533,53 @@
                     addMessage('Failed to defend properly!', 'warning');
                     enemyAttack();
                 }
-            }, { action: 'combat', enemy: enemy.name });
+            }, { action: 'combat', enemy: aliveEnemies[0].name });
         }
 
         function combatFlee() {
-            const enemy = gameState.combatEnemy;
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
+
             rollSkillCheck('Flying', 18, (success) => {
                 if (success) {
-                    addMessage('Successfully fled from combat! 🏃', 'success');
+                    const flavorMsg = fleeSuccessText[Math.floor(Math.random() * fleeSuccessText.length)];
+                    addMessage(`${flavorMsg} 🏃`, 'success');
                     gameState.isInCombat = false;
                     gameState.combatEnemy = null;
+                    gameState.combatEnemies = [];
                     gameState.energy -= 20;
                     updateUI();
                 } else {
-                    addMessage('Failed to escape!', 'danger');
+                    const failMsg = fleeFailText[Math.floor(Math.random() * fleeFailText.length)];
+                    addMessage(failMsg, 'danger');
                     enemyAttack();
                 }
-            }, { action: 'flying', enemy: enemy.name });
+            }, { action: 'flying', enemy: aliveEnemies[0].name });
         }
 
         function enemyAttack(damageMultiplier = 1) {
-            const enemy = gameState.combatEnemy;
-            const damage = Math.floor((Math.random() * (enemy.attack[1] - enemy.attack[0]) + enemy.attack[0]) * damageMultiplier);
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
 
-            gameState.health -= damage;
-            addMessage(`The ${enemy.name} attacks for ${damage} damage! 💥`, 'danger');
+            let totalDamage = 0;
+
+            // Each alive enemy attacks
+            aliveEnemies.forEach(enemy => {
+                const damage = Math.floor((Math.random() * (enemy.attack[1] - enemy.attack[0]) + enemy.attack[0]) * damageMultiplier);
+                totalDamage += damage;
+
+                const flavorMsg = enemyAttackText[Math.floor(Math.random() * enemyAttackText.length)];
+                const attackMsg = aliveEnemies.length > 1
+                    ? `${enemy.emoji} ${enemy.name} ${flavorMsg} ${damage} damage! 💥`
+                    : `The ${enemy.name} ${flavorMsg} ${damage} damage! 💥`;
+                addMessage(attackMsg, 'danger');
+            });
+
+            gameState.health -= totalDamage;
+
+            if (aliveEnemies.length > 1) {
+                addMessage(`Combined assault! Total: ${totalDamage} damage!`, 'danger');
+            }
 
             if (gameState.health <= 0) {
                 gameOver();
@@ -3318,21 +3589,56 @@
         }
 
         function winCombat() {
-            const enemy = gameState.combatEnemy;
-            addMessage(`🎉 Defeated the ${enemy.name}!`, 'success');
-            addDiaryEntry(`Defeated a ${enemy.name}! Proved my courage in battle`, 'combat');
-            gainXP(enemy.xp);
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
 
-            // Track rat defeats for Rat King trigger
-            if (enemy.type === 'rat' || enemy.name === 'Rat') {
-                gameState.ratsDefeated++;
-                if (gameState.ratsDefeated === 5) {
+            // Victory message
+            if (enemies.length > 1) {
+                const enemyList = enemies.map(e => e.emoji + ' ' + e.name).join(', ');
+                addMessage(`🎉 Victory! Defeated all enemies: ${enemyList}!`, 'success');
+                addDiaryEntry(`Defeated ${enemies.length} enemies in an epic battle!`, 'combat');
+            } else {
+                const enemy = enemies[0];
+                addMessage(`🎉 Defeated the ${enemy.name}!`, 'success');
+                addDiaryEntry(`Defeated a ${enemy.name}! Proved my courage in battle`, 'combat');
+            }
+
+            // Sum up XP from all enemies
+            let totalXP = 0;
+            let ratCount = 0;
+            let hasBoss = false;
+            let hasRatKing = false;
+
+            enemies.forEach(enemy => {
+                totalXP += enemy.xp;
+
+                // Track rat defeats for Rat King trigger
+                if (enemy.type === 'rat' || enemy.name === 'Rat') {
+                    ratCount++;
+                }
+
+                // Check for bosses
+                if (enemy.isRatKing) {
+                    hasRatKing = true;
+                } else if (enemy.type === 'boss') {
+                    hasBoss = true;
+                }
+            });
+
+            gainXP(totalXP);
+
+            // Track rats for Rat King trigger
+            if (ratCount > 0) {
+                gameState.ratsDefeated += ratCount;
+                if (ratCount > 1) {
+                    addMessage(`💀 ${ratCount} rats defeated! Total rats defeated: ${gameState.ratsDefeated}`, 'info');
+                }
+                if (gameState.ratsDefeated >= 5 && !hasRatKing) {
                     addMessage('⚠️ You sense something ominous... The Rat King grows angry!', 'warning');
                 }
             }
 
             // Boss rewards
-            if (enemy.isRatKing) {
+            if (hasRatKing) {
                 addMessage('👑 You defeated the RAT KING! Legendary status achieved!', 'success');
                 addDiaryEntry('DEFEATED THE LEGENDARY RAT KING! I am a true warrior! 👑', 'milestone');
                 gameState.maxHealth = Math.min(200, gameState.maxHealth + 20); // Cap at 200
@@ -3340,7 +3646,7 @@
                 gameState.socialStanding = Math.min(100, gameState.socialStanding + 30);
                 gameState.food += 10; // Reward food
                 gameState.ratsDefeated = 0; // Reset counter
-            } else if (enemy.type === 'boss') {
+            } else if (hasBoss) {
                 addMessage(`💎 Boss defeated! Major rewards earned!`, 'success');
                 gameState.maxHealth = Math.min(200, gameState.maxHealth + 5); // Cap at 200
                 gameState.health = Math.min(gameState.health + 20, gameState.maxHealth);
@@ -3349,6 +3655,7 @@
 
             gameState.isInCombat = false;
             gameState.combatEnemy = null;
+            gameState.combatEnemies = [];
             gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
 
             updateQuestProgress('combat', 1);
