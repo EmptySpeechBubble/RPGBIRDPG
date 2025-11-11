@@ -111,11 +111,14 @@
             /* Background will be set dynamically by JS based on day/night */
             body {
                 transition: background 0.5s ease;
+                height: 100dvh;
+                overflow: hidden;
             }
 
             #game-container {
                 padding: 0;
-                max-height: 100vh;
+                height: 100dvh;
+                max-height: 100dvh;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
@@ -217,54 +220,67 @@
                 border-radius: 0;
             }
 
-            /* Message log - readable */
+            /* Message log - ultra compact */
             #message-log {
-                max-height: 16px;
-                margin: 0 0 2px 0;
-                padding: 2px;
-                font-size: 6px;
-                line-height: 1.2;
+                max-height: 12px;
+                margin: 0 0 1px 0;
+                padding: 1px 2px;
+                font-size: 5px;
+                line-height: 1.1;
                 background: rgba(0, 0, 0, 0.3);
                 border-radius: 2px;
                 overflow-y: auto;
                 transition: background 0.5s ease;
+                flex-shrink: 0;
             }
 
             .message {
                 margin: 0;
-                padding: 1px;
-                font-size: 6px;
+                padding: 0;
+                font-size: 5px;
                 border-left-width: 1px;
                 color: #fff;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.5);
             }
 
-            /* MAP - slightly smaller to make room for readable actions */
+            /* MAP - optimized for no-scroll layout */
             #map-canvas {
-                width: 220px;
-                height: 220px;
+                width: 180px;
+                height: 180px;
                 border-radius: 4px;
             }
 
             #map-wrapper {
-                width: 220px;
+                width: 180px;
                 margin: 0 auto;
             }
 
-            /* READABLE action buttons - bigger text, 3 columns */
+            /* Hide quick stats on mobile to save space */
+            #quick-stats-ref {
+                display: none !important;
+            }
+
+            /* Hide hint box on mobile to save space */
+            #hint-box {
+                display: none !important;
+            }
+
+            /* READABLE action buttons - compact 2 columns */
             .action-btn {
-                padding: 4px 2px;
-                font-size: 7px;
+                padding: 3px 2px;
+                font-size: 6px;
                 border-radius: 3px;
                 gap: 1px;
+                min-height: 0;
             }
 
             .btn-emoji {
-                font-size: 14px;
+                font-size: 12px;
+                margin-bottom: 1px;
             }
 
             .btn-text {
-                font-size: 7px;
+                font-size: 6px;
                 display: block; /* Show text! */
                 font-weight: bold;
                 line-height: 1.1;
@@ -296,8 +312,8 @@
                 margin-top: 2px;
                 gap: 2px;
                 width: 100%;
-                max-width: 280px;
-                grid-template-columns: repeat(3, 1fr);
+                max-width: 240px;
+                grid-template-columns: repeat(2, 1fr);
             }
 
             /* Quest - hidden on main page, only in menu */
@@ -934,716 +950,17 @@
             color: #667eea;
         }
 
-        /* ===== FLOATING WINDOW SYSTEM ===== */
-
-        /* Launch Button */
-        .rpg-launcher-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            z-index: 999;
-            transition: all 0.3s ease;
-        }
-
-        .rpg-launcher-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        .rpg-launcher-btn:active {
-            transform: translateY(0);
-        }
-
-        /* Floating Window Container */
-        .bird-rpg-float {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
-        }
-
-        .bird-rpg-float.minimized {
-            top: auto;
-            left: auto;
-            right: 20px;
-            bottom: 20px;
-            transform: none;
-        }
-
-        /* Handheld Device Frame */
-        .bird-rpg-device {
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-            border: 3px solid #0a0a0a;
-            border-radius: 20px;
-            padding: 8px;
-            box-shadow:
-                0 0 0 2px #333,
-                inset 0 2px 5px rgba(255, 255, 255, 0.1),
-                inset 0 -2px 5px rgba(0, 0, 0, 0.5);
-            width: 460px;
-        }
-
-        /* Title Bar */
-        .rpg-titlebar {
-            background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
-            border-radius: 12px 12px 0 0;
-            padding: 6px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: move;
-            user-select: none;
-            margin-bottom: 4px;
-        }
-
-        .rpg-titlebar-text {
-            color: #e0e0e0;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .rpg-controls {
-            display: flex;
-            gap: 4px;
-        }
-
-        .rpg-control-btn {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: none;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            line-height: 1;
-            transition: all 0.2s ease;
-        }
-
-        #rpg-minimize {
-            background: #f5c542;
-            color: #333;
-        }
-
-        #rpg-minimize:hover {
-            background: #f5d142;
-            transform: scale(1.1);
-        }
-
-        #rpg-close {
-            background: #ff5f57;
-            color: white;
-        }
-
-        #rpg-close:hover {
-            background: #ff6f67;
-            transform: scale(1.1);
-        }
-
-        /* Device Screen */
-        .bird-rpg-screen {
-            background: #000;
-            border: 2px solid #1a1a1a;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
-            position: relative;
-            transition: background 0.5s ease, box-shadow 0.5s ease;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* ===== FRESH CLEAN DESIGN FOR FLOATING WINDOW ===== */
-
-        /* Game container */
-        .bird-rpg-float #game-container {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 12px !important;
-            max-height: 680px !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            background: transparent !important;
-            display: block !important;
-            flex-direction: initial !important;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* Custom scrollbar */
-        .bird-rpg-float #game-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .bird-rpg-float #game-container::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-        }
-
-        .bird-rpg-float #game-container::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.6);
-            border-radius: 4px;
-        }
-
-        /* === HEADER === */
-        .bird-rpg-float #game-header {
-            background: white !important;
-            border-radius: 8px !important;
-            padding: 14px !important;
-            margin-bottom: 10px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            flex-shrink: initial !important;
-            color: #2d3436 !important;
-        }
-
-        /* Hide title and buttons - titlebar has this */
-        .bird-rpg-float #game-title,
-        .bird-rpg-float #game-header > div:first-of-type {
-            display: none !important;
-        }
-
-        /* Show header buttons in floating window */
-        .bird-rpg-float #game-header button {
-            display: inline-block !important;
-        }
-
-        /* Info line - uniform style */
-        .bird-rpg-float #game-header > div:nth-child(3) {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            margin-bottom: 10px !important;
-            padding: 8px 10px !important;
-            background: rgba(102, 126, 234, 0.06) !important;
-            border-radius: 6px !important;
-        }
-
-        .bird-rpg-float #season-info,
-        .bird-rpg-float #level-info,
-        .bird-rpg-float #action-info {
-            display: inline-block !important;
-            font-size: 11px !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            font-weight: 500 !important;
-            background: transparent !important;
-            color: #2d3436 !important;
-        }
-
-        /* Stats - uniform grid */
-        .bird-rpg-float #game-header > div:nth-child(4) {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
-            margin: 10px 0 !important;
-        }
-
-        .bird-rpg-float #stats-grid {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
-        }
-
-        .bird-rpg-float .stat-compact {
-            font-size: 11px !important;
-            padding: 8px 10px !important;
-            background: rgba(102, 126, 234, 0.06) !important;
-            border-radius: 6px !important;
-            font-weight: 500 !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .stat-compact-label {
-            display: inline !important;
-            opacity: 0.8 !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .stat-compact-value {
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            margin-left: auto !important;
-            color: #667eea !important;
-        }
-
-        /* Inventory - uniform style */
-        .bird-rpg-float #inventory {
-            display: flex !important;
-            justify-content: center !important;
-            gap: 8px !important;
-            margin-top: 10px !important;
-            padding: 8px 10px !important;
-            background: rgba(76, 175, 80, 0.06) !important;
-            border-radius: 6px !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .inventory-title {
-            display: none !important;
-        }
-
-        .bird-rpg-float .inventory-item {
-            display: flex !important;
-            align-items: center !important;
-            gap: 5px !important;
-            font-size: 11px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: transparent !important;
-            border-radius: 0 !important;
-            font-weight: 500 !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .inventory-item-label {
-            opacity: 0.8 !important;
-            margin-right: 3px !important;
-            color: #2d3436 !important;
-        }
-
-        /* === MAIN CONTENT === */
-        .bird-rpg-float #main-content {
-            background: white !important;
-            border-radius: 8px !important;
-            padding: 12px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            flex: initial !important;
-            display: block !important;
-            min-height: initial !important;
-        }
-
-        .bird-rpg-float #map-actions-container {
-            display: block !important;
-            flex: initial !important;
-            min-height: initial !important;
-            align-items: initial !important;
-            justify-content: initial !important;
-            margin: 0 !important;
-        }
-
-        /* Hide quest panel from main screen - only in character sheet */
-        .bird-rpg-float #quest-panel {
-            display: none !important;
-        }
-
-        /* Weather */
-        .bird-rpg-float #weather-display {
-            text-align: center !important;
-            font-size: 11px !important;
-            padding: 8px 10px !important;
-            background: linear-gradient(135deg, rgba(227, 242, 253, 0.8), rgba(187, 222, 251, 0.8)) !important;
-            border-radius: 6px !important;
-            margin-bottom: 8px !important;
-            font-weight: 600 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 6px !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
-        }
-
-        .bird-rpg-float #weather-icon {
-            font-size: 16px !important;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) !important;
-        }
-
-        /* Message log */
-        .bird-rpg-float #message-log {
-            background: #2c3e50 !important;
-            color: #ecf0f1 !important;
-            border-radius: 6px !important;
-            padding: 8px !important;
-            max-height: 50px !important;
-            overflow-y: auto !important;
-            margin-bottom: 10px !important;
-            margin: 0 0 10px 0 !important;
-            font-size: 10px !important;
-            line-height: 1.4 !important;
-        }
-
-        .bird-rpg-float .message {
-            font-size: 10px !important;
-            margin-bottom: 4px !important;
-            padding: 1px !important;
-            color: #ecf0f1 !important;
-        }
-
-        /* === MAP === */
-        .bird-rpg-float #map-wrapper {
-            width: 340px !important;
-            margin: 0 auto 8px auto !important;
-        }
-
-        .bird-rpg-float #map-canvas {
-            width: 340px !important;
-            height: 340px !important;
-            border-radius: 8px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-        }
-
-        /* === ACTION BUTTONS === */
-        .bird-rpg-float #action-panel {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 8px !important;
-            margin-top: 10px !important;
-            width: 100% !important;
-            max-width: none !important;
-        }
-
-        /* Quick Stats Reference */
-        .bird-rpg-float #quick-stats-ref {
-            display: flex !important;
-            justify-content: space-between !important;
-            margin-top: 10px !important;
-            padding: 8px 10px !important;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12)) !important;
-            border-radius: 8px !important;
-            font-size: 10px !important;
-            gap: 6px !important;
-            border: 1px solid rgba(102, 126, 234, 0.2) !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        .bird-rpg-float .quick-stat-item {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            gap: 3px !important;
-            flex: 1 !important;
-            padding: 4px !important;
-            background: rgba(255, 255, 255, 0.5) !important;
-            border-radius: 6px !important;
-            transition: transform 0.2s ease !important;
-        }
-
-        .bird-rpg-float .quick-stat-item:hover {
-            transform: translateY(-2px) !important;
-            background: rgba(255, 255, 255, 0.7) !important;
-        }
-
-        .bird-rpg-float .quick-stat-icon {
-            font-size: 16px !important;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) !important;
-        }
-
-        .bird-rpg-float .quick-stat-value {
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            color: #2d3436 !important;
-            transition: color 0.3s ease !important;
-        }
-
-        /* Color-coded stat values */
-        .bird-rpg-float .quick-stat-value.stat-critical {
-            color: #e74c3c !important;
-            animation: pulse-critical 1.5s ease-in-out infinite !important;
-        }
-
-        .bird-rpg-float .quick-stat-value.stat-low {
-            color: #f39c12 !important;
-        }
-
-        .bird-rpg-float .quick-stat-value.stat-good {
-            color: #27ae60 !important;
-        }
-
-        @keyframes pulse-critical {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .bird-rpg-float .action-btn {
-            padding: 10px 6px !important;
-            min-height: 60px !important;
-            border-radius: 7px !important;
-            font-size: 10px !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative !important;
-            cursor: pointer !important;
-        }
-
-        .bird-rpg-float .action-btn:hover:not(:disabled) {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) !important;
-        }
-
-        .bird-rpg-float .action-btn:active:not(:disabled) {
-            transform: translateY(-1px) scale(0.98) !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        .bird-rpg-float .action-btn:disabled {
-            opacity: 0.4 !important;
-            cursor: not-allowed !important;
-            filter: grayscale(60%) !important;
-            transform: none !important;
-        }
-
-        .bird-rpg-float .action-btn:disabled::after {
-            content: '🔒' !important;
-            position: absolute !important;
-            top: 4px !important;
-            right: 4px !important;
-            font-size: 10px !important;
-            opacity: 0.6 !important;
-        }
-
-        .bird-rpg-float .btn-emoji {
-            font-size: 22px !important;
-            margin-bottom: 3px !important;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)) !important;
-            transition: transform 0.2s ease !important;
-        }
-
-        .bird-rpg-float .action-btn:hover:not(:disabled) .btn-emoji {
-            transform: scale(1.1) !important;
-        }
-
-        .bird-rpg-float .btn-text {
-            font-size: 11px !important;
-            line-height: 1.3 !important;
-            font-weight: 600 !important;
-        }
-
-        /* Helpful hint box */
-        .bird-rpg-float #hint-box {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.15)) !important;
-            border: 1px solid rgba(52, 152, 219, 0.3) !important;
-            border-radius: 6px !important;
-            padding: 8px 10px !important;
-            margin: 0 0 10px 0 !important;
-            font-size: 10px !important;
-            line-height: 1.4 !important;
-            color: #2c3e50 !important;
-            position: relative !important;
-        }
-
-        .bird-rpg-float #hint-box::before {
-            content: '💡' !important;
-            margin-right: 4px !important;
-            font-size: 12px !important;
-        }
-
-        .bird-rpg-float .hint-close {
-            position: absolute !important;
-            top: 4px !important;
-            right: 6px !important;
-            cursor: pointer !important;
-            font-size: 12px !important;
-            opacity: 0.6 !important;
-            transition: opacity 0.2s !important;
-        }
-
-        .bird-rpg-float .hint-close:hover {
-            opacity: 1 !important;
-        }
-
-        /* Family section */
-        .bird-rpg-float #family-section {
-            font-size: 11px !important;
-            padding: 10px !important;
-            margin: 0 0 10px 0 !important;
-            border-radius: 6px !important;
-        }
-
-        /* === MODALS & MENUS === */
-        .bird-rpg-float .modal-content {
-            max-width: 400px;
-            max-height: 540px;
-            padding: 18px;
-            font-size: 11px;
-        }
-
-        .bird-rpg-float .modal-content h2 {
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        .bird-rpg-float .modal-content h3 {
-            font-size: 13px;
-            margin-top: 10px;
-            margin-bottom: 8px;
-        }
-
-        .bird-rpg-float .modal-content p,
-        .bird-rpg-float .modal-content div {
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .bird-rpg-float .modal-content button {
-            font-size: 11px;
-            padding: 8px 14px;
-            margin: 5px;
-        }
-
-        /* Dice roll modal */
-        .bird-rpg-float #dice-emoji {
-            font-size: 70px;
-        }
-
-        .bird-rpg-float .dice-roll-title {
-            font-size: 16px;
-        }
-
-        .bird-rpg-float .dice-roll-result {
-            font-size: 14px;
-        }
-
-        /* Quest items */
-        .bird-rpg-float .quest-item {
-            font-size: 10px;
-            padding: 8px;
-            margin: 5px 0;
-        }
-
-        .bird-rpg-float .progress-bar {
-            height: 7px;
-        }
-
-        /* Minimized State */
-        .bird-rpg-float.minimized .bird-rpg-device {
-            width: 70px;
-            height: 70px;
-            padding: 4px;
-        }
-
-        .bird-rpg-float.minimized .rpg-titlebar {
-            display: none;
-        }
-
-        .bird-rpg-float.minimized .bird-rpg-screen {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            cursor: pointer;
-            overflow: hidden;
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a) !important;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5) !important;
-        }
-
-        .bird-rpg-float.minimized .bird-rpg-screen::before {
-            content: '🐦';
-            animation: birdBob 2s ease-in-out infinite;
-            line-height: 1;
-        }
-
-        @keyframes birdBob {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .bird-rpg-float.minimized #game-container {
-            display: none;
-        }
-
-        .bird-rpg-float.minimized #day-night-indicator,
-        .bird-rpg-float.minimized #stars-container {
-            display: none;
-        }
-
-        /* Mobile adjustments FOR FLOATING WINDOW ONLY */
-        @media (max-width: 599px) {
-            .rpg-launcher-btn {
-                bottom: 10px !important;
-                right: 10px !important;
-                padding: 10px 16px !important;
-                font-size: 14px !important;
-            }
-
-            .bird-rpg-device {
-                width: 400px !important;
-            }
-
-            .bird-rpg-float {
-                top: 10px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-            }
-
-            .bird-rpg-float.minimized {
-                top: auto !important;
-                left: auto !important;
-                right: 10px !important;
-                bottom: 10px !important;
-                transform: none !important;
-            }
-
-            .bird-rpg-float.minimized .bird-rpg-device {
-                width: 60px !important;
-                height: 60px !important;
-                padding: 3px !important;
-            }
-
-            .bird-rpg-float.minimized .bird-rpg-screen {
-                font-size: 28px !important;
-            }
-
-            .bird-rpg-float #game-container {
-                max-height: 560px !important;
-            }
-
-            .bird-rpg-float #map-wrapper {
-                width: 340px !important;
-            }
-
-            .bird-rpg-float #map-canvas {
-                width: 340px !important;
-                height: 340px !important;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Launch Button -->
-    <button id="bird-rpg-launcher" class="rpg-launcher-btn">
-        🐦 Bird RPG
-    </button>
+    <!-- Day/Night Indicator -->
+    <div id="day-night-indicator">☀️</div>
 
-    <!-- Floating Window Container -->
-    <div id="bird-rpg-float" class="bird-rpg-float" style="display: none;">
-        <!-- Device Frame -->
-        <div class="bird-rpg-device">
-            <!-- Title Bar with Controls -->
-            <div class="rpg-titlebar" id="rpg-titlebar">
-                <span class="rpg-titlebar-text">🐦 Bird Window RPG</span>
-                <div class="rpg-controls">
-                    <button class="rpg-control-btn" id="rpg-minimize" title="Minimize">−</button>
-                    <button class="rpg-control-btn" id="rpg-close" title="Close">×</button>
-                </div>
-            </div>
+    <!-- Stars for Night Mode -->
+    <div id="stars-container" class="stars"></div>
 
-            <!-- Device Screen -->
-            <div class="bird-rpg-screen">
-                <!-- Day/Night Indicator (inside widget) -->
-                <div id="day-night-indicator">☀️</div>
-
-                <!-- Stars for Night Mode (inside widget) -->
-                <div id="stars-container" class="stars"></div>
-
-                <div id="game-container">
+    <!-- Game Container -->
+    <div id="game-container">
         <!-- Header -->
         <div id="game-header">
             <div id="game-title">🐦 BIRD WINDOW RPG</div>
@@ -1746,10 +1063,7 @@
                 </div>
             </div>
         </div>
-    </div>
-            </div><!-- .bird-rpg-screen -->
-        </div><!-- .bird-rpg-device -->
-    </div><!-- .bird-rpg-float -->
+    </div><!-- #game-container -->
 
     <!-- Dice Roll Modal -->
     <div id="dice-modal">
@@ -1771,91 +1085,6 @@
     </div>
 
     <script>
-        // ===== FLOATING WINDOW SYSTEM =====
-        (function() {
-            const launcher = document.getElementById('bird-rpg-launcher');
-            const floatWindow = document.getElementById('bird-rpg-float');
-            const titlebar = document.getElementById('rpg-titlebar');
-            const minimizeBtn = document.getElementById('rpg-minimize');
-            const closeBtn = document.getElementById('rpg-close');
-            const screen = document.querySelector('.bird-rpg-screen');
-
-            let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
-
-            // Open window
-            launcher.addEventListener('click', function() {
-                floatWindow.style.display = 'block';
-                launcher.style.display = 'none';
-            });
-
-            // Close window
-            closeBtn.addEventListener('click', function() {
-                floatWindow.style.display = 'none';
-                launcher.style.display = 'block';
-            });
-
-            // Minimize/Maximize
-            minimizeBtn.addEventListener('click', function() {
-                floatWindow.classList.toggle('minimized');
-            });
-
-            // Click minimized icon to maximize
-            screen.addEventListener('click', function(e) {
-                if (floatWindow.classList.contains('minimized')) {
-                    floatWindow.classList.remove('minimized');
-                }
-            });
-
-            // Dragging functionality
-            titlebar.addEventListener('mousedown', dragStart);
-            titlebar.addEventListener('touchstart', dragStart);
-
-            function dragStart(e) {
-                if (floatWindow.classList.contains('minimized')) return;
-
-                if (e.type === 'touchstart') {
-                    initialX = e.touches[0].clientX - floatWindow.offsetLeft;
-                    initialY = e.touches[0].clientY - floatWindow.offsetTop;
-                } else {
-                    initialX = e.clientX - floatWindow.offsetLeft;
-                    initialY = e.clientY - floatWindow.offsetTop;
-                }
-
-                isDragging = true;
-            }
-
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('touchmove', drag);
-
-            function drag(e) {
-                if (!isDragging) return;
-                e.preventDefault();
-
-                if (e.type === 'touchmove') {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                floatWindow.style.left = currentX + 'px';
-                floatWindow.style.top = currentY + 'px';
-                floatWindow.style.transform = 'none';
-            }
-
-            document.addEventListener('mouseup', dragEnd);
-            document.addEventListener('touchend', dragEnd);
-
-            function dragEnd() {
-                isDragging = false;
-            }
-        })();
-
         // ===== GAME STATE =====
         const SEASONS = ['Spring', 'Summer', 'Fall', 'Winter'];
         const SEASON_EMOJIS = { Spring: '🌸', Summer: '☀️', Fall: '🍂', Winter: '❄️' };
@@ -2088,7 +1317,7 @@
         // ===== UI UPDATES =====
         function updateUI() {
             // Update day/night background colors
-            const screen = document.querySelector('.bird-rpg-screen');
+            const body = document.body;
             const header = document.getElementById('game-header');
             const mainContent = document.getElementById('main-content');
             const messageLog = document.getElementById('message-log');
@@ -2112,14 +1341,14 @@
                 if (starsContainer) {
                     starsContainer.classList.remove('active');
                 }
-                // Day: bright sky blue gradient with warm glow (applied to widget screen)
-                if (screen) {
+                // Day: bright sky blue gradient with warm glow (applied to body)
+                if (body) {
                     if (isMobile) {
-                        screen.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
-                        screen.style.boxShadow = 'inset 0 0 100px rgba(255, 230, 100, 0.3)';
+                        body.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        body.style.boxShadow = 'inset 0 0 100px rgba(255, 230, 100, 0.3)';
                     } else {
-                        screen.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
-                        screen.style.boxShadow = 'inset 0 0 150px rgba(255, 230, 100, 0.2)';
+                        body.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        body.style.boxShadow = 'inset 0 0 150px rgba(255, 230, 100, 0.2)';
                     }
                 }
                 header.style.background = 'rgba(250, 250, 250, 0.95)';
@@ -2160,14 +1389,14 @@
                     starsContainer.classList.add('active');
                 }
 
-                // Night: dark blue/purple gradient with stars and moonlit glow (applied to widget screen)
-                if (screen) {
+                // Night: dark blue/purple gradient with stars and moonlit glow (applied to body)
+                if (body) {
                     if (isMobile) {
-                        screen.style.background = 'linear-gradient(180deg, #05061a 0%, #0c1445 30%, #1a1a2e 70%, #0a0a1a 100%)';
-                        screen.style.boxShadow = 'inset 0 0 150px rgba(100, 100, 200, 0.4)';
+                        body.style.background = 'linear-gradient(180deg, #05061a 0%, #0c1445 30%, #1a1a2e 70%, #0a0a1a 100%)';
+                        body.style.boxShadow = 'inset 0 0 150px rgba(100, 100, 200, 0.4)';
                     } else {
-                        screen.style.background = 'radial-gradient(ellipse at top, #1a1a3e 0%, #0c1445 30%, #050515 100%)';
-                        screen.style.boxShadow = 'inset 0 0 200px rgba(100, 100, 200, 0.3)';
+                        body.style.background = 'radial-gradient(ellipse at top, #1a1a3e 0%, #0c1445 30%, #050515 100%)';
+                        body.style.boxShadow = 'inset 0 0 200px rgba(100, 100, 200, 0.3)';
                     }
                 }
                 header.style.background = 'rgba(15, 20, 35, 0.95)';
@@ -4703,8 +3932,8 @@
 
                     <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="font-size: 13px; margin: 0;">
-                            🪟 <strong>About This Window:</strong> This is a floating mini-game window!<br/>
-                            You can drag it around, minimize it with the − button, and maximize it again by clicking the 🐦 bird icon or the launch button.
+                            🐦 <strong>Bird Window RPG:</strong> A full-screen bird life simulation game!<br/>
+                            Watch the seasons change, grow your bird, and explore the world.
                         </p>
                     </div>
 
@@ -5010,8 +4239,8 @@
 
                     <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; text-align: center;">
                         <p style="margin: 0; font-size: 13px;">
-                            🪟 <strong>After choosing your bird, the window will minimize.</strong><br/>
-                            <span style="font-size: 12px;">Click the 🐦 bird icon or "Bird RPG" button to open it again and start playing!</span>
+                            ✨ <strong>After choosing your bird, your adventure begins!</strong><br/>
+                            <span style="font-size: 12px;">Follow the on-screen hints and explore the world!</span>
                         </p>
                     </div>
 
@@ -5133,14 +4362,6 @@
             addMessage('💡 Tip: Start by foraging for food or gathering twigs!', 'info');
             addSeasonalQuest();
             updateUI();
-
-            // Minimize the window after tutorial to encourage user interaction
-            setTimeout(() => {
-                const floatWindow = document.getElementById('bird-rpg-float');
-                if (floatWindow) {
-                    floatWindow.classList.add('minimized');
-                }
-            }, 1000); // Wait 1 second so they can see the game loaded
         }
 
         // ===== INIT =====
