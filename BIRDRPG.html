@@ -36,12 +36,12 @@
             color: #2d3436;
             overflow-x: hidden;
             position: relative;
-            transition: background 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+            transition: background 1s ease, color 0.5s ease, box-shadow 0.5s ease;
         }
 
-        /* Day/Night indicator in corner - positioned relative to widget */
+        /* Day/Night indicator in corner - fixed position */
         #day-night-indicator {
-            position: absolute;
+            position: fixed;
             top: 10px;
             right: 10px;
             font-size: 32px;
@@ -56,9 +56,9 @@
             50% { transform: translateY(-10px); }
         }
 
-        /* Stars for night mode - positioned relative to widget */
+        /* Stars for night mode - full viewport coverage */
         .stars {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
@@ -68,7 +68,7 @@
             pointer-events: none;
             z-index: 1;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 1s ease;
             overflow: hidden;
         }
 
@@ -111,11 +111,14 @@
             /* Background will be set dynamically by JS based on day/night */
             body {
                 transition: background 0.5s ease;
+                height: 100dvh;
+                overflow: hidden;
             }
 
             #game-container {
                 padding: 0;
-                max-height: 100vh;
+                height: 100dvh;
+                max-height: 100dvh;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
@@ -142,7 +145,7 @@
 
             /* Hide New Game / Help buttons on mobile */
             #game-header > div:first-of-type {
-                display: none;
+                display: none !important;
             }
 
             /* Single line info - readable */
@@ -217,54 +220,67 @@
                 border-radius: 0;
             }
 
-            /* Message log - readable */
+            /* Message log - ultra compact */
             #message-log {
-                max-height: 16px;
-                margin: 0 0 2px 0;
-                padding: 2px;
-                font-size: 6px;
-                line-height: 1.2;
+                max-height: 12px;
+                margin: 0 0 1px 0;
+                padding: 1px 2px;
+                font-size: 5px;
+                line-height: 1.1;
                 background: rgba(0, 0, 0, 0.3);
                 border-radius: 2px;
                 overflow-y: auto;
                 transition: background 0.5s ease;
+                flex-shrink: 0;
             }
 
             .message {
                 margin: 0;
-                padding: 1px;
-                font-size: 6px;
+                padding: 0;
+                font-size: 5px;
                 border-left-width: 1px;
                 color: #fff;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.5);
             }
 
-            /* MAP - slightly smaller to make room for readable actions */
+            /* MAP - optimized for no-scroll layout */
             #map-canvas {
-                width: 220px;
-                height: 220px;
+                width: 180px;
+                height: 180px;
                 border-radius: 4px;
             }
 
             #map-wrapper {
-                width: 220px;
+                width: 180px;
                 margin: 0 auto;
             }
 
-            /* READABLE action buttons - bigger text, 3 columns */
+            /* Hide quick stats on mobile to save space */
+            #quick-stats-ref {
+                display: none !important;
+            }
+
+            /* Hide hint box on mobile to save space */
+            #hint-box {
+                display: none !important;
+            }
+
+            /* READABLE action buttons - compact 2 columns */
             .action-btn {
                 padding: 4px 2px;
-                font-size: 7px;
+                font-size: 6px;
                 border-radius: 3px;
                 gap: 1px;
+                min-height: 44px; /* Minimum touch target size for accessibility */
             }
 
             .btn-emoji {
                 font-size: 14px;
+                margin-bottom: 1px;
             }
 
             .btn-text {
-                font-size: 7px;
+                font-size: 6px;
                 display: block; /* Show text! */
                 font-weight: bold;
                 line-height: 1.1;
@@ -296,8 +312,8 @@
                 margin-top: 2px;
                 gap: 2px;
                 width: 100%;
-                max-width: 280px;
-                grid-template-columns: repeat(3, 1fr);
+                max-width: 240px;
+                grid-template-columns: repeat(2, 1fr);
             }
 
             /* Quest - hidden on main page, only in menu */
@@ -315,9 +331,9 @@
                 font-size: 5px;
             }
 
-            /* Hide button text on mobile */
+            /* Hide buttons on mobile */
             #game-header button {
-                display: none;
+                display: none !important;
             }
         }
 
@@ -822,8 +838,10 @@
             }
 
             #action-panel {
-                grid-template-columns: 1fr; /* Changed from 2 to 1 column */
-                max-width: 200px; /* Limit width */
+                grid-template-columns: 1fr; /* Single column for desktop side layout */
+                max-width: 200px;
+                flex: 0 0 auto; /* Don't grow or shrink */
+                width: 200px;
             }
 
             /* Side-by-side layout on desktop */
@@ -840,11 +858,6 @@
             #map-canvas {
                 width: 400px;
                 height: 400px;
-            }
-
-            #action-panel {
-                flex: 0 0 auto; /* Don't grow or shrink */
-                width: 200px; /* Fixed narrow width */
             }
         }
 
@@ -920,13 +933,13 @@
 
         .stat-compact-label {
             font-weight: bold;
-            display: none; /* Hidden by default, shown only in floating window */
+            display: none; /* Hidden by default on mobile */
             align-items: center;
             gap: 2px;
         }
 
         .inventory-item-label {
-            display: none; /* Hidden by default, shown only in floating window */
+            display: none; /* Hidden by default on mobile */
         }
 
         .stat-compact-value {
@@ -934,716 +947,71 @@
             color: #667eea;
         }
 
-        /* ===== FLOATING WINDOW SYSTEM ===== */
-
-        /* Launch Button */
-        .rpg-launcher-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            z-index: 999;
-            transition: all 0.3s ease;
-        }
-
-        .rpg-launcher-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        .rpg-launcher-btn:active {
-            transform: translateY(0);
-        }
-
-        /* Floating Window Container */
-        .bird-rpg-float {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
-        }
-
-        .bird-rpg-float.minimized {
-            top: auto;
-            left: auto;
-            right: 20px;
-            bottom: 20px;
-            transform: none;
-        }
-
-        /* Handheld Device Frame */
-        .bird-rpg-device {
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-            border: 3px solid #0a0a0a;
-            border-radius: 20px;
-            padding: 8px;
-            box-shadow:
-                0 0 0 2px #333,
-                inset 0 2px 5px rgba(255, 255, 255, 0.1),
-                inset 0 -2px 5px rgba(0, 0, 0, 0.5);
-            width: 460px;
-        }
-
-        /* Title Bar */
-        .rpg-titlebar {
-            background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
-            border-radius: 12px 12px 0 0;
-            padding: 6px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: move;
-            user-select: none;
-            margin-bottom: 4px;
-        }
-
-        .rpg-titlebar-text {
-            color: #e0e0e0;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .rpg-controls {
-            display: flex;
-            gap: 4px;
-        }
-
-        .rpg-control-btn {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: none;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            line-height: 1;
-            transition: all 0.2s ease;
-        }
-
-        #rpg-minimize {
-            background: #f5c542;
-            color: #333;
-        }
-
-        #rpg-minimize:hover {
-            background: #f5d142;
-            transform: scale(1.1);
-        }
-
-        #rpg-close {
-            background: #ff5f57;
-            color: white;
-        }
-
-        #rpg-close:hover {
-            background: #ff6f67;
-            transform: scale(1.1);
-        }
-
-        /* Device Screen */
-        .bird-rpg-screen {
-            background: #000;
-            border: 2px solid #1a1a1a;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
-            position: relative;
-            transition: background 0.5s ease, box-shadow 0.5s ease;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* ===== FRESH CLEAN DESIGN FOR FLOATING WINDOW ===== */
-
-        /* Game container */
-        .bird-rpg-float #game-container {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 12px !important;
-            max-height: 680px !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            background: transparent !important;
-            display: block !important;
-            flex-direction: initial !important;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* Custom scrollbar */
-        .bird-rpg-float #game-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .bird-rpg-float #game-container::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-        }
-
-        .bird-rpg-float #game-container::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.6);
-            border-radius: 4px;
-        }
-
-        /* === HEADER === */
-        .bird-rpg-float #game-header {
-            background: white !important;
-            border-radius: 8px !important;
-            padding: 14px !important;
-            margin-bottom: 10px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            flex-shrink: initial !important;
-            color: #2d3436 !important;
-        }
-
-        /* Hide title and buttons - titlebar has this */
-        .bird-rpg-float #game-title,
-        .bird-rpg-float #game-header > div:first-of-type {
-            display: none !important;
-        }
-
-        /* Show header buttons in floating window */
-        .bird-rpg-float #game-header button {
-            display: inline-block !important;
-        }
-
-        /* Info line - uniform style */
-        .bird-rpg-float #game-header > div:nth-child(3) {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            margin-bottom: 10px !important;
-            padding: 8px 10px !important;
-            background: rgba(102, 126, 234, 0.06) !important;
-            border-radius: 6px !important;
-        }
-
-        .bird-rpg-float #season-info,
-        .bird-rpg-float #level-info,
-        .bird-rpg-float #action-info {
-            display: inline-block !important;
-            font-size: 11px !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            font-weight: 500 !important;
-            background: transparent !important;
-            color: #2d3436 !important;
-        }
-
-        /* Stats - uniform grid */
-        .bird-rpg-float #game-header > div:nth-child(4) {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
-            margin: 10px 0 !important;
-        }
-
-        .bird-rpg-float #stats-grid {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
-        }
-
-        .bird-rpg-float .stat-compact {
-            font-size: 11px !important;
-            padding: 8px 10px !important;
-            background: rgba(102, 126, 234, 0.06) !important;
-            border-radius: 6px !important;
-            font-weight: 500 !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .stat-compact-label {
-            display: inline !important;
-            opacity: 0.8 !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .stat-compact-value {
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            margin-left: auto !important;
-            color: #667eea !important;
-        }
-
-        /* Inventory - uniform style */
-        .bird-rpg-float #inventory {
-            display: flex !important;
-            justify-content: center !important;
-            gap: 8px !important;
-            margin-top: 10px !important;
-            padding: 8px 10px !important;
-            background: rgba(76, 175, 80, 0.06) !important;
-            border-radius: 6px !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .inventory-title {
-            display: none !important;
-        }
-
-        .bird-rpg-float .inventory-item {
-            display: flex !important;
-            align-items: center !important;
-            gap: 5px !important;
-            font-size: 11px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: transparent !important;
-            border-radius: 0 !important;
-            font-weight: 500 !important;
-            color: #2d3436 !important;
-        }
-
-        .bird-rpg-float .inventory-item-label {
-            opacity: 0.8 !important;
-            margin-right: 3px !important;
-            color: #2d3436 !important;
-        }
-
-        /* === MAIN CONTENT === */
-        .bird-rpg-float #main-content {
-            background: white !important;
-            border-radius: 8px !important;
-            padding: 12px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            flex: initial !important;
-            display: block !important;
-            min-height: initial !important;
-        }
-
-        .bird-rpg-float #map-actions-container {
-            display: block !important;
-            flex: initial !important;
-            min-height: initial !important;
-            align-items: initial !important;
-            justify-content: initial !important;
-            margin: 0 !important;
-        }
-
-        /* Hide quest panel from main screen - only in character sheet */
-        .bird-rpg-float #quest-panel {
-            display: none !important;
-        }
-
-        /* Weather */
-        .bird-rpg-float #weather-display {
-            text-align: center !important;
-            font-size: 11px !important;
-            padding: 8px 10px !important;
-            background: linear-gradient(135deg, rgba(227, 242, 253, 0.8), rgba(187, 222, 251, 0.8)) !important;
-            border-radius: 6px !important;
-            margin-bottom: 8px !important;
-            font-weight: 600 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 6px !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
-        }
-
-        .bird-rpg-float #weather-icon {
-            font-size: 16px !important;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) !important;
-        }
-
-        /* Message log */
-        .bird-rpg-float #message-log {
-            background: #2c3e50 !important;
-            color: #ecf0f1 !important;
-            border-radius: 6px !important;
-            padding: 8px !important;
-            max-height: 50px !important;
-            overflow-y: auto !important;
-            margin-bottom: 10px !important;
-            margin: 0 0 10px 0 !important;
-            font-size: 10px !important;
-            line-height: 1.4 !important;
-        }
-
-        .bird-rpg-float .message {
-            font-size: 10px !important;
-            margin-bottom: 4px !important;
-            padding: 1px !important;
-            color: #ecf0f1 !important;
-        }
-
-        /* === MAP === */
-        .bird-rpg-float #map-wrapper {
-            width: 340px !important;
-            margin: 0 auto 8px auto !important;
-        }
-
-        .bird-rpg-float #map-canvas {
-            width: 340px !important;
-            height: 340px !important;
-            border-radius: 8px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-        }
-
-        /* === ACTION BUTTONS === */
-        .bird-rpg-float #action-panel {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 8px !important;
-            margin-top: 10px !important;
-            width: 100% !important;
-            max-width: none !important;
-        }
-
-        /* Quick Stats Reference */
-        .bird-rpg-float #quick-stats-ref {
-            display: flex !important;
-            justify-content: space-between !important;
-            margin-top: 10px !important;
-            padding: 8px 10px !important;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12)) !important;
-            border-radius: 8px !important;
-            font-size: 10px !important;
-            gap: 6px !important;
-            border: 1px solid rgba(102, 126, 234, 0.2) !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        .bird-rpg-float .quick-stat-item {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            gap: 3px !important;
-            flex: 1 !important;
-            padding: 4px !important;
-            background: rgba(255, 255, 255, 0.5) !important;
-            border-radius: 6px !important;
-            transition: transform 0.2s ease !important;
-        }
-
-        .bird-rpg-float .quick-stat-item:hover {
-            transform: translateY(-2px) !important;
-            background: rgba(255, 255, 255, 0.7) !important;
-        }
-
-        .bird-rpg-float .quick-stat-icon {
-            font-size: 16px !important;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)) !important;
-        }
-
-        .bird-rpg-float .quick-stat-value {
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            color: #2d3436 !important;
-            transition: color 0.3s ease !important;
-        }
-
-        /* Color-coded stat values */
-        .bird-rpg-float .quick-stat-value.stat-critical {
-            color: #e74c3c !important;
-            animation: pulse-critical 1.5s ease-in-out infinite !important;
-        }
-
-        .bird-rpg-float .quick-stat-value.stat-low {
-            color: #f39c12 !important;
-        }
-
-        .bird-rpg-float .quick-stat-value.stat-good {
-            color: #27ae60 !important;
-        }
-
-        @keyframes pulse-critical {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .bird-rpg-float .action-btn {
-            padding: 10px 6px !important;
-            min-height: 60px !important;
-            border-radius: 7px !important;
-            font-size: 10px !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative !important;
-            cursor: pointer !important;
-        }
-
-        .bird-rpg-float .action-btn:hover:not(:disabled) {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) !important;
-        }
-
-        .bird-rpg-float .action-btn:active:not(:disabled) {
-            transform: translateY(-1px) scale(0.98) !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        .bird-rpg-float .action-btn:disabled {
-            opacity: 0.4 !important;
-            cursor: not-allowed !important;
-            filter: grayscale(60%) !important;
-            transform: none !important;
-        }
-
-        .bird-rpg-float .action-btn:disabled::after {
-            content: '🔒' !important;
-            position: absolute !important;
-            top: 4px !important;
-            right: 4px !important;
-            font-size: 10px !important;
-            opacity: 0.6 !important;
-        }
-
-        .bird-rpg-float .btn-emoji {
-            font-size: 22px !important;
-            margin-bottom: 3px !important;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)) !important;
-            transition: transform 0.2s ease !important;
-        }
-
-        .bird-rpg-float .action-btn:hover:not(:disabled) .btn-emoji {
-            transform: scale(1.1) !important;
-        }
-
-        .bird-rpg-float .btn-text {
-            font-size: 11px !important;
-            line-height: 1.3 !important;
-            font-weight: 600 !important;
-        }
-
-        /* Helpful hint box */
-        .bird-rpg-float #hint-box {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.15)) !important;
-            border: 1px solid rgba(52, 152, 219, 0.3) !important;
-            border-radius: 6px !important;
-            padding: 8px 10px !important;
-            margin: 0 0 10px 0 !important;
-            font-size: 10px !important;
-            line-height: 1.4 !important;
-            color: #2c3e50 !important;
-            position: relative !important;
-        }
-
-        .bird-rpg-float #hint-box::before {
-            content: '💡' !important;
-            margin-right: 4px !important;
-            font-size: 12px !important;
-        }
-
-        .bird-rpg-float .hint-close {
-            position: absolute !important;
-            top: 4px !important;
-            right: 6px !important;
-            cursor: pointer !important;
-            font-size: 12px !important;
-            opacity: 0.6 !important;
-            transition: opacity 0.2s !important;
-        }
-
-        .bird-rpg-float .hint-close:hover {
-            opacity: 1 !important;
-        }
-
-        /* Family section */
-        .bird-rpg-float #family-section {
-            font-size: 11px !important;
-            padding: 10px !important;
-            margin: 0 0 10px 0 !important;
-            border-radius: 6px !important;
-        }
-
-        /* === MODALS & MENUS === */
-        .bird-rpg-float .modal-content {
-            max-width: 400px;
-            max-height: 540px;
-            padding: 18px;
-            font-size: 11px;
-        }
-
-        .bird-rpg-float .modal-content h2 {
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        .bird-rpg-float .modal-content h3 {
-            font-size: 13px;
-            margin-top: 10px;
-            margin-bottom: 8px;
-        }
-
-        .bird-rpg-float .modal-content p,
-        .bird-rpg-float .modal-content div {
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .bird-rpg-float .modal-content button {
-            font-size: 11px;
-            padding: 8px 14px;
-            margin: 5px;
-        }
-
-        /* Dice roll modal */
-        .bird-rpg-float #dice-emoji {
-            font-size: 70px;
-        }
-
-        .bird-rpg-float .dice-roll-title {
-            font-size: 16px;
-        }
-
-        .bird-rpg-float .dice-roll-result {
-            font-size: 14px;
-        }
-
-        /* Quest items */
-        .bird-rpg-float .quest-item {
-            font-size: 10px;
-            padding: 8px;
-            margin: 5px 0;
-        }
-
-        .bird-rpg-float .progress-bar {
-            height: 7px;
-        }
-
-        /* Minimized State */
-        .bird-rpg-float.minimized .bird-rpg-device {
-            width: 70px;
-            height: 70px;
-            padding: 4px;
-        }
-
-        .bird-rpg-float.minimized .rpg-titlebar {
-            display: none;
-        }
-
-        .bird-rpg-float.minimized .bird-rpg-screen {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            cursor: pointer;
-            overflow: hidden;
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a) !important;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5) !important;
-        }
-
-        .bird-rpg-float.minimized .bird-rpg-screen::before {
-            content: '🐦';
-            animation: birdBob 2s ease-in-out infinite;
-            line-height: 1;
-        }
-
-        @keyframes birdBob {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .bird-rpg-float.minimized #game-container {
-            display: none;
-        }
-
-        .bird-rpg-float.minimized #day-night-indicator,
-        .bird-rpg-float.minimized #stars-container {
-            display: none;
-        }
-
-        /* Mobile adjustments FOR FLOATING WINDOW ONLY */
-        @media (max-width: 599px) {
-            .rpg-launcher-btn {
-                bottom: 10px !important;
-                right: 10px !important;
-                padding: 10px 16px !important;
-                font-size: 14px !important;
+        /* Desktop styles (600px and above) */
+        @media (min-width: 600px) {
+            /* Show labels on desktop for better clarity */
+            .stat-compact-label,
+            .inventory-item-label {
+                display: inline !important;
             }
 
-            .bird-rpg-device {
-                width: 400px !important;
+            /* Better desktop layout */
+            body {
+                padding: 0;
+                overflow-y: auto;
             }
 
-            .bird-rpg-float {
-                top: 10px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
+            #game-container {
+                padding: 12px;
+                min-height: 100vh;
+                max-height: none;
+                overflow-y: visible;
             }
 
-            .bird-rpg-float.minimized {
-                top: auto !important;
-                left: auto !important;
-                right: 10px !important;
-                bottom: 10px !important;
-                transform: none !important;
+            #game-header {
+                padding: 16px;
+                margin-bottom: 12px;
             }
 
-            .bird-rpg-float.minimized .bird-rpg-device {
-                width: 60px !important;
-                height: 60px !important;
-                padding: 3px !important;
+            #main-content {
+                padding: 16px;
+                margin-bottom: 12px;
             }
 
-            .bird-rpg-float.minimized .bird-rpg-screen {
-                font-size: 28px !important;
+            /* Larger fonts for desktop */
+            .stat-compact {
+                font-size: 11px;
+                padding: 6px 8px;
             }
 
-            .bird-rpg-float #game-container {
-                max-height: 560px !important;
+            #inventory {
+                font-size: 11px;
+                padding: 8px;
             }
 
-            .bird-rpg-float #map-wrapper {
-                width: 340px !important;
+            .inventory-item {
+                font-size: 11px;
+                padding: 4px 6px;
             }
 
-            .bird-rpg-float #map-canvas {
-                width: 340px !important;
-                height: 340px !important;
+            /* Better weather display on desktop */
+            #weather-display {
+                font-size: 13px;
+                padding: 8px 12px;
             }
         }
+
     </style>
 </head>
 <body>
-    <!-- Launch Button -->
-    <button id="bird-rpg-launcher" class="rpg-launcher-btn">
-        🐦 Bird RPG
-    </button>
+    <!-- Day/Night Indicator -->
+    <div id="day-night-indicator">☀️</div>
 
-    <!-- Floating Window Container -->
-    <div id="bird-rpg-float" class="bird-rpg-float" style="display: none;">
-        <!-- Device Frame -->
-        <div class="bird-rpg-device">
-            <!-- Title Bar with Controls -->
-            <div class="rpg-titlebar" id="rpg-titlebar">
-                <span class="rpg-titlebar-text">🐦 Bird Window RPG</span>
-                <div class="rpg-controls">
-                    <button class="rpg-control-btn" id="rpg-minimize" title="Minimize">−</button>
-                    <button class="rpg-control-btn" id="rpg-close" title="Close">×</button>
-                </div>
-            </div>
+    <!-- Stars for Night Mode -->
+    <div id="stars-container" class="stars"></div>
 
-            <!-- Device Screen -->
-            <div class="bird-rpg-screen">
-                <!-- Day/Night Indicator (inside widget) -->
-                <div id="day-night-indicator">☀️</div>
-
-                <!-- Stars for Night Mode (inside widget) -->
-                <div id="stars-container" class="stars"></div>
-
-                <div id="game-container">
+    <!-- Game Container -->
+    <div id="game-container">
         <!-- Header -->
         <div id="game-header">
             <div id="game-title">🐦 BIRD WINDOW RPG</div>
@@ -1707,7 +1075,7 @@
             <!-- Helpful Hint -->
             <div id="hint-box" style="display: none;">
                 <span class="hint-close" onclick="document.getElementById('hint-box').style.display='none'">✕</span>
-                <span id="hint-text">Hover over action buttons to see what they do!</span>
+                <span id="hint-text">Check the Diary 📖 to see your active quests!</span>
             </div>
 
             <!-- Weather Display -->
@@ -1746,10 +1114,7 @@
                 </div>
             </div>
         </div>
-    </div>
-            </div><!-- .bird-rpg-screen -->
-        </div><!-- .bird-rpg-device -->
-    </div><!-- .bird-rpg-float -->
+    </div><!-- #game-container -->
 
     <!-- Dice Roll Modal -->
     <div id="dice-modal">
@@ -1771,91 +1136,6 @@
     </div>
 
     <script>
-        // ===== FLOATING WINDOW SYSTEM =====
-        (function() {
-            const launcher = document.getElementById('bird-rpg-launcher');
-            const floatWindow = document.getElementById('bird-rpg-float');
-            const titlebar = document.getElementById('rpg-titlebar');
-            const minimizeBtn = document.getElementById('rpg-minimize');
-            const closeBtn = document.getElementById('rpg-close');
-            const screen = document.querySelector('.bird-rpg-screen');
-
-            let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
-
-            // Open window
-            launcher.addEventListener('click', function() {
-                floatWindow.style.display = 'block';
-                launcher.style.display = 'none';
-            });
-
-            // Close window
-            closeBtn.addEventListener('click', function() {
-                floatWindow.style.display = 'none';
-                launcher.style.display = 'block';
-            });
-
-            // Minimize/Maximize
-            minimizeBtn.addEventListener('click', function() {
-                floatWindow.classList.toggle('minimized');
-            });
-
-            // Click minimized icon to maximize
-            screen.addEventListener('click', function(e) {
-                if (floatWindow.classList.contains('minimized')) {
-                    floatWindow.classList.remove('minimized');
-                }
-            });
-
-            // Dragging functionality
-            titlebar.addEventListener('mousedown', dragStart);
-            titlebar.addEventListener('touchstart', dragStart);
-
-            function dragStart(e) {
-                if (floatWindow.classList.contains('minimized')) return;
-
-                if (e.type === 'touchstart') {
-                    initialX = e.touches[0].clientX - floatWindow.offsetLeft;
-                    initialY = e.touches[0].clientY - floatWindow.offsetTop;
-                } else {
-                    initialX = e.clientX - floatWindow.offsetLeft;
-                    initialY = e.clientY - floatWindow.offsetTop;
-                }
-
-                isDragging = true;
-            }
-
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('touchmove', drag);
-
-            function drag(e) {
-                if (!isDragging) return;
-                e.preventDefault();
-
-                if (e.type === 'touchmove') {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                floatWindow.style.left = currentX + 'px';
-                floatWindow.style.top = currentY + 'px';
-                floatWindow.style.transform = 'none';
-            }
-
-            document.addEventListener('mouseup', dragEnd);
-            document.addEventListener('touchend', dragEnd);
-
-            function dragEnd() {
-                isDragging = false;
-            }
-        })();
-
         // ===== GAME STATE =====
         const SEASONS = ['Spring', 'Summer', 'Fall', 'Winter'];
         const SEASON_EMOJIS = { Spring: '🌸', Summer: '☀️', Fall: '🍂', Winter: '❄️' };
@@ -1976,6 +1256,7 @@
             // Flags
             isInCombat: false,
             combatEnemy: null,
+            combatEnemies: [], // Array of enemies in current combat
             gameOver: false,
             hasSeenIntro: false,
 
@@ -2088,7 +1369,7 @@
         // ===== UI UPDATES =====
         function updateUI() {
             // Update day/night background colors
-            const screen = document.querySelector('.bird-rpg-screen');
+            const body = document.body;
             const header = document.getElementById('game-header');
             const mainContent = document.getElementById('main-content');
             const messageLog = document.getElementById('message-log');
@@ -2112,14 +1393,14 @@
                 if (starsContainer) {
                     starsContainer.classList.remove('active');
                 }
-                // Day: bright sky blue gradient with warm glow (applied to widget screen)
-                if (screen) {
+                // Day: bright sky blue gradient with warm glow (applied to body)
+                if (body) {
                     if (isMobile) {
-                        screen.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
-                        screen.style.boxShadow = 'inset 0 0 100px rgba(255, 230, 100, 0.3)';
+                        body.style.background = 'linear-gradient(180deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        body.style.boxShadow = 'inset 0 0 100px rgba(255, 230, 100, 0.3)';
                     } else {
-                        screen.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
-                        screen.style.boxShadow = 'inset 0 0 150px rgba(255, 230, 100, 0.2)';
+                        body.style.background = 'linear-gradient(135deg, #87CEEB 0%, #B0D8F0 50%, #FFE9B3 100%)';
+                        body.style.boxShadow = 'inset 0 0 150px rgba(255, 230, 100, 0.2)';
                     }
                 }
                 header.style.background = 'rgba(250, 250, 250, 0.95)';
@@ -2160,14 +1441,14 @@
                     starsContainer.classList.add('active');
                 }
 
-                // Night: dark blue/purple gradient with stars and moonlit glow (applied to widget screen)
-                if (screen) {
+                // Night: dark blue/purple gradient with stars and moonlit glow (applied to body)
+                if (body) {
                     if (isMobile) {
-                        screen.style.background = 'linear-gradient(180deg, #05061a 0%, #0c1445 30%, #1a1a2e 70%, #0a0a1a 100%)';
-                        screen.style.boxShadow = 'inset 0 0 150px rgba(100, 100, 200, 0.4)';
+                        body.style.background = 'linear-gradient(180deg, #05061a 0%, #0c1445 30%, #1a1a2e 70%, #0a0a1a 100%)';
+                        body.style.boxShadow = 'inset 0 0 150px rgba(100, 100, 200, 0.4)';
                     } else {
-                        screen.style.background = 'radial-gradient(ellipse at top, #1a1a3e 0%, #0c1445 30%, #050515 100%)';
-                        screen.style.boxShadow = 'inset 0 0 200px rgba(100, 100, 200, 0.3)';
+                        body.style.background = 'radial-gradient(ellipse at top, #1a1a3e 0%, #0c1445 30%, #050515 100%)';
+                        body.style.boxShadow = 'inset 0 0 200px rgba(100, 100, 200, 0.3)';
                     }
                 }
                 header.style.background = 'rgba(15, 20, 35, 0.95)';
@@ -2236,10 +1517,13 @@
             document.getElementById('level-info').textContent =
                 `Level ${gameState.level} ${gameState.species} | XP: ${gameState.xp}/${gameState.xpNeeded}`;
 
-            // Action counter
-            const actionsRemaining = gameState.maxActionsPerTurn - gameState.actionsTakenThisTurn;
+            // Action counter (with flock bonus!)
+            const flockBonus = Math.min(5, gameState.flockMembers.length); // +1 action per flock member, max +5
+            const effectiveMaxActions = gameState.maxActionsPerTurn + flockBonus;
+            const actionsRemaining = effectiveMaxActions - gameState.actionsTakenThisTurn;
+            const flockInfo = flockBonus > 0 ? ` (${gameState.maxActionsPerTurn}+${flockBonus}👥)` : '';
             document.getElementById('action-info').textContent =
-                `⚡ Actions: ${actionsRemaining}/${gameState.maxActionsPerTurn}`;
+                `⚡ Actions: ${actionsRemaining}/${effectiveMaxActions}${flockInfo}`;
 
             // Inventory
             document.getElementById('food-count').textContent = gameState.food;
@@ -2261,6 +1545,9 @@
             // Show helpful hints for new players
             updateHints();
 
+            // Check value-based quests (social, survive, etc.)
+            checkValueBasedQuests();
+
             // Auto-save
             saveGame();
         }
@@ -2279,7 +1566,7 @@
 
             // Contextual hints based on game state
             if (gameState.turn <= 3) {
-                hint = 'Hover over action buttons to see what they do! Use Forage and Gather to collect resources.';
+                hint = 'Use Forage and Gather to collect resources. Check the Diary 📖 to see your active quests!';
             } else if (gameState.turn <= 6 && !gameState.hasNest && gameState.twigs >= 1) {
                 hint = 'You have twigs! Build a nest to unlock more features like resting and finding a mate.';
             } else if (gameState.energy < 30) {
@@ -2294,7 +1581,7 @@
                 hint = 'Try Socializing to increase your standing with other birds!';
             } else {
                 // Default hint
-                hint = 'Check the quick stats below actions to make informed decisions!';
+                hint = 'Open the Diary 📖 to track your active quests and life story!';
             }
 
             if (hint) {
@@ -2598,9 +1885,12 @@
                 return;
             }
 
-            // Check action limit
-            if (gameState.actionsTakenThisTurn >= gameState.maxActionsPerTurn) {
-                addMessage(`📊 You've taken ${gameState.maxActionsPerTurn} actions! The day passes...`, 'info');
+            // Check action limit (with flock bonus)
+            const flockBonus = Math.min(5, gameState.flockMembers.length);
+            const effectiveMaxActions = gameState.maxActionsPerTurn + flockBonus;
+            if (gameState.actionsTakenThisTurn >= effectiveMaxActions) {
+                const bonusText = flockBonus > 0 ? ` (${gameState.maxActionsPerTurn}+${flockBonus} from flock!)` : '';
+                addMessage(`📊 You've taken ${effectiveMaxActions} actions${bonusText} The day passes...`, 'info');
                 gameState.turnEndPending = true;
                 setTimeout(() => {
                     gameState.turnEndPending = false;
@@ -2991,6 +2281,7 @@
                     addDiaryEntry('Built a luxurious birdhouse! The envy of all birds 🏠', 'milestone');
                     gainXP(200);
                     completeQuest('firstHome');
+                    updateQuestProgress('upgrade', 1);
                 } else {
                     gameState.twigs = Math.max(0, gameState.twigs - 5); // Still lose some materials, but not go negative
                     addMessage('Struggled with birdhouse construction...', 'warning');
@@ -3009,8 +2300,10 @@
                 return;
             }
 
-            if (gameState.flockMembers.length >= 5) {
-                addMessage('Your flock is already at maximum size!', 'warning');
+            // Count only recruited birds (not family) for the limit
+            const recruitedBirds = gameState.flockMembers.filter(m => !m.isFamily);
+            if (recruitedBirds.length >= 5) {
+                addMessage('You already have 5 recruited birds! (Family members don\'t count against this limit)', 'warning');
                 return;
             }
 
@@ -3035,9 +2328,16 @@
                     territory.npcs.shift();
 
                     addMessage(`${npc.emoji} joined your flock! 🦅`, 'success');
+
+                    // First flock member tip
+                    if (gameState.flockMembers.length === 1) {
+                        addMessage(`💡 Flock benefits: +1 action/turn, combat help, damage reduction, easier fleeing!`, 'info');
+                    }
+
                     addDiaryEntry(`Recruited ${npc.species} to my flock`, 'social');
                     gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
                     gainXP(50);
+                    updateQuestProgress('flock', 1);
                 } else {
                     addMessage('Failed to convince the bird to join...', 'warning');
                     gameState.socialStanding = Math.max(0, gameState.socialStanding - 5);
@@ -3292,8 +2592,25 @@
                 if (baby.stage === 'fledgling' && baby.age >= 7) {
                     baby.stage = 'independent';
                     gameState.offspring++;
-                    addMessage(`🌟 ${baby.name} has left the nest! They're independent now.`, 'success');
-                    addDiaryEntry(`${baby.name} flew away to start their own life. Proud parent moment! 🌟`, 'milestone');
+
+                    // Add grown baby to flock as a permanent family member!
+                    const wasFirstFlock = gameState.flockMembers.length === 0;
+                    gameState.flockMembers.push({
+                        species: baby.species,
+                        emoji: BIRD_SPECIES[baby.species] ? BIRD_SPECIES[baby.species].emoji : '🐦',
+                        skill: Math.floor(Math.random() * 2) + 2, // Slightly better than recruited birds
+                        isFamily: true, // Mark as family member
+                        name: baby.name
+                    });
+
+                    addMessage(`🌟 ${baby.name} is now independent and joins your flock! Family bonds! 💕`, 'success');
+
+                    // First flock member tip
+                    if (wasFirstFlock) {
+                        addMessage(`💡 Flock benefits: +1 action/turn, combat help, damage reduction, easier fleeing!`, 'info');
+                    }
+
+                    addDiaryEntry(`${baby.name} grew up and chose to stay with the family! 🌟💕`, 'milestone');
                     gainXP(100);
                     updateQuestProgress('family', 1);
                     updateQuestProgress('offspring', 1);
@@ -3336,151 +2653,399 @@
                         `You spot a hidden cache of seeds beneath the ${location} foliage! 🌟`,
                         `A gust of wind reveals a bounty of berries you hadn't noticed! 🌟`,
                         `Your keen eyes spot a feast of insects swarming nearby! 🌟`,
-                        `You discover a mother lode of worms after the recent rain! 🌟`
+                        `You discover a mother lode of worms after the recent rain! 🌟`,
+                        `Jackpot! A picnicker left behind a feast of crumbs! 🌟`,
+                        `You unearth a forgotten stash of premium nuts! 🌟`,
+                        `A butterfly migration passes through - easy pickings! 🌟`,
+                        `You find a grove of berry bushes bursting with ripe fruit! 🌟`,
+                        `The soil here is absolutely teeming with juicy grubs! 🌟`,
+                        `Lucky you! A fruit tree dropping perfectly ripe treasures! 🌟`,
+                        // Humorous
+                        `You accidentally stumble into a bug convention! They're not happy, but you're eating well! 🌟`,
+                        `A squirrel drops its entire lunch from above. Your gain! 🌟`,
+                        `You find a bread crumb trail. Thanks, Hansel and Gretel! 🌟`,
+                        `That crow was showing off its food stash. Was. Past tense. 🌟`,
+                        // D&D Medieval
+                        `NAT 20! Your keen ranger senses guide you to a bountiful harvest! 🌟`,
+                        `The dice gods smile upon you! A legendary foraging haul! 🌟`,
+                        `Critical strike on nature itself! The forest yields its bounty! 🌟`,
+                        // Mundane/Office
+                        `Exceeded quarterly food targets by 300%! Employee of the month! 🌟`,
+                        `Your foraging performance review: OUTSTANDING! 🌟`,
+                        `Maximum efficiency achieved! Corporate would be proud! 🌟`
                     ],
                     success: [
                         `You peck around and find some tasty morsels.`,
                         `Your search through the ${location} yields food.`,
                         `You manage to snag a few seeds and berries.`,
-                        `Some insects cross your path - dinner time!`
+                        `Some insects cross your path - dinner time!`,
+                        `A methodical search turns up a decent meal.`,
+                        `You spot some edible mushrooms and grubs.`,
+                        `Your persistence pays off with a small haul.`,
+                        `You catch a beetle scurrying across a log.`,
+                        `Some fallen seeds make for a satisfying snack.`,
+                        `You turn over a rock and find a few worms.`,
+                        `A quick hunt through the underbrush yields results.`,
+                        `You find just enough to tide you over.`,
+                        // Humorous
+                        `You grab lunch before that entitled robin sees it.`,
+                        `Another day, another worm. Living the dream.`,
+                        `Found some seeds. They're not organic, but they'll do.`,
+                        // D&D
+                        `You pass your Survival check! Food acquired!`,
+                        `Rolled a 14 on your Nature check. Decent findings.`,
+                        // Mundane
+                        `Clocked in, found food, clocked out. Standard Tuesday.`,
+                        `Met minimum foraging requirements. Performance: Adequate.`,
+                        `Logged your daily food intake. Within acceptable parameters.`
                     ],
                     fail: [
                         `You scratch around but find mostly dirt and disappointment.`,
                         `The ${location} seems picked clean today.`,
                         `Other birds must have gotten here first...`,
-                        `You find something, but it's not edible.`
+                        `You find something, but it's not edible.`,
+                        `Everything looks promising but turns out to be inedible.`,
+                        `You search high and low but come up empty-beaked.`,
+                        `The competition has been fierce here today.`,
+                        `Your timing is off - all the good spots are empty.`,
+                        `You keep finding things that looked like food from a distance.`,
+                        `Not your lucky day - the pickings are slim.`,
+                        // Humorous
+                        `That wasn't a raisin. That was... something else. Moving on.`,
+                        `You found a seed! Wait, it's plastic. Humans are the worst.`,
+                        `All you found was regret and a weird smell.`,
+                        // D&D
+                        `Failed your Perception check. The food evades your notice.`,
+                        `You rolled a 7. The dice mock your hunger.`,
+                        // Mundane
+                        `Below performance targets. Review scheduled with management.`,
+                        `Productivity metrics: Unsatisfactory. Try harder tomorrow.`
                     ],
                     critFail: [
                         `Your frantic searching attracts unwanted attention! 💥`,
                         `You disturb something dangerous while foraging! 💥`,
-                        `A predator was watching you this whole time! 💥`
+                        `A predator was watching you this whole time! 💥`,
+                        `You stick your beak in a wasp nest! Not smart! 💥`,
+                        `That wasn't a berry - it was a spider egg sac! 💥`,
+                        `You trip and tumble into a thorny bush! 💥`,
+                        `A snake was hiding under that rock! 💥`,
+                        // Humorous
+                        `You peck something that pecks BACK! It's another bird! Awkward! 💥`,
+                        `Congratulations, you found a skunk! It found you too! 💥`,
+                        `You ate something that was definitely NOT food! Roll CON save! 💥`,
+                        // D&D
+                        `NAT 1! The Rat King himself appears! You've angered fate! 💥`,
+                        `CRITICAL FUMBLE! You've disrupted a territorial owl! 💥`,
+                        // Mundane
+                        `OSHA violation detected! Workplace injury report filed! 💥`
                     ]
                 },
                 gathering: {
                     critSuccess: [
                         `You find the perfect twigs - sturdy and just the right size! 🌟`,
                         `A dead branch falls nearby, providing excellent materials! 🌟`,
-                        `You discover a nest-builder's paradise! 🌟`
+                        `You discover a nest-builder's paradise! 🌟`,
+                        `The wind delivers premium building materials right to you! 🌟`,
+                        `You find moss, twigs, and feathers - everything you need! 🌟`,
+                        `A pile of perfectly weathered sticks catches your eye! 🌟`,
+                        `You spot some spider silk - the best binding material! 🌟`,
+                        `Abandoned nest nearby provides excellent reclaimed materials! 🌟`,
+                        // Humorous
+                        `A beaver's construction site! Free samples! Hope they don't notice! 🌟`,
+                        `You find a Pinterest-worthy collection of artisanal twigs! 🌟`,
+                        `Is this... an IKEA instruction manual for nests? Score! 🌟`,
+                        // D&D
+                        `NAT 20 on Gathering! You've looted legendary-tier materials! 🌟`,
+                        `Critical success! The forest bestows its finest lumber! 🌟`,
+                        // Mundane
+                        `Procurement department approved! Premium materials acquired! 🌟`,
+                        `Supply chain optimization at its finest! A+ logistics! 🌟`
                     ],
                     success: [
                         `You gather some decent building materials.`,
                         `These twigs should work for your nest.`,
-                        `You collect what you can carry.`
+                        `You collect what you can carry.`,
+                        `A few good pieces that'll work nicely.`,
+                        `Solid materials for nest construction.`,
+                        `You find some usable twigs and grass.`,
+                        `Not bad - these will definitely help.`,
+                        `A successful gathering trip.`,
+                        `You collect enough for today's work.`
                     ],
                     fail: [
                         `The twigs here are too brittle and break easily.`,
                         `You can't find quality materials in the ${location}.`,
-                        `Everything you find is the wrong size.`
+                        `Everything you find is the wrong size.`,
+                        `These materials won't hold up in bad weather.`,
+                        `Too green, too dry, or just wrong...`,
+                        `The best materials were already taken.`,
+                        `Nothing meets your standards today.`,
+                        `You're too picky, but for good reason.`
                     ],
                     critFail: [
                         `A twig snaps back and hits you in the beak! Ow! 💥`,
-                        `You get tangled in some brambles while gathering! 💥`
+                        `You get tangled in some brambles while gathering! 💥`,
+                        `The branch you're standing on breaks! 💥`,
+                        `A swarm of angry ants was living in that log! 💥`,
+                        `You grab poison ivy by mistake! 💥`
                     ]
                 },
                 building: {
                     critSuccess: [
                         `Your nest-building skills shine! This section is perfect! 🌟`,
                         `You weave the twigs with masterful precision! 🌟`,
-                        `This is coming together beautifully! 🌟`
+                        `This is coming together beautifully! 🌟`,
+                        `An architectural masterpiece takes form! 🌟`,
+                        `Your instincts guide you to create perfection! 🌟`,
+                        `The structure is incredibly sturdy and cozy! 🌟`,
+                        `You work with the efficiency of a master builder! 🌟`,
+                        `Each twig fits like it was made for this spot! 🌟`
                     ],
                     success: [
                         `You carefully add to your nest structure.`,
                         `Bit by bit, your home takes shape.`,
-                        `Steady progress on your nest.`
+                        `Steady progress on your nest.`,
+                        `Another section completed satisfactorily.`,
+                        `The walls grow higher and stronger.`,
+                        `You can see your vision coming to life.`,
+                        `Good honest work yields good results.`,
+                        `Your nest is starting to look like home.`,
+                        `You add another layer of comfort and safety.`
                     ],
                     fail: [
                         `The twigs won't stay in place. Frustrating!`,
                         `You struggle to get the structure right.`,
-                        `Some of your work comes loose.`
+                        `Some of your work comes loose.`,
+                        `This section will need to be redone.`,
+                        `The materials aren't cooperating today.`,
+                        `You can't seem to get the angle right.`,
+                        `Progress is slower than you'd like.`,
+                        `Maybe you should take a break and try again.`
                     ],
                     critFail: [
                         `A strong gust scatters your work! 💥`,
-                        `The section you just built collapses! 💥`
+                        `The section you just built collapses! 💥`,
+                        `You accidentally destroy yesterday's work! 💥`,
+                        `A curious squirrel ruins your careful arrangement! 💥`,
+                        `Rain starts falling on your half-built nest! 💥`
                     ]
                 },
                 flying: {
                     critSuccess: [
                         `You soar gracefully through the air! What a flight! 🌟`,
                         `The wind carries you effortlessly to your destination! 🌟`,
-                        `Perfect takeoff, perfect landing! 🌟`
+                        `Perfect takeoff, perfect landing! 🌟`,
+                        `You ride the thermals like a pro! Exhilarating! 🌟`,
+                        `Your wings cut through the air with perfect precision! 🌟`,
+                        `The sky feels like home as you glide effortlessly! 🌟`,
+                        `You perform aerial maneuvers that would make eagles jealous! 🌟`,
+                        `An absolute joy - flying has never felt so natural! 🌟`,
+                        `You catch every updraft perfectly! What mastery! 🌟`
                     ],
                     success: [
                         `You wing your way to your destination.`,
                         `A smooth flight brings you to ${context.destination || 'your destination'}.`,
-                        `You navigate the airways with ease.`
+                        `You navigate the airways with ease.`,
+                        `Your wings carry you steadily onward.`,
+                        `A competent flight gets you where you need to go.`,
+                        `You make good time through the air.`,
+                        `Nothing fancy, but effective.`,
+                        `Your landing is a bit rough but acceptable.`,
+                        `The journey passes without incident.`
                     ],
                     fail: [
                         `You struggle against the wind, wasting energy.`,
                         `Your flight path is clumsy and inefficient.`,
-                        `Turbulence throws you off course.`
+                        `Turbulence throws you off course.`,
+                        `You have to fight for every wing beat.`,
+                        `The air currents work against you today.`,
+                        `You arrive tired and frustrated.`,
+                        `Your navigation needs work.`,
+                        `The winds are not in your favor.`
                     ],
                     critFail: [
                         `You crash-land awkwardly! 💥`,
-                        `A sudden wind gust sends you tumbling! 💥`
+                        `A sudden wind gust sends you tumbling! 💥`,
+                        `You collide with a branch! Ouch! 💥`,
+                        `Your wings cramp up mid-flight! 💥`,
+                        `A hawk forces you into an emergency dive! 💥`,
+                        `You get completely disoriented in a cloud! 💥`
                     ]
                 },
                 combat: {
                     critSuccess: [
                         `Your attack is devastating! A perfect strike! 🌟`,
                         `You catch ${context.enemy || 'the enemy'} completely off-guard! 🌟`,
-                        `A fierce and accurate blow lands true! 🌟`
+                        `A fierce and accurate blow lands true! 🌟`,
+                        `Your instincts take over - a flawless assault! 🌟`,
+                        `You strike with lightning speed and deadly accuracy! 🌟`,
+                        `A brutal combination leaves ${context.enemy || 'the enemy'} reeling! 🌟`,
+                        `Your attack finds the perfect weak spot! 🌟`,
+                        `You fight with the fury of your ancestors! 🌟`,
+                        `That's going to leave a mark! Critical hit! 🌟`,
+                        // Humorous
+                        `You peck ${context.enemy || 'the enemy'} right in the dignity! Devastating! 🌟`,
+                        `FINISH HIM! Wait, wrong game. But still devastating! 🌟`,
+                        `You channel your inner action hero! Explosions! Slow motion! 🌟`,
+                        `That ${context.enemy || 'enemy'} just got SERVED! Bird style! 🌟`,
+                        // D&D
+                        `NAT 20! CRITICAL HIT! Roll for damage! Maximum pain! 🌟`,
+                        `Perfect roll! Your blade... er, beak... strikes true! 🌟`,
+                        `You rolled a 20! The DM weeps for ${context.enemy || 'the enemy'}! 🌟`,
+                        `SNEAK ATTACK! You have advantage and it shows! 🌟`,
+                        // Mundane
+                        `Violence metrics: EXCEEDED EXPECTATIONS! 🌟`,
+                        `Quarterly combat goals: DEMOLISHED! Promotion pending! 🌟`
                     ],
                     success: [
                         `Your talons find their mark!`,
                         `You land a solid hit on ${context.enemy || 'the enemy'}!`,
-                        `Your beak strikes with precision!`
+                        `Your beak strikes with precision!`,
+                        `A successful strike connects!`,
+                        `You rake ${context.enemy || 'the enemy'} with your claws!`,
+                        `Your wings buffet ${context.enemy || 'the enemy'} effectively!`,
+                        `A determined peck finds its target!`,
+                        `Your aerial dive-bomb hits home!`,
+                        `You press the advantage with a good strike!`,
+                        // Humorous
+                        `You hit ${context.enemy || 'the enemy'}! They're reconsidering their life choices!`,
+                        `Bonk! Right on the noggin!`,
+                        `That's for eating my cousin, you monster!`,
+                        // D&D
+                        `Hit! ${context.enemy || 'Enemy'} takes damage. Roll initiative!`,
+                        `Your attack roll beats their AC. Solid hit!`,
+                        // Mundane
+                        `Damage output: Within acceptable range. Continue.`,
+                        `Combat engagement: Proceeding as planned.`
                     ],
                     fail: [
                         `${context.enemy || 'The enemy'} dodges your attack!`,
                         `You miss completely!`,
-                        `Your strike goes wide!`
+                        `Your strike goes wide!`,
+                        `${context.enemy || 'The enemy'} is too quick!`,
+                        `Your attack fails to connect!`,
+                        `You're off-balance and miss!`,
+                        `${context.enemy || 'The enemy'} evades easily!`,
+                        `Your timing is off!`,
+                        `You telegraph your move too obviously!`
                     ],
                     critFail: [
                         `You lose your balance and stumble! 💥`,
                         `Your attack leaves you wide open! 💥`,
-                        `You accidentally hurt yourself! 💥`
+                        `You accidentally hurt yourself! 💥`,
+                        `You trip over your own feet! 💥`,
+                        `Your beak gets stuck in something! 💥`,
+                        `You attack with such force you spin around! 💥`,
+                        `${context.enemy || 'The enemy'} counterattacks while you're vulnerable! 💥`,
+                        // Humorous
+                        `You attack the WRONG ${context.enemy || 'enemy'}! There were two! 💥`,
+                        `Your battle cry cracks mid-chirp! So embarrassing! 💥`,
+                        `You throw a feather at them instead of attacking! Oops! 💥`,
+                        `You slip on a banana peel! Wait, who left that there?! 💥`,
+                        // D&D
+                        `NAT 1! CRITICAL FUMBLE! You hit yourself! Roll for dignity! 💥`,
+                        `You rolled a 1! The dice gods laugh at your suffering! 💥`,
+                        `FUMBLE! Your weapon... uh, beak... betrays you! 💥`,
+                        // Mundane
+                        `SAFETY INCIDENT! HR notified! Disciplinary action pending! 💥`,
+                        `Workplace accident logged. Insurance premiums increasing! 💥`
                     ]
                 },
                 flocking: {
                     critSuccess: [
                         `The other bird is charmed by your charisma! 🌟`,
                         `You make an instant connection! 🌟`,
-                        `What a delightful conversation! 🌟`
+                        `What a delightful conversation! 🌟`,
+                        `Your wit and charm are irresistible! 🌟`,
+                        `You've made a friend for life! 🌟`,
+                        `The other bird is thoroughly impressed! 🌟`,
+                        `Perfect social instincts lead to a wonderful exchange! 🌟`,
+                        `You share a moment of genuine connection! 🌟`,
+                        `The flock will be talking about this encounter! 🌟`,
+                        // Humorous
+                        `That cardinal is TOTALLY into you! Smooth moves! 🌟`,
+                        `You just became the most popular bird at the feeder! 🌟`,
+                        `Your bird pickup lines are legendary! "Nice plumage!" works every time! 🌟`,
+                        `You're basically the Ryan Gosling of birds now! 🌟`,
+                        // D&D
+                        `NAT 20 on Persuasion! They'll follow you anywhere! 🌟`,
+                        `Perfect Charisma check! You have advantage on all social rolls now! 🌟`,
+                        // Mundane
+                        `Networking event: CRUSHING IT! LinkedIn requests incoming! 🌟`,
+                        `Interpersonal skills review: EXEMPLARY! Management material! 🌟`
                     ],
                     success: [
                         `You share a pleasant exchange.`,
                         `The other bird seems to enjoy your company.`,
-                        `You make a good impression.`
+                        `You make a good impression.`,
+                        `A friendly chirp is warmly received.`,
+                        `You find common ground in the conversation.`,
+                        `Your presence is welcomed.`,
+                        `A nice chat about the weather and food.`,
+                        `You exchange some useful gossip.`,
+                        `The social interaction goes smoothly.`
                     ],
                     fail: [
                         `The conversation falls flat.`,
                         `You seem to have said the wrong thing.`,
-                        `Awkward silence fills the air.`
+                        `Awkward silence fills the air.`,
+                        `The other bird seems distracted.`,
+                        `Your jokes don't land well.`,
+                        `You can't quite read the social cues.`,
+                        `The interaction is forgettable.`,
+                        `You both run out of things to say.`,
+                        `They seem eager to move on.`
                     ],
                     critFail: [
                         `You've somehow offended the other bird! 💥`,
-                        `Your attempt at small talk goes terribly wrong! 💥`
+                        `Your attempt at small talk goes terribly wrong! 💥`,
+                        `You accidentally insult their entire family! 💥`,
+                        `You make a terrible first impression! 💥`,
+                        `They fly away mid-conversation! 💥`,
+                        `You bring up a very sensitive topic! 💥`
                     ]
                 },
                 perception: {
                     critSuccess: [
                         `Your sharp eyes catch every detail! 🌟`,
                         `Nothing escapes your notice! 🌟`,
-                        `You spot something others would miss! 🌟`
+                        `You spot something others would miss! 🌟`,
+                        `Your senses are working in perfect harmony! 🌟`,
+                        `You notice patterns invisible to most! 🌟`,
+                        `Every movement, every sound - all crystal clear! 🌟`,
+                        `Your instincts warn you of hidden dangers! 🌟`,
+                        `You perceive things before they even happen! 🌟`,
+                        `The world reveals its secrets to your keen gaze! 🌟`
                     ],
                     success: [
                         `You observe your surroundings carefully.`,
                         `Your senses pick up useful information.`,
-                        `You notice important details.`
+                        `You notice important details.`,
+                        `Your eyes scan the area effectively.`,
+                        `You pick up on the subtle signs.`,
+                        `Your awareness serves you well.`,
+                        `You catch movement in the distance.`,
+                        `Your instincts are reliable.`,
+                        `You make mental notes of everything.`
                     ],
                     fail: [
                         `Everything seems like a blur.`,
                         `You fail to notice anything special.`,
-                        `Your attention wanders.`
+                        `Your attention wanders.`,
+                        `The details escape you.`,
+                        `You're having trouble focusing.`,
+                        `Too much information, not enough clarity.`,
+                        `Your mind is elsewhere.`,
+                        `Nothing seems to stand out.`,
+                        `You might have missed something important.`
                     ],
                     critFail: [
                         `You were so focused on looking, you missed what was right in front of you! 💥`,
-                        `A distraction pulls your attention away! 💥`
+                        `A distraction pulls your attention away! 💥`,
+                        `You completely misread the situation! 💥`,
+                        `A loud noise startles you at the worst moment! 💥`,
+                        `You see danger where there is none! 💥`,
+                        `You're too busy looking up to notice the ground! 💥`
                     ]
                 }
             };
@@ -3502,7 +3067,26 @@
             const result = document.getElementById('dice-result');
             const title = document.getElementById('dice-title');
 
-            title.textContent = `${skillName} Attempt (Difficulty: ${dc})`;
+            // More descriptive titles based on skill
+            const titleVariations = {
+                foraging: ['Searching for Food', 'Hunting for Morsels', 'Seeking Sustenance', 'Foraging Quest'],
+                gathering: ['Collecting Materials', 'Gathering Resources', 'Material Hunt', 'Resource Gathering'],
+                building: ['Construction Work', 'Nest Building', 'Architectural Endeavor', 'Home Improvement'],
+                flying: ['Taking Flight', 'Aerial Navigation', 'Wing Work', 'Flight Attempt'],
+                combat: ['Battle Action', 'Combat Maneuver', 'Fighting Move', 'Clash of Talons'],
+                flocking: ['Social Interaction', 'Bird Diplomacy', 'Charm Attempt', 'Making Friends'],
+                perception: ['Observing Surroundings', 'Heightened Awareness', 'Scanning the Area', 'Keen Senses']
+            };
+
+            const skillKey = skillName.toLowerCase();
+            let titleText = '';
+            if (titleVariations[skillKey]) {
+                const options = titleVariations[skillKey];
+                titleText = options[Math.floor(Math.random() * options.length)];
+            } else {
+                titleText = `${skillName} Attempt`;
+            }
+            title.textContent = `${titleText} (DC: ${dc})`;
             modal.classList.add('active');
 
             // Animate dice roll
@@ -3520,9 +3104,43 @@
                     // Get flavor text
                     const flavorText = getFlavorText(skillName, roll, success, context);
 
+                    // Varied critical labels
+                    const critSuccessLabels = [
+                        '🌟 CRITICAL SUCCESS! 🌟',
+                        '🎯 NATURAL 20! 🎯',
+                        '✨ PERFECT! ✨',
+                        '🏆 FLAWLESS! 🏆',
+                        '⚡ LEGENDARY! ⚡',
+                        '💎 EPIC WIN! 💎',
+                        '🔥 CRUSHING IT! 🔥',
+                        '👑 MASTERFUL! 👑',
+                        '🎉 PHENOMENAL! 🎉',
+                        '🌠 NAT 20 BABY! 🌠',
+                        '💫 GOD ROLL! 💫',
+                        '🦅 ASCENDED! 🦅',
+                        '⭐ MAXIMUM SUCCESS! ⭐'
+                    ];
+
+                    const critFailLabels = [
+                        '💥 CRITICAL FAILURE! 💥',
+                        '😱 NATURAL 1! 😱',
+                        '💀 FUMBLE! 💀',
+                        '🤦 CATASTROPHIC! 🤦',
+                        '⚠️ DISASTER! ⚠️',
+                        '😬 YIKES! 😬',
+                        '🌪️ TOTAL CHAOS! 🌪️',
+                        '👎 EPIC FAIL! 👎',
+                        '🔴 ABORT! 🔴',
+                        '❌ NAT 1! OH NO! ❌',
+                        '🎲 CURSED DICE! 🎲',
+                        '💩 OOF! 💩',
+                        '🚨 CRITICAL OOPS! 🚨'
+                    ];
+
                     if (roll === 20) {
                         display.classList.add('crit-success');
-                        result.innerHTML = `<div style="color: #2ecc71; font-size: 24px;">🌟 CRITICAL SUCCESS! 🌟</div>
+                        const critLabel = critSuccessLabels[Math.floor(Math.random() * critSuccessLabels.length)];
+                        result.innerHTML = `<div style="color: #2ecc71; font-size: 24px;">${critLabel}</div>
                             <div style="margin: 15px 0; padding: 10px; background: #f0f9f4; border-radius: 8px; font-style: italic; color: #333;">
                                 "${flavorText}"
                             </div>
@@ -3530,7 +3148,8 @@
                             <div>Challenge: ${dc}</div>`;
                     } else if (roll === 1) {
                         display.classList.add('crit-fail');
-                        result.innerHTML = `<div style="color: #e74c3c; font-size: 24px;">💥 CRITICAL FAILURE! 💥</div>
+                        const critLabel = critFailLabels[Math.floor(Math.random() * critFailLabels.length)];
+                        result.innerHTML = `<div style="color: #e74c3c; font-size: 24px;">${critLabel}</div>
                             <div style="margin: 15px 0; padding: 10px; background: #ffe6e6; border-radius: 8px; font-style: italic; color: #333;">
                                 "${flavorText}"
                             </div>
@@ -3564,6 +3183,147 @@
         }
 
         // ===== COMBAT =====
+
+        // Combat flavor text for variety
+        const combatEntranceText = [
+            "A {enemy} spots you and looks hungry!",
+            "{enemy} emerges from the shadows!",
+            "You've been ambushed by {enemy}!",
+            "{enemy} blocks your path menacingly!",
+            "Watch out! {enemy} lunges at you!",
+            "{enemy} appears with a screech!",
+            "Danger! {enemy} has you in its sights!",
+            "{enemy} swoops down aggressively!",
+            "A wild {enemy} appeared! (This isn't Pokémon but same energy)",
+            "{enemy} challenges you to combat!",
+            "Uh oh... {enemy} doesn't look friendly!",
+            "Your path is blocked by {enemy}!",
+            "Battle time! {enemy} is ready to fight!",
+            "{enemy} emerges, looking for trouble!",
+            "Red alert! {enemy} is attacking!"
+        ];
+
+        const multipleEnemyText = [
+            "{count} {enemy} surround you!",
+            "A pack of {count} {enemy} attack!",
+            "Multiple threats! {count} {enemy} close in!",
+            "You're outnumbered! {count} {enemy} vs you!",
+            "{count} {enemy} coordinate their attack!",
+            "Gang warfare! {count} {enemy} team up!",
+            "It's a squad! {count} {enemy} strike together!",
+            "Double trouble! {count} {enemy} appear!",
+            "A whole crew of {count} {enemy} show up!",
+            "The odds aren't good - {count} {enemy} vs one bird!"
+        ];
+
+        const attackFlavorText = [
+            "You strike with precision!",
+            "Your talon connects!",
+            "A fierce peck lands!",
+            "You unleash your fury!",
+            "Direct hit!",
+            "Your combat training pays off!",
+            "Critical strike!",
+            "You channel your inner warrior!",
+            "Savage attack!",
+            "Your beak finds its mark!",
+            "A flurry of feathers and fury!",
+            "You fight like your life depends on it (because it does)!",
+            "Aggressive chirping intensifies!",
+            "You remember your ancestors' fighting spirit!",
+            "Your battle cry echoes!"
+        ];
+
+        const attackMissText = [
+            "Your attack whiffs through the air!",
+            "You miss completely!",
+            "The enemy dodges effortlessly!",
+            "Your aim was off!",
+            "You stumble mid-attack!",
+            "A clumsy swing!",
+            "The enemy sees it coming!",
+            "Your attack fails to connect!",
+            "You overextended yourself!",
+            "That was embarrassing...",
+            "The wind throws off your strike!",
+            "Your timing was all wrong!",
+            "They're faster than you thought!",
+            "You flail uselessly!",
+            "Nature 1, You 0 on that one..."
+        ];
+
+        const enemyAttackText = [
+            "strikes back viciously!",
+            "retaliates with fury!",
+            "counterattacks!",
+            "fights back!",
+            "launches a fierce assault!",
+            "doesn't go down easy!",
+            "shows its teeth!",
+            "claps back hard!",
+            "returns the favor!",
+            "ain't having it!",
+            "fights for survival!",
+            "goes absolutely feral!",
+            "refuses to be beaten!",
+            "hits you where it hurts!",
+            "teaches you a lesson!"
+        ];
+
+        const defendSuccessText = [
+            "You brace for impact!",
+            "Your defensive stance holds!",
+            "You weather the storm!",
+            "Feathers ruffled but unbroken!",
+            "You stand your ground!",
+            "Tank mode activated!",
+            "You shield yourself effectively!",
+            "Taking it like a champ!",
+            "Defense successful!",
+            "You absorb the blow!",
+            "Your guard is up!",
+            "You hunker down!",
+            "Defensive posture: engaged!",
+            "You're tough as nails!",
+            "Not today, danger!"
+        ];
+
+        const fleeSuccessText = [
+            "You fly away at maximum velocity!",
+            "Tactical retreat successful!",
+            "You escape to fight another day!",
+            "Nope nope nope - you're outta there!",
+            "Your wings carry you to safety!",
+            "Running away is a valid strategy!",
+            "You vanish into the sky!",
+            "Live to tell the tale!",
+            "Survival > pride. Good choice!",
+            "You book it!",
+            "Your flight instincts kick in!",
+            "You bail faster than your tax accountant!",
+            "Discretion is the better part of valor!",
+            "You achieve escape velocity!",
+            "See ya later, alligator!"
+        ];
+
+        const fleeFailText = [
+            "Your wings betray you!",
+            "Can't escape!",
+            "They're too fast!",
+            "You're trapped!",
+            "No escape!",
+            "The enemy blocks your path!",
+            "You stumble trying to flee!",
+            "Your exit is cut off!",
+            "Nowhere to run!",
+            "They've got you cornered!",
+            "Your flight fails!",
+            "You can't get away!",
+            "Retreat impossible!",
+            "They're on you like glue!",
+            "This is your stand, like it or not!"
+        ];
+
         function spawnPredator(forceBoss = false) {
             // Check for Rat King trigger
             if (gameState.ratsDefeated >= 5 && !forceBoss) {
@@ -3579,41 +3339,103 @@
                 { name: 'Hawk', emoji: '🦅', health: 70, attack: [20, 30], xp: 120, type: 'boss' }
             ];
 
+            // Level scaling factor (enemies get stronger as player levels up)
+            const levelScaling = 1 + (gameState.level - 1) * 0.10; // 10% increase per level
+
             // Weight by danger and level
-            let predator;
+            let selectedPredatorType;
             if (gameState.level <= 2) {
-                predator = { ...predators[0] }; // Rat for low levels
+                selectedPredatorType = 0; // Rat for low levels
             } else if (gameState.level >= 7 && Math.random() < 0.15) {
-                predator = { ...predators[4] }; // Hawk for high levels (rare)
+                selectedPredatorType = 4; // Hawk for high levels (rare)
             } else if (gameState.level >= 5 && Math.random() < 0.25) {
-                predator = { ...predators[3] }; // Crow
+                selectedPredatorType = 3; // Crow
             } else if (Math.random() < 0.6) {
-                predator = { ...predators[Math.floor(Math.random() * 2)] }; // Rat or Squirrel
+                selectedPredatorType = Math.floor(Math.random() * 2); // Rat or Squirrel
             } else {
-                predator = { ...predators[2] }; // Owl
+                selectedPredatorType = 2; // Owl
+            }
+
+            // Determine if multiple enemies spawn (higher chance at lower levels for rats/squirrels)
+            let enemyCount = 1;
+            const isBoss = predators[selectedPredatorType].type === 'boss';
+
+            if (!isBoss && !forceBoss) {
+                // Rats and squirrels can appear in groups
+                if (selectedPredatorType <= 1) { // Rat or Squirrel
+                    const multiChance = Math.random();
+                    if (gameState.level >= 4 && multiChance < 0.35) {
+                        enemyCount = Math.random() < 0.5 ? 2 : 3;
+                    } else if (gameState.level >= 2 && multiChance < 0.25) {
+                        enemyCount = 2;
+                    }
+                }
+                // Other enemies can occasionally appear in pairs at higher levels
+                else if (gameState.level >= 6 && Math.random() < 0.15) {
+                    enemyCount = 2;
+                }
+            }
+
+            // Create enemy array with scaled stats
+            // Multiple enemies are individually weaker (70% health/damage each)
+            const multiEnemyNerf = enemyCount > 1 ? 0.7 : 1.0;
+            gameState.combatEnemies = [];
+            const basePredator = predators[selectedPredatorType];
+
+            for (let i = 0; i < enemyCount; i++) {
+                const predator = {
+                    ...basePredator,
+                    health: Math.floor(basePredator.health * levelScaling * multiEnemyNerf),
+                    maxHealth: Math.floor(basePredator.health * levelScaling * multiEnemyNerf),
+                    attack: [
+                        Math.floor(basePredator.attack[0] * levelScaling * multiEnemyNerf),
+                        Math.floor(basePredator.attack[1] * levelScaling * multiEnemyNerf)
+                    ],
+                    xp: Math.floor(basePredator.xp * levelScaling * multiEnemyNerf),
+                    id: i
+                };
+                gameState.combatEnemies.push(predator);
             }
 
             gameState.isInCombat = true;
-            gameState.combatEnemy = predator;
+            gameState.combatEnemy = gameState.combatEnemies[0]; // Backwards compatibility
 
-            const bossWarning = predator.type === 'boss' ? ' ⚠️ BOSS ENCOUNTER!' : '';
-            addMessage(`⚠️ A ${predator.emoji} ${predator.name} appeared!${bossWarning}`, 'danger');
+            // Entrance message with flavor
+            const enemyName = basePredator.emoji + ' ' + basePredator.name;
+            let entranceMsg;
+
+            if (enemyCount > 1) {
+                const pluralName = basePredator.name + 's';
+                const template = multipleEnemyText[Math.floor(Math.random() * multipleEnemyText.length)];
+                entranceMsg = template.replace('{count}', enemyCount).replace('{enemy}', pluralName);
+            } else {
+                const template = combatEntranceText[Math.floor(Math.random() * combatEntranceText.length)];
+                entranceMsg = template.replace('{enemy}', enemyName);
+            }
+
+            const bossWarning = isBoss ? ' ⚠️ BOSS ENCOUNTER!' : '';
+            addMessage(`⚠️ ${entranceMsg}${bossWarning}`, 'danger');
             updateUI();
         }
 
         function spawnRatKing() {
+            const levelScaling = 1 + (gameState.level - 1) * 0.10; // Match 10% scaling
+
             const ratKing = {
                 name: 'RAT KING',
                 emoji: '👑🐀',
-                health: 100,
-                attack: [20, 30],
-                xp: 250,
+                health: Math.floor(100 * levelScaling),
+                maxHealth: Math.floor(100 * levelScaling),
+                attack: [Math.floor(20 * levelScaling), Math.floor(30 * levelScaling)],
+                xp: Math.floor(250 * levelScaling),
                 type: 'boss',
-                isRatKing: true
+                isRatKing: true,
+                id: 0
             };
 
             gameState.isInCombat = true;
-            gameState.combatEnemy = ratKing;
+            gameState.combatEnemies = [ratKing];
+            gameState.combatEnemy = ratKing; // Backwards compatibility
 
             addMessage('👑🐀 THE RAT KING HAS ARRIVED! The ruler of all rats challenges you!', 'danger');
             addDiaryEntry('Faced the legendary RAT KING in battle! 👑🐀', 'combat');
@@ -3622,16 +3444,39 @@
 
         function renderCombatActions() {
             const actionPanel = document.getElementById('action-panel');
-            const enemy = gameState.combatEnemy;
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
 
-            actionPanel.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; font-size: 48px; margin: 20px 0;">
-                    ${enemy.emoji}
-                </div>
-                <div style="grid-column: 1 / -1; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 10px;">
-                    ${enemy.name} - HP: ${enemy.health}
-                </div>
-            `;
+            // Display all alive enemies
+            let enemyDisplay = '';
+            if (aliveEnemies.length > 1) {
+                // Multiple enemies - show them all in a row
+                enemyDisplay = `
+                    <div style="grid-column: 1 / -1; text-align: center; margin: 20px 0;">
+                        <div style="font-size: 36px; margin-bottom: 10px;">
+                            ${aliveEnemies.map(e => e.emoji).join(' ')}
+                        </div>
+                        ${aliveEnemies.map(e => `
+                            <div style="font-size: 14px; font-weight: bold; display: inline-block; margin: 0 10px;">
+                                ${e.emoji} ${e.name}: ${e.health}/${e.maxHealth} HP
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (aliveEnemies.length === 1) {
+                // Single enemy - big display
+                const enemy = aliveEnemies[0];
+                enemyDisplay = `
+                    <div style="grid-column: 1 / -1; text-align: center; font-size: 48px; margin: 20px 0;">
+                        ${enemy.emoji}
+                    </div>
+                    <div style="grid-column: 1 / -1; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+                        ${enemy.name} - HP: ${enemy.health}/${enemy.maxHealth}
+                    </div>
+                `;
+            }
+
+            actionPanel.innerHTML = enemyDisplay;
 
             const combatActions = [
                 { emoji: '⚔️', text: 'Attack', action: () => combatAttack() },
@@ -3652,31 +3497,73 @@
         }
 
         function combatAttack() {
-            const enemy = gameState.combatEnemy;
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
+
+            if (aliveEnemies.length === 0) {
+                winCombat();
+                return;
+            }
+
+            // Target a random alive enemy
+            const targetEnemy = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+
             rollSkillCheck('Combat', 15, (success, roll) => {
                 if (success) {
                     const damage = Math.floor(Math.random() * 15) + 10 + gameState.skills.combat * 2;
-                    enemy.health -= damage;
-                    addMessage(`You dealt ${damage} damage to the ${enemy.name}! ⚔️`, 'success');
+                    targetEnemy.health -= damage;
 
-                    if (enemy.health <= 0) {
-                        winCombat();
-                        return;
+                    const flavorMsg = attackFlavorText[Math.floor(Math.random() * attackFlavorText.length)];
+                    const targetName = aliveEnemies.length > 1 ? `the ${targetEnemy.emoji} ${targetEnemy.name}` : `the ${targetEnemy.name}`;
+                    addMessage(`${flavorMsg} Dealt ${damage} damage to ${targetName}! ⚔️`, 'success');
+
+                    // Flock assistance! Each member has a 30% chance to add bonus damage
+                    if (gameState.flockMembers.length > 0) {
+                        let flockDamage = 0;
+                        let helpingBirds = 0;
+                        gameState.flockMembers.forEach(member => {
+                            if (Math.random() < 0.3) { // 30% chance per flock member
+                                const memberDamage = Math.floor(Math.random() * 5) + member.skill * 2;
+                                flockDamage += memberDamage;
+                                helpingBirds++;
+                            }
+                        });
+                        if (flockDamage > 0) {
+                            targetEnemy.health -= flockDamage;
+                            addMessage(`👥 Your flock joins in! ${helpingBirds} bird${helpingBirds > 1 ? 's' : ''} add ${flockDamage} damage!`, 'success');
+                        }
+                    }
+
+                    if (targetEnemy.health <= 0) {
+                        addMessage(`💀 ${targetEnemy.emoji} ${targetEnemy.name} defeated!`, 'success');
+
+                        // Check if all enemies dead
+                        const stillAlive = enemies.filter(e => e.health > 0);
+                        if (stillAlive.length === 0) {
+                            winCombat();
+                            return;
+                        } else {
+                            addMessage(`${stillAlive.length} ${stillAlive.length > 1 ? 'enemies' : 'enemy'} remaining!`, 'warning');
+                        }
                     }
                 } else {
-                    addMessage('Your attack missed!', 'warning');
+                    const missMsg = attackMissText[Math.floor(Math.random() * attackMissText.length)];
+                    addMessage(missMsg, 'warning');
                 }
 
-                // Enemy attacks back
+                // Enemies attack back
                 enemyAttack();
-            }, { action: 'combat', enemy: enemy.name });
+            }, { action: 'combat', enemy: targetEnemy.name });
         }
 
         function combatDefend() {
-            const enemy = gameState.combatEnemy;
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
+
             rollSkillCheck('Combat', 12, (success) => {
                 if (success) {
-                    addMessage('You brace for the attack! 🛡️', 'success');
+                    const flavorMsg = defendSuccessText[Math.floor(Math.random() * defendSuccessText.length)];
+                    addMessage(`${flavorMsg} 🛡️`, 'success');
                     gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + 10);
 
                     // Enemy attack with reduced damage
@@ -3685,31 +3572,69 @@
                     addMessage('Failed to defend properly!', 'warning');
                     enemyAttack();
                 }
-            }, { action: 'combat', enemy: enemy.name });
+            }, { action: 'combat', enemy: aliveEnemies[0].name });
         }
 
         function combatFlee() {
-            const enemy = gameState.combatEnemy;
-            rollSkillCheck('Flying', 18, (success) => {
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
+
+            // Flock bonus to fleeing! Each flock member gives +1 to roll (max +5)
+            const flockBonus = Math.min(5, gameState.flockMembers.length);
+            const baseDC = 18 - flockBonus; // Easier to flee with flock
+
+            rollSkillCheck('Flying', baseDC, (success) => {
                 if (success) {
-                    addMessage('Successfully fled from combat! 🏃', 'success');
+                    const flavorMsg = fleeSuccessText[Math.floor(Math.random() * fleeSuccessText.length)];
+                    addMessage(`${flavorMsg} 🏃`, 'success');
+                    if (flockBonus > 0) {
+                        addMessage(`👥 Your flock helped you escape! (-${flockBonus} difficulty)`, 'info');
+                    }
                     gameState.isInCombat = false;
                     gameState.combatEnemy = null;
+                    gameState.combatEnemies = [];
                     gameState.energy -= 20;
                     updateUI();
                 } else {
-                    addMessage('Failed to escape!', 'danger');
+                    const failMsg = fleeFailText[Math.floor(Math.random() * fleeFailText.length)];
+                    addMessage(failMsg, 'danger');
                     enemyAttack();
                 }
-            }, { action: 'flying', enemy: enemy.name });
+            }, { action: 'flying', enemy: aliveEnemies[0].name });
         }
 
         function enemyAttack(damageMultiplier = 1) {
-            const enemy = gameState.combatEnemy;
-            const damage = Math.floor((Math.random() * (enemy.attack[1] - enemy.attack[0]) + enemy.attack[0]) * damageMultiplier);
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
 
-            gameState.health -= damage;
-            addMessage(`The ${enemy.name} attacks for ${damage} damage! 💥`, 'danger');
+            let totalDamage = 0;
+
+            // Each alive enemy attacks
+            aliveEnemies.forEach(enemy => {
+                const damage = Math.floor((Math.random() * (enemy.attack[1] - enemy.attack[0]) + enemy.attack[0]) * damageMultiplier);
+                totalDamage += damage;
+
+                const flavorMsg = enemyAttackText[Math.floor(Math.random() * enemyAttackText.length)];
+                const attackMsg = aliveEnemies.length > 1
+                    ? `${enemy.emoji} ${enemy.name} ${flavorMsg} ${damage} damage! 💥`
+                    : `The ${enemy.name} ${flavorMsg} ${damage} damage! 💥`;
+                addMessage(attackMsg, 'danger');
+            });
+
+            // Flock protection! Each flock member reduces damage by 2-5 points
+            if (gameState.flockMembers.length > 0) {
+                const damageReduction = gameState.flockMembers.reduce((total, member) => {
+                    return total + Math.floor(Math.random() * 3) + 2; // 2-4 damage blocked per member
+                }, 0);
+                totalDamage = Math.max(1, totalDamage - damageReduction); // Always at least 1 damage
+                addMessage(`🛡️ Your flock shields you! Blocked ${damageReduction} damage!`, 'info');
+            }
+
+            gameState.health -= totalDamage;
+
+            if (aliveEnemies.length > 1) {
+                addMessage(`Combined assault! Total: ${totalDamage} damage taken!`, 'danger');
+            }
 
             if (gameState.health <= 0) {
                 gameOver();
@@ -3719,21 +3644,56 @@
         }
 
         function winCombat() {
-            const enemy = gameState.combatEnemy;
-            addMessage(`🎉 Defeated the ${enemy.name}!`, 'success');
-            addDiaryEntry(`Defeated a ${enemy.name}! Proved my courage in battle`, 'combat');
-            gainXP(enemy.xp);
+            const enemies = gameState.combatEnemies || [gameState.combatEnemy];
 
-            // Track rat defeats for Rat King trigger
-            if (enemy.type === 'rat' || enemy.name === 'Rat') {
-                gameState.ratsDefeated++;
-                if (gameState.ratsDefeated === 5) {
+            // Victory message
+            if (enemies.length > 1) {
+                const enemyList = enemies.map(e => e.emoji + ' ' + e.name).join(', ');
+                addMessage(`🎉 Victory! Defeated all enemies: ${enemyList}!`, 'success');
+                addDiaryEntry(`Defeated ${enemies.length} enemies in an epic battle!`, 'combat');
+            } else {
+                const enemy = enemies[0];
+                addMessage(`🎉 Defeated the ${enemy.name}!`, 'success');
+                addDiaryEntry(`Defeated a ${enemy.name}! Proved my courage in battle`, 'combat');
+            }
+
+            // Sum up XP from all enemies
+            let totalXP = 0;
+            let ratCount = 0;
+            let hasBoss = false;
+            let hasRatKing = false;
+
+            enemies.forEach(enemy => {
+                totalXP += enemy.xp;
+
+                // Track rat defeats for Rat King trigger
+                if (enemy.type === 'rat' || enemy.name === 'Rat') {
+                    ratCount++;
+                }
+
+                // Check for bosses
+                if (enemy.isRatKing) {
+                    hasRatKing = true;
+                } else if (enemy.type === 'boss') {
+                    hasBoss = true;
+                }
+            });
+
+            gainXP(totalXP);
+
+            // Track rats for Rat King trigger
+            if (ratCount > 0) {
+                gameState.ratsDefeated += ratCount;
+                if (ratCount > 1) {
+                    addMessage(`💀 ${ratCount} rats defeated! Total rats defeated: ${gameState.ratsDefeated}`, 'info');
+                }
+                if (gameState.ratsDefeated >= 5 && !hasRatKing) {
                     addMessage('⚠️ You sense something ominous... The Rat King grows angry!', 'warning');
                 }
             }
 
             // Boss rewards
-            if (enemy.isRatKing) {
+            if (hasRatKing) {
                 addMessage('👑 You defeated the RAT KING! Legendary status achieved!', 'success');
                 addDiaryEntry('DEFEATED THE LEGENDARY RAT KING! I am a true warrior! 👑', 'milestone');
                 gameState.maxHealth = Math.min(200, gameState.maxHealth + 20); // Cap at 200
@@ -3741,7 +3701,7 @@
                 gameState.socialStanding = Math.min(100, gameState.socialStanding + 30);
                 gameState.food += 10; // Reward food
                 gameState.ratsDefeated = 0; // Reset counter
-            } else if (enemy.type === 'boss') {
+            } else if (hasBoss) {
                 addMessage(`💎 Boss defeated! Major rewards earned!`, 'success');
                 gameState.maxHealth = Math.min(200, gameState.maxHealth + 5); // Cap at 200
                 gameState.health = Math.min(gameState.health + 20, gameState.maxHealth);
@@ -3750,6 +3710,7 @@
 
             gameState.isInCombat = false;
             gameState.combatEnemy = null;
+            gameState.combatEnemies = [];
             gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
 
             updateQuestProgress('combat', 1);
@@ -4037,6 +3998,21 @@
             });
         }
 
+        function checkValueBasedQuests() {
+            // Check quests that track current values (not increments)
+            gameState.activeQuests.forEach(quest => {
+                if (quest.type === 'social') {
+                    quest.progress = gameState.socialStanding;
+                    if (quest.progress >= quest.goal) {
+                        completeQuest(quest.id);
+                    }
+                } else if (quest.type === 'survive') {
+                    quest.progress = gameState.health;
+                    // Don't auto-complete survive quests - they're checked at season end
+                }
+            });
+        }
+
         function completeQuest(questId) {
             const questIndex = gameState.activeQuests.findIndex(q => q.id === questId);
             if (questIndex !== -1) {
@@ -4074,6 +4050,16 @@
 
             addMessage(`🌟 LEVEL UP! Now level ${gameState.level}!`, 'success');
             addDiaryEntry(`Reached level ${gameState.level}! Growing stronger 🌟`, 'milestone');
+
+            // Update level-based quests
+            gameState.activeQuests.forEach(quest => {
+                if (quest.type === 'level') {
+                    quest.progress = gameState.level;
+                    if (quest.progress >= quest.goal) {
+                        completeQuest(quest.id);
+                    }
+                }
+            });
 
             // Let player choose skill to increase
             showSkillChoice();
@@ -4176,6 +4162,37 @@
                         }).join('')}
                     </div>
                 ` : ''}
+
+                ${gameState.flockMembers.length > 0 ? `
+                    <div style="margin: 15px 0; padding: 10px; background: #f0f9ff; border-radius: 8px;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">🦅 Your Flock (${gameState.flockMembers.length} birds)</div>
+                        ${(() => {
+                            const familyBirds = gameState.flockMembers.filter(m => m.isFamily);
+                            const recruitedBirds = gameState.flockMembers.filter(m => !m.isFamily);
+                            let html = '';
+
+                            if (familyBirds.length > 0) {
+                                html += `<div style="margin-bottom: 10px; padding: 8px; background: rgba(255,192,203,0.3); border-radius: 5px; border-left: 3px solid #ff69b4;">
+                                    <div style="font-weight: bold; margin-bottom: 5px;">💕 Family (${familyBirds.length})</div>
+                                    ${familyBirds.map(m => `
+                                        <div style="font-size: 12px; margin: 3px 0;">${m.emoji} ${m.name} (${m.species}) - Skill ${m.skill}</div>
+                                    `).join('')}
+                                </div>`;
+                            }
+
+                            if (recruitedBirds.length > 0) {
+                                html += `<div style="margin-bottom: 5px; padding: 8px; background: rgba(255,255,255,0.5); border-radius: 5px; border-left: 3px solid #3498db;">
+                                    <div style="font-weight: bold; margin-bottom: 5px;">🤝 Recruited (${recruitedBirds.length}/5)</div>
+                                    ${recruitedBirds.map(m => `
+                                        <div style="font-size: 12px; margin: 3px 0;">${m.emoji} ${m.species} - Skill ${m.skill}</div>
+                                    `).join('')}
+                                </div>`;
+                            }
+
+                            return html;
+                        })()}
+                    </div>
+                ` : ''}
             `;
 
             buttons.innerHTML = '<button class="modal-btn primary" onclick="closeModal()">Close</button>';
@@ -4212,8 +4229,33 @@
 
             title.textContent = '📖 Life Story';
 
+            // Build active quest section
+            let questSection = '';
+            if (gameState.activeQuests.length > 0) {
+                questSection = `
+                    <div style="margin-bottom: 20px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #f39c12;">
+                        <div style="font-weight: bold; margin-bottom: 10px; font-size: 14px;">📜 Active Quest${gameState.activeQuests.length > 1 ? 's' : ''}</div>
+                        ${gameState.activeQuests.map(q => {
+                            const progressPercent = Math.min(100, (q.progress / q.goal) * 100);
+                            const progressColor = progressPercent >= 100 ? '#27ae60' : progressPercent >= 50 ? '#f39c12' : '#3498db';
+                            return `
+                                <div style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.5); border-radius: 6px;">
+                                    <div style="font-size: 12px; margin-bottom: 5px;">${q.description}</div>
+                                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Progress: ${q.progress}/${q.goal}</div>
+                                    <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                        <div style="width: ${progressPercent}%; height: 100%; background: ${progressColor}; transition: width 0.3s ease;"></div>
+                                    </div>
+                                    ${progressPercent >= 100 ? '<div style="margin-top: 4px; font-size: 11px; color: #27ae60; font-weight: bold;">✓ Complete! Visit character sheet to claim reward.</div>' : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
             if (gameState.diary.length === 0) {
                 body.innerHTML = `
+                    ${questSection}
                     <div style="text-align: center; padding: 40px; color: #999;">
                         <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
                         <p>Your story has just begun...<br/>Live your life and return to read your tale!</p>
@@ -4246,6 +4288,7 @@
                 }).join('');
 
                 body.innerHTML = `
+                    ${questSection}
                     <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
                         <div style="text-align: center; margin-bottom: 15px;">
                             <div style="font-size: 14px; color: #666;">
@@ -4569,7 +4612,8 @@
                 // Player bird (drawn, animated)
                 if (isCurrent) {
                     const playerColor = BIRD_SPECIES[gameState.species].color;
-                    drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + cellSize * 0.25, cellSize * 0.16, playerColor, true);
+                    // Player bird is bigger (0.22 vs 0.11 for flock members)
+                    drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + cellSize * 0.25, cellSize * 0.22, playerColor, true);
 
                     // Flock members (drawn, circling)
                     if (gameState.flockMembers && gameState.flockMembers.length > 0) {
@@ -4703,8 +4747,8 @@
 
                     <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
                         <p style="font-size: 13px; margin: 0;">
-                            🪟 <strong>About This Window:</strong> This is a floating mini-game window!<br/>
-                            You can drag it around, minimize it with the − button, and maximize it again by clicking the 🐦 bird icon or the launch button.
+                            🐦 <strong>Bird Window RPG:</strong> A full-screen bird life simulation game!<br/>
+                            Watch the seasons change, grow your bird, and explore the world.
                         </p>
                     </div>
 
@@ -5010,8 +5054,8 @@
 
                     <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; text-align: center;">
                         <p style="margin: 0; font-size: 13px;">
-                            🪟 <strong>After choosing your bird, the window will minimize.</strong><br/>
-                            <span style="font-size: 12px;">Click the 🐦 bird icon or "Bird RPG" button to open it again and start playing!</span>
+                            ✨ <strong>After choosing your bird, your adventure begins!</strong><br/>
+                            <span style="font-size: 12px;">Follow the on-screen hints and explore the world!</span>
                         </p>
                     </div>
 
@@ -5133,14 +5177,6 @@
             addMessage('💡 Tip: Start by foraging for food or gathering twigs!', 'info');
             addSeasonalQuest();
             updateUI();
-
-            // Minimize the window after tutorial to encourage user interaction
-            setTimeout(() => {
-                const floatWindow = document.getElementById('bird-rpg-float');
-                if (floatWindow) {
-                    floatWindow.classList.add('minimized');
-                }
-            }, 1000); // Wait 1 second so they can see the game loaded
         }
 
         // ===== INIT =====
