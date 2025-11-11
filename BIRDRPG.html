@@ -1075,7 +1075,7 @@
             <!-- Helpful Hint -->
             <div id="hint-box" style="display: none;">
                 <span class="hint-close" onclick="document.getElementById('hint-box').style.display='none'">✕</span>
-                <span id="hint-text">Hover over action buttons to see what they do!</span>
+                <span id="hint-text">Check the Diary 📖 to see your active quests!</span>
             </div>
 
             <!-- Weather Display -->
@@ -1559,7 +1559,7 @@
 
             // Contextual hints based on game state
             if (gameState.turn <= 3) {
-                hint = 'Hover over action buttons to see what they do! Use Forage and Gather to collect resources.';
+                hint = 'Use Forage and Gather to collect resources. Check the Diary 📖 to see your active quests!';
             } else if (gameState.turn <= 6 && !gameState.hasNest && gameState.twigs >= 1) {
                 hint = 'You have twigs! Build a nest to unlock more features like resting and finding a mate.';
             } else if (gameState.energy < 30) {
@@ -1574,7 +1574,7 @@
                 hint = 'Try Socializing to increase your standing with other birds!';
             } else {
                 // Default hint
-                hint = 'Check the quick stats below actions to make informed decisions!';
+                hint = 'Open the Diary 📖 to track your active quests and life story!';
             }
 
             if (hint) {
@@ -3492,8 +3492,33 @@
 
             title.textContent = '📖 Life Story';
 
+            // Build active quest section
+            let questSection = '';
+            if (gameState.activeQuests.length > 0) {
+                questSection = `
+                    <div style="margin-bottom: 20px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #f39c12;">
+                        <div style="font-weight: bold; margin-bottom: 10px; font-size: 14px;">📜 Active Quest${gameState.activeQuests.length > 1 ? 's' : ''}</div>
+                        ${gameState.activeQuests.map(q => {
+                            const progressPercent = Math.min(100, (q.progress / q.goal) * 100);
+                            const progressColor = progressPercent >= 100 ? '#27ae60' : progressPercent >= 50 ? '#f39c12' : '#3498db';
+                            return `
+                                <div style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.5); border-radius: 6px;">
+                                    <div style="font-size: 12px; margin-bottom: 5px;">${q.description}</div>
+                                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Progress: ${q.progress}/${q.goal}</div>
+                                    <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                        <div style="width: ${progressPercent}%; height: 100%; background: ${progressColor}; transition: width 0.3s ease;"></div>
+                                    </div>
+                                    ${progressPercent >= 100 ? '<div style="margin-top: 4px; font-size: 11px; color: #27ae60; font-weight: bold;">✓ Complete! Visit character sheet to claim reward.</div>' : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
             if (gameState.diary.length === 0) {
                 body.innerHTML = `
+                    ${questSection}
                     <div style="text-align: center; padding: 40px; color: #999;">
                         <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
                         <p>Your story has just begun...<br/>Live your life and return to read your tale!</p>
@@ -3526,6 +3551,7 @@
                 }).join('');
 
                 body.innerHTML = `
+                    ${questSection}
                     <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
                         <div style="text-align: center; margin-bottom: 15px;">
                             <div style="font-size: 14px; color: #666;">
