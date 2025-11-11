@@ -337,6 +337,11 @@
             }
 
             /* Show New Game and Help buttons on mobile - users need access to restart */
+            /* Make sure the button container div is visible */
+            #game-header > div:nth-child(2) {
+                display: flex !important;
+            }
+
             #game-header button {
                 font-size: 8px;
                 padding: 3px 4px;
