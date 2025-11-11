@@ -1541,6 +1541,9 @@
             // Show helpful hints for new players
             updateHints();
 
+            // Check value-based quests (social, survive, etc.)
+            checkValueBasedQuests();
+
             // Auto-save
             saveGame();
         }
@@ -2271,6 +2274,7 @@
                     addDiaryEntry('Built a luxurious birdhouse! The envy of all birds 🏠', 'milestone');
                     gainXP(200);
                     completeQuest('firstHome');
+                    updateQuestProgress('upgrade', 1);
                 } else {
                     gameState.twigs = Math.max(0, gameState.twigs - 5); // Still lose some materials, but not go negative
                     addMessage('Struggled with birdhouse construction...', 'warning');
@@ -2318,6 +2322,7 @@
                     addDiaryEntry(`Recruited ${npc.species} to my flock`, 'social');
                     gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
                     gainXP(50);
+                    updateQuestProgress('flock', 1);
                 } else {
                     addMessage('Failed to convince the bird to join...', 'warning');
                     gameState.socialStanding = Math.max(0, gameState.socialStanding - 5);
@@ -3619,6 +3624,21 @@
             });
         }
 
+        function checkValueBasedQuests() {
+            // Check quests that track current values (not increments)
+            gameState.activeQuests.forEach(quest => {
+                if (quest.type === 'social') {
+                    quest.progress = gameState.socialStanding;
+                    if (quest.progress >= quest.goal) {
+                        completeQuest(quest.id);
+                    }
+                } else if (quest.type === 'survive') {
+                    quest.progress = gameState.health;
+                    // Don't auto-complete survive quests - they're checked at season end
+                }
+            });
+        }
+
         function completeQuest(questId) {
             const questIndex = gameState.activeQuests.findIndex(q => q.id === questId);
             if (questIndex !== -1) {
@@ -3656,6 +3676,16 @@
 
             addMessage(`🌟 LEVEL UP! Now level ${gameState.level}!`, 'success');
             addDiaryEntry(`Reached level ${gameState.level}! Growing stronger 🌟`, 'milestone');
+
+            // Update level-based quests
+            gameState.activeQuests.forEach(quest => {
+                if (quest.type === 'level') {
+                    quest.progress = gameState.level;
+                    if (quest.progress >= quest.goal) {
+                        completeQuest(quest.id);
+                    }
+                }
+            });
 
             // Let player choose skill to increase
             showSkillChoice();
@@ -4177,7 +4207,8 @@
                 // Player bird (drawn, animated)
                 if (isCurrent) {
                     const playerColor = BIRD_SPECIES[gameState.species].color;
-                    drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + cellSize * 0.25, cellSize * 0.16, playerColor, true);
+                    // Player bird is bigger (0.22 vs 0.11 for flock members)
+                    drawBird(ctx, x + cellSize / 2, y + cellSize / 2 + cellSize * 0.25, cellSize * 0.22, playerColor, true);
 
                     // Flock members (drawn, circling)
                     if (gameState.flockMembers && gameState.flockMembers.length > 0) {
