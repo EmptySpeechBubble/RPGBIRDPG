@@ -1517,10 +1517,13 @@
             document.getElementById('level-info').textContent =
                 `Level ${gameState.level} ${gameState.species} | XP: ${gameState.xp}/${gameState.xpNeeded}`;
 
-            // Action counter
-            const actionsRemaining = gameState.maxActionsPerTurn - gameState.actionsTakenThisTurn;
+            // Action counter (with flock bonus!)
+            const flockBonus = Math.min(5, gameState.flockMembers.length); // +1 action per flock member, max +5
+            const effectiveMaxActions = gameState.maxActionsPerTurn + flockBonus;
+            const actionsRemaining = effectiveMaxActions - gameState.actionsTakenThisTurn;
+            const flockInfo = flockBonus > 0 ? ` (${gameState.maxActionsPerTurn}+${flockBonus}👥)` : '';
             document.getElementById('action-info').textContent =
-                `⚡ Actions: ${actionsRemaining}/${gameState.maxActionsPerTurn}`;
+                `⚡ Actions: ${actionsRemaining}/${effectiveMaxActions}${flockInfo}`;
 
             // Inventory
             document.getElementById('food-count').textContent = gameState.food;
@@ -1882,9 +1885,12 @@
                 return;
             }
 
-            // Check action limit
-            if (gameState.actionsTakenThisTurn >= gameState.maxActionsPerTurn) {
-                addMessage(`📊 You've taken ${gameState.maxActionsPerTurn} actions! The day passes...`, 'info');
+            // Check action limit (with flock bonus)
+            const flockBonus = Math.min(5, gameState.flockMembers.length);
+            const effectiveMaxActions = gameState.maxActionsPerTurn + flockBonus;
+            if (gameState.actionsTakenThisTurn >= effectiveMaxActions) {
+                const bonusText = flockBonus > 0 ? ` (${gameState.maxActionsPerTurn}+${flockBonus} from flock!)` : '';
+                addMessage(`📊 You've taken ${effectiveMaxActions} actions${bonusText} The day passes...`, 'info');
                 gameState.turnEndPending = true;
                 setTimeout(() => {
                     gameState.turnEndPending = false;
@@ -2322,6 +2328,12 @@
                     territory.npcs.shift();
 
                     addMessage(`${npc.emoji} joined your flock! 🦅`, 'success');
+
+                    // First flock member tip
+                    if (gameState.flockMembers.length === 1) {
+                        addMessage(`💡 Flock benefits: +1 action/turn, combat help, damage reduction, easier fleeing!`, 'info');
+                    }
+
                     addDiaryEntry(`Recruited ${npc.species} to my flock`, 'social');
                     gameState.socialStanding = Math.min(100, gameState.socialStanding + 10);
                     gainXP(50);
@@ -2582,6 +2594,7 @@
                     gameState.offspring++;
 
                     // Add grown baby to flock as a permanent family member!
+                    const wasFirstFlock = gameState.flockMembers.length === 0;
                     gameState.flockMembers.push({
                         species: baby.species,
                         emoji: BIRD_SPECIES[baby.species] ? BIRD_SPECIES[baby.species].emoji : '🐦',
@@ -2591,6 +2604,12 @@
                     });
 
                     addMessage(`🌟 ${baby.name} is now independent and joins your flock! Family bonds! 💕`, 'success');
+
+                    // First flock member tip
+                    if (wasFirstFlock) {
+                        addMessage(`💡 Flock benefits: +1 action/turn, combat help, damage reduction, easier fleeing!`, 'info');
+                    }
+
                     addDiaryEntry(`${baby.name} grew up and chose to stay with the family! 🌟💕`, 'milestone');
                     gainXP(100);
                     updateQuestProgress('family', 1);
@@ -3321,7 +3340,7 @@
             ];
 
             // Level scaling factor (enemies get stronger as player levels up)
-            const levelScaling = 1 + (gameState.level - 1) * 0.15; // 15% increase per level
+            const levelScaling = 1 + (gameState.level - 1) * 0.10; // 10% increase per level
 
             // Weight by danger and level
             let selectedPredatorType;
@@ -3358,19 +3377,21 @@
             }
 
             // Create enemy array with scaled stats
+            // Multiple enemies are individually weaker (70% health/damage each)
+            const multiEnemyNerf = enemyCount > 1 ? 0.7 : 1.0;
             gameState.combatEnemies = [];
             const basePredator = predators[selectedPredatorType];
 
             for (let i = 0; i < enemyCount; i++) {
                 const predator = {
                     ...basePredator,
-                    health: Math.floor(basePredator.health * levelScaling),
-                    maxHealth: Math.floor(basePredator.health * levelScaling),
+                    health: Math.floor(basePredator.health * levelScaling * multiEnemyNerf),
+                    maxHealth: Math.floor(basePredator.health * levelScaling * multiEnemyNerf),
                     attack: [
-                        Math.floor(basePredator.attack[0] * levelScaling),
-                        Math.floor(basePredator.attack[1] * levelScaling)
+                        Math.floor(basePredator.attack[0] * levelScaling * multiEnemyNerf),
+                        Math.floor(basePredator.attack[1] * levelScaling * multiEnemyNerf)
                     ],
-                    xp: Math.floor(basePredator.xp * levelScaling),
+                    xp: Math.floor(basePredator.xp * levelScaling * multiEnemyNerf),
                     id: i
                 };
                 gameState.combatEnemies.push(predator);
@@ -3398,7 +3419,7 @@
         }
 
         function spawnRatKing() {
-            const levelScaling = 1 + (gameState.level - 1) * 0.15;
+            const levelScaling = 1 + (gameState.level - 1) * 0.10; // Match 10% scaling
 
             const ratKing = {
                 name: 'RAT KING',
@@ -3424,26 +3445,27 @@
         function renderCombatActions() {
             const actionPanel = document.getElementById('action-panel');
             const enemies = gameState.combatEnemies || [gameState.combatEnemy];
+            const aliveEnemies = enemies.filter(e => e.health > 0);
 
-            // Display all enemies
+            // Display all alive enemies
             let enemyDisplay = '';
-            if (enemies.length > 1) {
+            if (aliveEnemies.length > 1) {
                 // Multiple enemies - show them all in a row
                 enemyDisplay = `
                     <div style="grid-column: 1 / -1; text-align: center; margin: 20px 0;">
                         <div style="font-size: 36px; margin-bottom: 10px;">
-                            ${enemies.map(e => e.emoji).join(' ')}
+                            ${aliveEnemies.map(e => e.emoji).join(' ')}
                         </div>
-                        ${enemies.map(e => `
+                        ${aliveEnemies.map(e => `
                             <div style="font-size: 14px; font-weight: bold; display: inline-block; margin: 0 10px;">
                                 ${e.emoji} ${e.name}: ${e.health}/${e.maxHealth} HP
                             </div>
                         `).join('')}
                     </div>
                 `;
-            } else {
+            } else if (aliveEnemies.length === 1) {
                 // Single enemy - big display
-                const enemy = enemies[0];
+                const enemy = aliveEnemies[0];
                 enemyDisplay = `
                     <div style="grid-column: 1 / -1; text-align: center; font-size: 48px; margin: 20px 0;">
                         ${enemy.emoji}
@@ -3495,6 +3517,23 @@
                     const targetName = aliveEnemies.length > 1 ? `the ${targetEnemy.emoji} ${targetEnemy.name}` : `the ${targetEnemy.name}`;
                     addMessage(`${flavorMsg} Dealt ${damage} damage to ${targetName}! ⚔️`, 'success');
 
+                    // Flock assistance! Each member has a 30% chance to add bonus damage
+                    if (gameState.flockMembers.length > 0) {
+                        let flockDamage = 0;
+                        let helpingBirds = 0;
+                        gameState.flockMembers.forEach(member => {
+                            if (Math.random() < 0.3) { // 30% chance per flock member
+                                const memberDamage = Math.floor(Math.random() * 5) + member.skill * 2;
+                                flockDamage += memberDamage;
+                                helpingBirds++;
+                            }
+                        });
+                        if (flockDamage > 0) {
+                            targetEnemy.health -= flockDamage;
+                            addMessage(`👥 Your flock joins in! ${helpingBirds} bird${helpingBirds > 1 ? 's' : ''} add ${flockDamage} damage!`, 'success');
+                        }
+                    }
+
                     if (targetEnemy.health <= 0) {
                         addMessage(`💀 ${targetEnemy.emoji} ${targetEnemy.name} defeated!`, 'success');
 
@@ -3540,10 +3579,17 @@
             const enemies = gameState.combatEnemies || [gameState.combatEnemy];
             const aliveEnemies = enemies.filter(e => e.health > 0);
 
-            rollSkillCheck('Flying', 18, (success) => {
+            // Flock bonus to fleeing! Each flock member gives +1 to roll (max +5)
+            const flockBonus = Math.min(5, gameState.flockMembers.length);
+            const baseDC = 18 - flockBonus; // Easier to flee with flock
+
+            rollSkillCheck('Flying', baseDC, (success) => {
                 if (success) {
                     const flavorMsg = fleeSuccessText[Math.floor(Math.random() * fleeSuccessText.length)];
                     addMessage(`${flavorMsg} 🏃`, 'success');
+                    if (flockBonus > 0) {
+                        addMessage(`👥 Your flock helped you escape! (-${flockBonus} difficulty)`, 'info');
+                    }
                     gameState.isInCombat = false;
                     gameState.combatEnemy = null;
                     gameState.combatEnemies = [];
@@ -3575,10 +3621,19 @@
                 addMessage(attackMsg, 'danger');
             });
 
+            // Flock protection! Each flock member reduces damage by 2-5 points
+            if (gameState.flockMembers.length > 0) {
+                const damageReduction = gameState.flockMembers.reduce((total, member) => {
+                    return total + Math.floor(Math.random() * 3) + 2; // 2-4 damage blocked per member
+                }, 0);
+                totalDamage = Math.max(1, totalDamage - damageReduction); // Always at least 1 damage
+                addMessage(`🛡️ Your flock shields you! Blocked ${damageReduction} damage!`, 'info');
+            }
+
             gameState.health -= totalDamage;
 
             if (aliveEnemies.length > 1) {
-                addMessage(`Combined assault! Total: ${totalDamage} damage!`, 'danger');
+                addMessage(`Combined assault! Total: ${totalDamage} damage taken!`, 'danger');
             }
 
             if (gameState.health <= 0) {
