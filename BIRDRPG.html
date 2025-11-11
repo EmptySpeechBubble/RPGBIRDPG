@@ -2293,8 +2293,10 @@
                 return;
             }
 
-            if (gameState.flockMembers.length >= 5) {
-                addMessage('Your flock is already at maximum size!', 'warning');
+            // Count only recruited birds (not family) for the limit
+            const recruitedBirds = gameState.flockMembers.filter(m => !m.isFamily);
+            if (recruitedBirds.length >= 5) {
+                addMessage('You already have 5 recruited birds! (Family members don\'t count against this limit)', 'warning');
                 return;
             }
 
@@ -2577,8 +2579,18 @@
                 if (baby.stage === 'fledgling' && baby.age >= 7) {
                     baby.stage = 'independent';
                     gameState.offspring++;
-                    addMessage(`🌟 ${baby.name} has left the nest! They're independent now.`, 'success');
-                    addDiaryEntry(`${baby.name} flew away to start their own life. Proud parent moment! 🌟`, 'milestone');
+
+                    // Add grown baby to flock as a permanent family member!
+                    gameState.flockMembers.push({
+                        species: baby.species,
+                        emoji: BIRD_SPECIES[baby.species] ? BIRD_SPECIES[baby.species].emoji : '🐦',
+                        skill: Math.floor(Math.random() * 2) + 2, // Slightly better than recruited birds
+                        isFamily: true, // Mark as family member
+                        name: baby.name
+                    });
+
+                    addMessage(`🌟 ${baby.name} is now independent and joins your flock! Family bonds! 💕`, 'success');
+                    addDiaryEntry(`${baby.name} grew up and chose to stay with the family! 🌟💕`, 'milestone');
                     gainXP(100);
                     updateQuestProgress('family', 1);
                     updateQuestProgress('offspring', 1);
@@ -3786,6 +3798,37 @@
                                 </div>
                             `;
                         }).join('')}
+                    </div>
+                ` : ''}
+
+                ${gameState.flockMembers.length > 0 ? `
+                    <div style="margin: 15px 0; padding: 10px; background: #f0f9ff; border-radius: 8px;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">🦅 Your Flock (${gameState.flockMembers.length} birds)</div>
+                        ${(() => {
+                            const familyBirds = gameState.flockMembers.filter(m => m.isFamily);
+                            const recruitedBirds = gameState.flockMembers.filter(m => !m.isFamily);
+                            let html = '';
+
+                            if (familyBirds.length > 0) {
+                                html += `<div style="margin-bottom: 10px; padding: 8px; background: rgba(255,192,203,0.3); border-radius: 5px; border-left: 3px solid #ff69b4;">
+                                    <div style="font-weight: bold; margin-bottom: 5px;">💕 Family (${familyBirds.length})</div>
+                                    ${familyBirds.map(m => `
+                                        <div style="font-size: 12px; margin: 3px 0;">${m.emoji} ${m.name} (${m.species}) - Skill ${m.skill}</div>
+                                    `).join('')}
+                                </div>`;
+                            }
+
+                            if (recruitedBirds.length > 0) {
+                                html += `<div style="margin-bottom: 5px; padding: 8px; background: rgba(255,255,255,0.5); border-radius: 5px; border-left: 3px solid #3498db;">
+                                    <div style="font-weight: bold; margin-bottom: 5px;">🤝 Recruited (${recruitedBirds.length}/5)</div>
+                                    ${recruitedBirds.map(m => `
+                                        <div style="font-size: 12px; margin: 3px 0;">${m.emoji} ${m.species} - Skill ${m.skill}</div>
+                                    `).join('')}
+                                </div>`;
+                            }
+
+                            return html;
+                        })()}
                     </div>
                 ` : ''}
             `;
