@@ -90,25 +90,34 @@
             50% { opacity: 1; transform: scale(1.5); }
         }
 
-        /* Game container - responsive and fullscreen compatible */
+        /* Game container - Dashboard Grid Layout */
         #game-container {
-            max-width: 1200px;
             margin: 0 auto;
-            padding: 4px;
-            min-height: 100vh;
+            padding: 0;
             width: 100%;
+            height: 100vh;
             max-height: 100vh;
-            overflow-y: auto;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            grid-template-columns: 1fr;
         }
 
         #main-content {
             width: 100%;
-            overflow: visible;
+            overflow: hidden;
+            display: grid;
+            grid-template-areas:
+                "skills map actions"
+                "skills map actions";
+            grid-template-columns: 140px 1fr 180px;
+            grid-template-rows: 1fr;
+            gap: 8px;
+            padding: 8px;
         }
 
-        /* Mobile: Tamagotchi/Handheld Gaming Device Style - Ultra Compact */
-        @media (max-width: 599px) {
-            /* Background will be set dynamically by JS based on day/night */
+        /* Mobile: Single-Screen Vertical Layout */
+        @media (max-width: 768px) {
             body {
                 transition: background 0.5s ease;
                 height: 100dvh;
@@ -119,266 +128,158 @@
                 padding: 0;
                 height: 100dvh;
                 max-height: 100dvh;
-                display: flex;
-                flex-direction: column;
+                display: grid;
+                grid-template-rows: auto 1fr auto;
                 overflow: hidden;
             }
 
-            /* ULTRA COMPACT HEADER - Single line with just icons and numbers */
+            /* Header stays compact */
             #game-header {
-                padding: 1px;
-                margin: 0;
-                flex-shrink: 0;
-                border-radius: 0;
-                background: rgba(250, 250, 250, 0.9);
-                box-shadow: none;
-                transition: background 0.5s ease, color 0.5s ease;
+                font-size: 11px;
+                padding: 4px 8px;
+                gap: 6px;
             }
 
             #game-title {
-                font-size: 9px;
-                margin: 0;
-                padding: 2px;
-                text-align: center;
-                font-weight: bold;
-            }
-
-            /* Show New Game / Help buttons on mobile - removed hiding */
-            /* Buttons are now always visible for easy game reset */
-
-            /* Single line info - readable */
-            #season-info, #level-info {
-                display: inline-block;
-                font-size: 6px;
-                margin: 0;
-                padding: 0 3px;
-                background: transparent;
-                border-radius: 0;
-            }
-
-            #action-info {
-                display: inline-block;
-                font-size: 6px;
-                margin: 0;
-                padding: 0 3px;
-            }
-
-            /* Just numbers, no labels */
-            .stat-compact-label,
-            .inventory-item-label {
-                display: none;
-            }
-
-            #stats-grid {
-                display: none;
-            }
-
-            /* Single line stats - just emoji + number */
-            #game-header > div:nth-child(3) {
-                font-size: 7px;
-                line-height: 1.2;
-                margin: 0;
-                padding: 2px;
+                font-size: 12px;
             }
 
             .stat-compact {
-                padding: 0 3px;
-                font-size: 7px;
-                background: transparent;
-                border-radius: 0;
-            }
-
-            /* Inventory - minimal inline */
-            #inventory {
-                padding: 0 3px;
-                margin: 0;
-                font-size: 7px;
-                background: transparent;
-                border-radius: 0;
-                text-align: center;
-            }
-
-            .inventory-title {
-                display: none;
+                font-size: 10px;
             }
 
             .inventory-item {
-                font-size: 6px;
-                margin: 0;
-                padding: 0 2px;
-                background: transparent;
-            }
-
-            /* Weather - inline, readable */
-            #weather-display {
-                padding: 1px 3px;
-                margin: 0;
-                font-size: 6px;
-                background: transparent;
-                border-radius: 0;
-            }
-
-            /* Message log - improved readability */
-            #message-log {
-                max-height: 30px;
-                margin: 0 0 2px 0;
-                padding: 4px 5px;
                 font-size: 10px;
-                font-weight: bold;
-                line-height: 1.4;
-                background: rgba(0, 0, 0, 0.5);
-                border-radius: 3px;
+            }
+
+            /* Main content - vertical stack instead of grid */
+            #main-content {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                padding: 4px;
                 overflow-y: auto;
-                transition: background 0.5s ease;
+            }
+
+            /* Skills - horizontal compact strip */
+            #skills-display {
+                display: flex;
+                gap: 4px;
+                padding: 4px;
+                overflow-x: auto;
                 flex-shrink: 0;
             }
 
-            .message {
-                margin: 1px 0;
-                padding: 2px;
-                font-size: 10px;
-                font-weight: bold;
-                border-left-width: 3px;
-                color: #fff;
-                text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-            }
-
-            /* MAP - optimized for no-scroll layout */
-            #map-canvas {
-                width: 180px;
-                height: 180px;
-                border-radius: 4px;
-            }
-
-            #map-wrapper {
-                width: 180px;
-                margin: 0 auto;
-            }
-
-            /* Hide quick stats on mobile to save space */
-            #quick-stats-ref {
-                display: none !important;
-            }
-
-            /* Hide hint box on mobile to save space */
-            #hint-box {
-                display: none !important;
-            }
-
-            /* READABLE action buttons - compact 2 columns */
-            .action-btn {
-                padding: 4px 2px;
-                font-size: 6px;
-                border-radius: 3px;
-                gap: 1px;
-                min-height: 44px; /* Minimum touch target size for accessibility */
-            }
-
-            .btn-emoji {
-                font-size: 14px;
-                margin-bottom: 1px;
-            }
-
-            .btn-text {
-                font-size: 6px;
-                display: block; /* Show text! */
-                font-weight: bold;
-                line-height: 1.1;
-            }
-
-            #main-content {
-                flex: 1;
-                min-height: 0;
-                display: flex;
-                flex-direction: column;
-                padding: 1px;
-                margin: 0;
-                background: transparent;
-                border-radius: 0;
-                box-shadow: none;
-            }
-
-            #map-actions-container {
-                flex: 1;
-                min-height: 0;
-                margin: 0;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: flex-start;
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding: 2px 0;
-            }
-
-            #action-panel {
-                margin-top: 2px;
-                margin-bottom: 16px;
-                padding-bottom: 16px;
-                gap: 2px;
-                width: 100%;
-                max-width: 240px;
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            /* Quest - hidden on main page, only in menu */
-            #quest-panel {
-                display: none !important;
-            }
-
-            .quest-title {
+            .skills-title {
                 display: none;
             }
 
-            #family-section {
-                padding: 1px;
-                margin: 0;
-                font-size: 5px;
+            .skill-item {
+                flex-shrink: 0;
+                min-width: 60px;
+                font-size: 10px;
+                padding: 3px 5px;
             }
 
-            /* Show New Game and Help buttons on mobile - users need access to restart */
-            /* Make sure the button container div is visible */
-            #game-header > div:nth-child(2) {
-                display: flex !important;
+            /* Map and actions vertical */
+            #map-actions-container {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                align-items: center;
+                flex: 1;
+                min-height: 0;
             }
 
-            #game-header button {
+            #map-wrapper {
+                flex-shrink: 0;
+                padding: 4px;
+            }
+
+            #map-canvas {
+                width: 240px !important;
+                height: 240px !important;
+                max-width: 100%;
+                max-height: none;
+            }
+
+            /* Actions - compact grid */
+            #action-panel {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 4px;
+                width: 100%;
+                max-width: 360px;
+                padding: 4px;
+            }
+
+            .action-btn {
+                padding: 6px 4px;
+                font-size: 9px;
+                min-height: 60px;
+            }
+
+            .btn-emoji {
+                font-size: 16px;
+            }
+
+            .btn-text {
                 font-size: 8px;
-                padding: 3px 4px;
             }
+
+            /* Quest footer */
+            #quest-panel {
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+
+            /* Message log */
+            #message-log {
+                bottom: 60px;
+                font-size: 10px;
+                max-width: 90%;
+            }
+
         }
 
-        /* Default weather display */
+        /* Weather display - hidden in dashboard (info in header) */
         #weather-display {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-bottom: 6px;
-            text-align: center;
-            font-size: 12px;
-            font-weight: bold;
+            display: none;
+        }
+
+        /* Hide elements not needed in dashboard */
+        #quick-stats-ref {
+            display: none;
+        }
+
+        #hint-box {
+            display: none;
+        }
+
+        #family-section {
+            display: none;
+        }
+
+        /* Header - Single Compact Line */
+        #game-header {
+            background: rgba(250, 247, 240, 0.98);
+            padding: 6px 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background 0.5s ease, color 0.5s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        /* Header */
-        #game-header {
-            background: rgba(250, 247, 240, 0.95);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background 0.5s ease, color 0.5s ease;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            flex-wrap: wrap;
         }
 
         #game-title {
-            text-align: center;
-            font-size: 20px;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 8px;
             color: #667eea;
+            margin: 0;
         }
 
         /* Stats Panel */
@@ -466,44 +367,67 @@
             display: block;
             cursor: pointer;
             touch-action: manipulation;
-            width: 400px;
-            height: 400px;
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            max-height: calc(100vh - 120px);
+            border-radius: 8px;
         }
 
-        /* Map and Actions Container - side by side on desktop */
+        /* Map and Actions Container - Dashboard Grid */
         #map-actions-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 8px;
-            width: 100%;
+            display: contents;
         }
 
         #map-wrapper {
-            flex-shrink: 0;
-            width: fit-content;
-            max-width: 100%;
+            grid-area: map;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(250, 247, 240, 0.95);
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            overflow: hidden;
         }
 
         #action-panel {
-            width: 100%;
+            grid-area: actions;
+            background: rgba(250, 247, 240, 0.95);
+            border-radius: 8px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+            overflow-y: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            align-content: start;
         }
 
         /* Message Log */
         #message-log {
-            background: #2c3e50;
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44, 62, 80, 0.95);
             color: #ecf0f1;
             border-radius: 8px;
-            padding: 12px;
-            max-height: 120px;
+            padding: 8px 12px;
+            max-height: 100px;
+            max-width: 500px;
             overflow-y: auto;
-            margin-bottom: 10px;
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 600;
             line-height: 1.5;
-            transition: background 0.5s ease, color 0.5s ease;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.5s ease, color 0.5s ease, opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #message-log:empty {
+            opacity: 0;
         }
 
         .message {
@@ -531,18 +455,20 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 4px 3px;
-            font-size: 9px;
+            border-radius: 6px;
+            padding: 8px 6px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
+            justify-content: center;
+            gap: 3px;
             position: relative;
+            min-height: 50px;
             overflow: hidden;
         }
 
@@ -590,11 +516,35 @@
         }
 
         .btn-emoji {
-            font-size: 16px;
+            font-size: 18px;
+            line-height: 1;
         }
 
         .btn-text {
             font-size: 10px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Quest Panel - Footer */
+        #quest-panel {
+            background: rgba(250, 247, 240, 0.98);
+            padding: 8px 12px;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .quest-title {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        #quest-content {
+            color: #2d3436;
         }
 
         /* Dice Roller Modal */
@@ -860,32 +810,39 @@
         }
 
         /* Responsive */
-        @media (min-width: 600px) {
-            #stats-panel {
-                grid-template-columns: repeat(4, 1fr);
+        /* Desktop Dashboard Grid Layout */
+        @media (min-width: 769px) {
+            /* Ensure dashboard grid is active */
+            #game-container {
+                display: grid;
+                grid-template-rows: auto 1fr auto;
             }
 
-            #action-panel {
-                grid-template-columns: 1fr; /* Single column for desktop side layout */
-                max-width: 200px;
-                flex: 0 0 auto; /* Don't grow or shrink */
-                width: 200px;
+            #main-content {
+                display: grid;
+                grid-template-areas: "skills map actions";
+                grid-template-columns: 140px 1fr 180px;
+                gap: 8px;
             }
 
-            /* Side-by-side layout on desktop */
-            #map-actions-container {
-                flex-direction: row;
-                align-items: flex-start;
-                gap: 12px;
+            #skills-display {
+                grid-area: skills;
+                display: block;
             }
 
             #map-wrapper {
-                flex-shrink: 0;
+                grid-area: map;
+            }
+
+            #action-panel {
+                grid-area: actions;
             }
 
             #map-canvas {
-                width: 400px;
-                height: 400px;
+                width: 100%;
+                height: 100%;
+                max-width: 600px;
+                max-height: calc(100vh - 120px);
             }
         }
 
@@ -919,26 +876,41 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-        /* Skills Display */
+        /* Skills Display - Left Panel */
         #skills-display {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin: 10px 0;
-            font-size: 12px;
+            grid-area: skills;
+            background: rgba(250, 247, 240, 0.95);
+            border-radius: 8px;
+            padding: 8px;
+            overflow-y: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        .skills-title {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #667eea;
+            text-align: center;
         }
 
         .skill-item {
-            background: #f5f3ed;
-            padding: 8px;
-            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 4px 6px;
+            border-radius: 4px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 11px;
         }
 
         .skill-level {
             font-weight: bold;
             color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
         }
 
         /* Stats Grid in Header */
@@ -976,56 +948,30 @@
         }
 
         /* Desktop styles (600px and above) */
-        @media (min-width: 600px) {
-            /* Show labels on desktop for better clarity */
-            .stat-compact-label,
-            .inventory-item-label {
-                display: inline !important;
-            }
-
-            /* Better desktop layout */
-            body {
-                padding: 0;
-                overflow-y: auto;
-            }
-
-            #game-container {
-                padding: 12px;
-                min-height: 100vh;
-                max-height: none;
-                overflow-y: visible;
-            }
-
-            #game-header {
-                padding: 16px;
-                margin-bottom: 12px;
-            }
-
-            #main-content {
-                padding: 16px;
-                margin-bottom: 12px;
-            }
-
-            /* Larger fonts for desktop */
+        @media (min-width: 769px) {
+            /* Larger fonts for desktop dashboard */
             .stat-compact {
-                font-size: 11px;
-                padding: 6px 8px;
-            }
-
-            #inventory {
-                font-size: 11px;
-                padding: 8px;
+                font-size: 12px;
             }
 
             .inventory-item {
                 font-size: 11px;
-                padding: 4px 6px;
             }
 
-            /* Better weather display on desktop */
-            #weather-display {
-                font-size: 13px;
-                padding: 8px 12px;
+            .skill-item {
+                font-size: 12px;
+            }
+
+            .action-btn {
+                font-size: 12px;
+            }
+
+            .btn-emoji {
+                font-size: 20px;
+            }
+
+            .btn-text {
+                font-size: 11px;
             }
         }
 
@@ -1040,58 +986,40 @@
 
     <!-- Game Container -->
     <div id="game-container">
-        <!-- Header -->
+        <!-- Header - Dashboard Single Line -->
         <div id="game-header">
-            <div id="game-title">🐦 BIRD WINDOW RPG</div>
-
-            <!-- Quick Actions Bar -->
-            <div style="display: flex; gap: 4px; margin: 3px 0;">
-                <button onclick="newGame()" style="flex: 1; padding: 4px; background: #e74c3c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 9px;">🔄 New</button>
-                <button onclick="showTutorial(0)" style="flex: 1; padding: 4px; background: #3498db; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 9px;">❓ Help</button>
+            <div id="game-title">🐦 Lv<span id="header-level">1</span></div>
+            <span id="season-info">🌸 Spring Y<span id="header-year">1</span> D<span id="header-day">1</span></span>
+            <span id="day-time-indicator">☀️</span>
+            <span class="stat-compact">❤️<span class="stat-compact-value" id="header-health">100/100</span></span>
+            <span class="stat-compact">⚡<span class="stat-compact-value" id="header-energy">100/100</span></span>
+            <span class="stat-compact">🍖<span class="stat-compact-value" id="header-hunger">0/100</span></span>
+            <div id="inventory" style="display: flex; gap: 8px;">
+                <span class="inventory-item">🌰<span id="food-count">0</span></span>
+                <span class="inventory-item">🌿<span id="twig-count">0</span></span>
+                <span class="inventory-item">🥚<span id="egg-count">0</span></span>
+                <span class="inventory-item">📦<span id="cached-count">0</span></span>
+            </div>
+            <div style="display: flex; gap: 4px;">
+                <button onclick="newGame()" style="padding: 4px 8px; background: #e74c3c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">🔄</button>
+                <button onclick="showTutorial(0)" style="padding: 4px 8px; background: #3498db; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">❓</button>
             </div>
 
-            <!-- Season, Level & Action Info (Combined) -->
-            <div style="text-align: center; margin: 2px 0;">
-                <span id="season-info" style="display: inline-block;">🌸 Spring - Turn 1/10</span>
-                <span id="level-info" style="display: inline-block;">Level 1 Bluebird | XP: 0/100</span>
-                <span id="action-info" style="display: inline-block; font-weight: bold; color: #2980b9;">⚡ Actions: 0/5</span>
-            </div>
-
-            <!-- Compact Stats & Inventory Combined -->
-            <div style="display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin: 2px 0; font-size: 9px;">
-                <span class="stat-compact">❤️ <span class="stat-compact-label">Health:</span><span class="stat-compact-value" id="header-health">100/100</span></span>
-                <span class="stat-compact">⚡ <span class="stat-compact-label">Energy:</span><span class="stat-compact-value" id="header-energy">100/100</span></span>
-                <span class="stat-compact">🍖 <span class="stat-compact-label">Hunger:</span><span class="stat-compact-value" id="header-hunger">0/100</span></span>
-                <span class="stat-compact">⭐ <span class="stat-compact-label">Social:</span><span class="stat-compact-value" id="header-social">50/100</span></span>
-            </div>
-
+            <!-- Hidden elements for compatibility -->
+            <div id="level-info" style="display: none;">Level 1 Bluebird | XP: 0/100</div>
+            <div id="action-info" style="display: none;">⚡ Actions: 0/5</div>
+            <div id="header-social" style="display: none;">50/100</div>
             <div id="stats-grid" style="display: none;"></div>
-
-            <!-- Inventory (Inline) -->
-            <div id="inventory" style="text-align: center;">
-                <span class="inventory-item">🌰 <span class="inventory-item-label">Food:</span><span id="food-count">0</span></span>
-                <span class="inventory-item">🌿 <span class="inventory-item-label">Twigs:</span><span id="twig-count">0</span></span>
-                <span class="inventory-item">🥚 <span class="inventory-item-label">Eggs:</span><span id="egg-count">0</span></span>
-                <span class="inventory-item">📦 <span class="inventory-item-label">Cached:</span><span id="cached-count">0</span></span>
-            </div>
-
-            <!-- Family Section -->
-            <div id="family-section" style="display: none; background: linear-gradient(135deg, #ffeef8, #ffe6f0); padding: 10px; border-radius: 10px; margin-bottom: 10px; transition: background 0.5s ease, color 0.5s ease;">
-                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #c0392b;">💕 Family</div>
-                <div id="family-content" style="font-size: 12px; line-height: 1.6;"></div>
+            <div id="family-section" style="display: none;">
+                <div id="family-content"></div>
             </div>
         </div>
 
-        <!-- Main Content -->
+        <!-- Main Content - Dashboard Grid -->
         <div id="main-content">
-            <!-- Quest Panel -->
-            <div id="quest-panel" style="display: none;">
-                <div class="quest-title">📜 Active Quest</div>
-                <div id="quest-content"></div>
-            </div>
-
-            <!-- Skills (hidden by default, shown in character screen) -->
-            <div id="skills-display" style="display: none;">
+            <!-- Skills Panel (Left) -->
+            <div id="skills-display">
+                <div class="skills-title">📊 Skills</div>
                 <div class="skill-item"><span>🔍 Foraging</span><span class="skill-level" id="skill-foraging">1</span></div>
                 <div class="skill-item"><span>🏗️ Building</span><span class="skill-level" id="skill-building">1</span></div>
                 <div class="skill-item"><span>🦅 Flying</span><span class="skill-level" id="skill-flying">1</span></div>
@@ -1100,47 +1028,40 @@
                 <div class="skill-item"><span>👁️ Perception</span><span class="skill-level" id="skill-perception">1</span></div>
             </div>
 
-            <!-- Helpful Hint -->
+            <!-- Map and Actions Container -->
+            <div id="map-actions-container">
+                <!-- Canvas Map (Center) -->
+                <div id="map-wrapper">
+                    <canvas id="map-canvas" width="400" height="400"></canvas>
+                </div>
+
+                <!-- Action Panel (Right) -->
+                <div id="action-panel"></div>
+            </div>
+
+            <!-- Hidden elements for compatibility -->
             <div id="hint-box" style="display: none;">
                 <span class="hint-close" onclick="document.getElementById('hint-box').style.display='none'">✕</span>
                 <span id="hint-text">Check the Diary 📖 to see your active quests!</span>
             </div>
-
-            <!-- Weather Display -->
-            <div id="weather-display">
+            <div id="weather-display" style="display: none;">
                 <span id="weather-icon">☀️</span>
                 <span id="weather-text">Clear skies</span>
             </div>
-
-            <!-- Message Log -->
-            <div id="message-log"></div>
-
-            <!-- Map and Actions Container -->
-            <div id="map-actions-container">
-                <!-- Canvas Map (Visual) -->
-                <div id="map-wrapper">
-                    <canvas id="map-canvas" width="400" height="400" style="border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></canvas>
-                </div>
-
-                <!-- Action Panel -->
-                <div id="action-panel"></div>
-
-                <!-- Quick Stats Reference -->
-                <div id="quick-stats-ref">
-                    <div class="quick-stat-item">
-                        <span class="quick-stat-icon">❤️</span>
-                        <span class="quick-stat-value" id="quick-health">100/100</span>
-                    </div>
-                    <div class="quick-stat-item">
-                        <span class="quick-stat-icon">⚡</span>
-                        <span class="quick-stat-value" id="quick-energy">100/100</span>
-                    </div>
-                    <div class="quick-stat-item">
-                        <span class="quick-stat-icon">🍖</span>
-                        <span class="quick-stat-value" id="quick-hunger">0/100</span>
-                    </div>
-                </div>
+            <div id="quick-stats-ref" style="display: none;">
+                <div class="quick-stat-item"><span class="quick-stat-icon">❤️</span><span class="quick-stat-value" id="quick-health">100/100</span></div>
+                <div class="quick-stat-item"><span class="quick-stat-icon">⚡</span><span class="quick-stat-value" id="quick-energy">100/100</span></div>
+                <div class="quick-stat-item"><span class="quick-stat-icon">🍖</span><span class="quick-stat-value" id="quick-hunger">0/100</span></div>
             </div>
+        </div>
+
+        <!-- Message Log (Floating) -->
+        <div id="message-log"></div>
+
+        <!-- Quest Panel (Footer) -->
+        <div id="quest-panel">
+            <span class="quest-title">🎯 Quest:</span>
+            <span id="quest-content">Explore the world</span>
         </div>
     </div><!-- #game-container -->
 
@@ -1539,19 +1460,52 @@
             // Season & Level
             const seasonName = SEASONS[gameState.season];
             const seasonEmoji = SEASON_EMOJIS[seasonName];
-            document.getElementById('season-info').textContent =
-                `${seasonEmoji} ${seasonName} - Turn ${gameState.turn}/${TURNS_PER_SEASON} | Year ${gameState.year} | ${gameState.timeOfDay === 'day' ? '☀️ Day' : '🌙 Night'}`;
 
-            document.getElementById('level-info').textContent =
-                `Level ${gameState.level} ${gameState.species} | XP: ${gameState.xp}/${gameState.xpNeeded}`;
+            // Update new dashboard header elements
+            if (document.getElementById('header-level')) {
+                document.getElementById('header-level').textContent = gameState.level;
+            }
+            if (document.getElementById('header-year')) {
+                document.getElementById('header-year').textContent = gameState.year;
+            }
+            if (document.getElementById('header-day')) {
+                document.getElementById('header-day').textContent = gameState.turn;
+            }
+            if (document.getElementById('day-time-indicator')) {
+                document.getElementById('day-time-indicator').textContent = gameState.timeOfDay === 'day' ? '☀️' : '🌙';
+            }
+
+            // Update season-info for dashboard
+            const seasonInfoEl = document.getElementById('season-info');
+            if (seasonInfoEl) {
+                // Check if it contains child spans (new header) or plain text (old header)
+                if (document.getElementById('header-year')) {
+                    // New dashboard header - already updated above
+                    const seasonText = seasonInfoEl.childNodes[0];
+                    if (seasonText) {
+                        seasonText.textContent = `${seasonEmoji} ${seasonName} Y`;
+                    }
+                } else {
+                    // Old mobile header or fallback
+                    seasonInfoEl.textContent = `${seasonEmoji} ${seasonName} - Turn ${gameState.turn}/${TURNS_PER_SEASON} | Year ${gameState.year} | ${gameState.timeOfDay === 'day' ? '☀️ Day' : '🌙 Night'}`;
+                }
+            }
+
+            // Update level info (hidden in new dashboard but keep for compatibility)
+            const levelInfoEl = document.getElementById('level-info');
+            if (levelInfoEl) {
+                levelInfoEl.textContent = `Level ${gameState.level} ${gameState.species} | XP: ${gameState.xp}/${gameState.xpNeeded}`;
+            }
 
             // Action counter (with flock bonus!)
             const flockBonus = Math.min(5, gameState.flockMembers.length); // +1 action per flock member, max +5
             const effectiveMaxActions = gameState.maxActionsPerTurn + flockBonus;
             const actionsRemaining = effectiveMaxActions - gameState.actionsTakenThisTurn;
             const flockInfo = flockBonus > 0 ? ` (${gameState.maxActionsPerTurn}+${flockBonus}👥)` : '';
-            document.getElementById('action-info').textContent =
-                `⚡ Actions: ${actionsRemaining}/${effectiveMaxActions}${flockInfo}`;
+            const actionInfoEl = document.getElementById('action-info');
+            if (actionInfoEl) {
+                actionInfoEl.textContent = `⚡ Actions: ${actionsRemaining}/${effectiveMaxActions}${flockInfo}`;
+            }
 
             // Inventory
             document.getElementById('food-count').textContent = gameState.food;
